@@ -7,27 +7,28 @@
     <title>{{.Title}} - {{.AppName}}</title>
     <link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body>
-    <header class="site-header">
-        <div class="container header-inner">
-            <a class="brand" href="/">{{.AppName}}</a>
-            <nav class="site-nav" aria-label="Primary navigation">
-                <a href="/">Home</a>
-                <a href="#">Cars</a>
-                <a href="#">Bookings</a>
+<body class="min-h-screen bg-slate-50 text-slate-950 antialiased">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:px-6 md:h-20 md:flex-row md:items-center md:justify-between md:py-0 lg:px-8">
+            <a class="text-lg font-semibold tracking-tight text-slate-950" href="/">{{.AppName}}</a>
+            <nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-slate-600" aria-label="Primary navigation">
+                <a class="transition hover:text-teal-700" href="/">Home</a>
+                <a class="transition hover:text-teal-700" href="#">Cars</a>
+                <a class="transition hover:text-teal-700" href="#">Bookings</a>
             </nav>
         </div>
     </header>
 
-    <main class="site-main">
-        <div class="container">
+    <main>
+        <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
             {{template "content" .}}
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="container">
+    <footer class="border-t border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-slate-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
             <p>&copy; {{.AppName}}</p>
+            <p>Built for simple rental operations.</p>
         </div>
     </footer>
     <script src="/static/js/app.js"></script>

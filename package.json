@@ -1,0 +1,30 @@
+{
+  "name": "car-rental-web",
+  "version": "1.0.0",
+  "description": "Car rental web platform built with Go, PostgreSQL, server-side rendering, Tailwind CSS and layered architecture.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "tailwindcss -i ./web/static/css/input.css -o ./web/static/css/app.css --watch",
+    "build": "tailwindcss -i ./web/static/css/input.css -o ./web/static/css/app.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrLoony/car-rental-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MrLoony/car-rental-web/issues"
+  },
+  "homepage": "https://github.com/MrLoony/car-rental-web#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "tailwindcss": "^4.3.0"
+  }
+}
