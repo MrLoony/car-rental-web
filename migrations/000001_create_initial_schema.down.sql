@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS cars;
+DROP TABLE IF EXISTS car_categories;

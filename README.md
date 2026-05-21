@@ -49,6 +49,36 @@ To build CSS once:
 npm run build
 ```
 
+## Database Setup
+
+Start PostgreSQL with Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+Stop PostgreSQL:
+
+```bash
+docker compose down
+```
+
+## Migrations
+
+Start PostgreSQL before running migrations:
+
+```bash
+docker compose up -d
+```
+
+Run migrations using `DATABASE_URL` from `.env`:
+
+```bash
+migrate -path migrations -database "$DATABASE_URL" up
+migrate -path migrations -database "$DATABASE_URL" down 1
+migrate -path migrations -database "$DATABASE_URL" version
+```
+
 ## Implemented
 
 - Server-rendered Go application foundation

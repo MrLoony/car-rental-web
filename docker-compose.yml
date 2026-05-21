@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: car_rental_web_postgres
+    environment:
+      POSTGRES_DB: car_rental_web
+      POSTGRES_USER: car_rental_user
+      POSTGRES_PASSWORD: car_rental_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
