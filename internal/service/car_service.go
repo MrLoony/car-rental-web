@@ -17,9 +17,20 @@ func NewCarService(repo *repository.CarRepository) *CarService {
 }
 
 func (s *CarService) ListAvailableCars(ctx context.Context) ([]model.Car, error) {
-	cars, err := s.repo.ListAvailableCars(ctx)
+	cars, err := s.ListCars(ctx, model.CarFilter{Sort: model.SortNewest})
 	if err != nil {
 		return nil, fmt.Errorf("list available cars: %w", err)
+	}
+
+	return cars, nil
+}
+
+func (s *CarService) ListCars(ctx context.Context, filter model.CarFilter) ([]model.Car, error) {
+	filter.Sort = model.NormalizeCarSort(filter.Sort)
+
+	cars, err := s.repo.ListCars(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("list cars: %w", err)
 	}
 
 	return cars, nil

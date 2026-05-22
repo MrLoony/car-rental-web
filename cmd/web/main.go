@@ -27,7 +27,11 @@ func main() {
 
 	carRepository := repository.NewCarRepository(dbpool)
 	carService := service.NewCarService(carRepository)
-	appHandler := handler.New(cfg.AppName, carService)
+
+	categoryRepository := repository.NewCategoryRepository(dbpool)
+	categoryService := service.NewCategoryService(categoryRepository)
+
+	appHandler := handler.New(cfg.AppName, carService, categoryService)
 	router := appHandler.Routes()
 
 	log.Printf("starting %s in %s mode on %s", cfg.AppName, cfg.AppEnv, addr)

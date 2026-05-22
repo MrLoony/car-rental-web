@@ -9,10 +9,15 @@ import (
 )
 
 type TemplateData struct {
-	Title   string
-	AppName string
-	Cars    []model.Car
-	Car     model.Car
+	Title            string
+	AppName          string
+	Cars             []model.Car
+	Car              model.Car
+	Filter           model.CarFilter
+	Categories       []model.Category
+	FuelTypes        []string
+	Transmissions    []string
+	HasActiveFilters bool
 }
 
 func render(w http.ResponseWriter, page string, data TemplateData) error {

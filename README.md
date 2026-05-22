@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, and Tailwind-based catalog pages.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, and query-parameter catalog filtering.
 
-Booking flows, admin tools, authentication, and catalog filtering are planned but not implemented yet.
+Booking flows, admin tools, authentication, and image management are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -91,6 +91,14 @@ After starting PostgreSQL and running migrations, open the demo catalog:
 http://localhost:8080/cars
 ```
 
+The catalog supports server-rendered filtering through URL query parameters:
+
+```text
+http://localhost:8080/cars?category=suv&sort=price_desc
+```
+
+Available filters include text search, category, fuel type, transmission, and sort order. The filter form works without JavaScript; JavaScript only enhances the experience with debounced search and automatic submit for select fields.
+
 ## Implemented
 
 - Server-rendered Go application foundation
@@ -106,12 +114,17 @@ http://localhost:8080/cars
 - Repository, service, and handler flow for cars
 - Cars catalog page at `/cars`
 - Car details page at `/cars/{slug}`
+- Catalog text search
+- Category, fuel, and transmission filters
+- Price sorting
+- Query-parameter based catalog filtering
+- Progressive JavaScript enhancement with no-JS fallback
 - Health endpoint at `/health`
 
 ## Planned
 
-- Filters, search, and sorting
 - Booking requests
 - Admin dashboard
 - Authentication
 - Image upload or asset management
+- Pagination

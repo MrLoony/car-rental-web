@@ -9,6 +9,64 @@
     </div>
 </section>
 
+<form class="mb-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" method="GET" action="/cars" data-filter-form>
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div class="lg:col-span-2">
+            <label class="block text-sm font-medium text-slate-700" for="search">Search</label>
+            <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="search" name="search" type="search" value="{{.Filter.Search}}" placeholder="Search by brand or model" data-filter-search>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="category">Category</label>
+            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="category" name="category" data-filter-select>
+                <option value="">All categories</option>
+                {{range .Categories}}
+                <option value="{{.Slug}}" {{if eq $.Filter.CategorySlug .Slug}}selected{{end}}>{{.Name}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="fuel">Fuel</label>
+            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="fuel" name="fuel" data-filter-select>
+                <option value="">Any fuel</option>
+                {{range .FuelTypes}}
+                <option value="{{.}}" {{if eq $.Filter.FuelType .}}selected{{end}}>{{.}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="transmission">Transmission</label>
+            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="transmission" name="transmission" data-filter-select>
+                <option value="">Any type</option>
+                {{range .Transmissions}}
+                <option value="{{.}}" {{if eq $.Filter.Transmission .}}selected{{end}}>{{.}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="sort">Sort</label>
+            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="sort" name="sort" data-filter-select>
+                <option value="newest" {{if eq .Filter.Sort "newest"}}selected{{end}}>Newest</option>
+                <option value="price_asc" {{if eq .Filter.Sort "price_asc"}}selected{{end}}>Price: low to high</option>
+                <option value="price_desc" {{if eq .Filter.Sort "price_desc"}}selected{{end}}>Price: high to low</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button class="inline-flex items-center justify-center rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-70" type="submit" data-filter-submit>
+            Apply filters
+        </button>
+        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars" data-filter-reset>
+            Reset
+        </a>
+        <p class="hidden text-sm text-slate-500" data-filter-status aria-live="polite">Updating results...</p>
+    </div>
+</form>
+
 {{if .Cars}}
 <section class="grid gap-5 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars">
     {{range .Cars}}
@@ -60,10 +118,20 @@
 </section>
 {{else}}
 <section class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+    {{if .HasActiveFilters}}
+    <h2 class="text-xl font-semibold text-slate-950">No cars match your filters</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+        Try adjusting your search or clearing filters.
+    </p>
+    <a class="mt-6 inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars">
+        Reset filters
+    </a>
+    {{else}}
     <h2 class="text-xl font-semibold text-slate-950">No cars available yet</h2>
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
         The catalog is connected to the database, but seed data has not been added yet.
     </p>
+    {{end}}
 </section>
 {{end}}
 {{end}}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/jackc/pgx/v5"
@@ -21,7 +22,12 @@ func NewCarRepository(db *pgxpool.Pool) *CarRepository {
 }
 
 func (r *CarRepository) ListAvailableCars(ctx context.Context) ([]model.Car, error) {
-	const query = `
+	return r.ListCars(ctx, model.CarFilter{Sort: model.SortNewest})
+}
+
+func (r *CarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([]model.Car, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT
 			c.id,
 			c.category_id,
@@ -41,12 +47,47 @@ func (r *CarRepository) ListAvailableCars(ctx context.Context) ([]model.Car, err
 		FROM cars c
 		JOIN car_categories cc ON cc.id = c.category_id
 		WHERE c.is_available = TRUE
-		ORDER BY c.created_at DESC, c.id DESC
-	`
+	`)
 
-	rows, err := r.db.Query(ctx, query)
+	args := make([]any, 0)
+
+	addFilter := func(condition string, value any) {
+		args = append(args, value)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf(condition, len(args)))
+	}
+
+	if filter.Search != "" {
+		args = append(args, "%"+filter.Search+"%")
+		placeholder := len(args)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf("(c.brand ILIKE $%d OR c.model ILIKE $%d)", placeholder, placeholder))
+	}
+
+	if filter.CategorySlug != "" {
+		addFilter("cc.slug = $%d", filter.CategorySlug)
+	}
+
+	if filter.FuelType != "" {
+		addFilter("c.fuel_type = $%d", filter.FuelType)
+	}
+
+	if filter.Transmission != "" {
+		addFilter("c.transmission = $%d", filter.Transmission)
+	}
+
+	switch model.NormalizeCarSort(filter.Sort) {
+	case model.SortPriceAsc:
+		query.WriteString(" ORDER BY c.price_per_day ASC, c.id DESC")
+	case model.SortPriceDesc:
+		query.WriteString(" ORDER BY c.price_per_day DESC, c.id DESC")
+	default:
+		query.WriteString(" ORDER BY c.created_at DESC, c.id DESC")
+	}
+
+	rows, err := r.db.Query(ctx, query.String(), args...)
 	if err != nil {
-		return nil, fmt.Errorf("list available cars: %w", err)
+		return nil, fmt.Errorf("list cars: %w", err)
 	}
 	defer rows.Close()
 
@@ -54,14 +95,14 @@ func (r *CarRepository) ListAvailableCars(ctx context.Context) ([]model.Car, err
 	for rows.Next() {
 		var car model.Car
 		if err := scanCar(rows, &car); err != nil {
-			return nil, fmt.Errorf("scan available car: %w", err)
+			return nil, fmt.Errorf("scan car: %w", err)
 		}
 
 		cars = append(cars, car)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate available cars: %w", err)
+		return nil, fmt.Errorf("iterate cars: %w", err)
 	}
 
 	return cars, nil

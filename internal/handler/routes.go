@@ -8,14 +8,16 @@ import (
 )
 
 type Handler struct {
-	appName    string
-	carService *service.CarService
+	appName         string
+	carService      *service.CarService
+	categoryService *service.CategoryService
 }
 
-func New(appName string, carService *service.CarService) *Handler {
+func New(appName string, carService *service.CarService, categoryService *service.CategoryService) *Handler {
 	return &Handler{
-		appName:    appName,
-		carService: carService,
+		appName:         appName,
+		carService:      carService,
+		categoryService: categoryService,
 	}
 }
 
