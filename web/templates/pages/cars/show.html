@@ -1,0 +1,56 @@
+{{define "content"}}
+<a class="inline-flex text-sm font-medium text-teal-700 transition hover:text-teal-800" href="/cars">
+    Back to cars
+</a>
+
+<section class="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {{if .Car.ImageURL}}
+        <img class="h-80 w-full object-cover" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}">
+        {{else}}
+        <div class="flex h-80 w-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
+            Image coming soon
+        </div>
+        {{end}}
+    </div>
+
+    <div>
+        <div class="flex flex-wrap items-center gap-3">
+            <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">{{.Car.CategoryName}}</p>
+            {{if .Car.IsAvailable}}
+            <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">Available</span>
+            {{else}}
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">Unavailable</span>
+            {{end}}
+        </div>
+
+        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            {{.Car.Brand}} {{.Car.Model}}
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">{{.Car.Year}} · {{.Car.CategoryName}}</p>
+
+        <p class="mt-8 text-3xl font-semibold text-slate-950">
+            ${{printf "%.2f" .Car.PricePerDay}}<span class="text-base font-normal text-slate-500"> / day</span>
+        </p>
+
+        <dl class="mt-8 grid gap-4 sm:grid-cols-3">
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+                <dt class="text-sm text-slate-500">Transmission</dt>
+                <dd class="mt-1 font-semibold text-slate-900">{{.Car.Transmission}}</dd>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+                <dt class="text-sm text-slate-500">Fuel type</dt>
+                <dd class="mt-1 font-semibold text-slate-900">{{.Car.FuelType}}</dd>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-white p-4">
+                <dt class="text-sm text-slate-500">Seats</dt>
+                <dd class="mt-1 font-semibold text-slate-900">{{.Car.Seats}}</dd>
+            </div>
+        </dl>
+
+        <a class="mt-8 inline-flex w-full items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:w-auto" href="#">
+            Request booking
+        </a>
+    </div>
+</section>
+{{end}}

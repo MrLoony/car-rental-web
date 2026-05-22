@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func Health() http.HandlerFunc {
+func (h *Handler) Health() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "OK")
 	}

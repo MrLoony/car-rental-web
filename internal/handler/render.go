@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"html/template"
 	"net/http"
+
+	"github.com/MrLoony/car-rental-web/internal/model"
 )
 
 type TemplateData struct {
 	Title   string
 	AppName string
+	Cars    []model.Car
+	Car     model.Car
 }
 
 func render(w http.ResponseWriter, page string, data TemplateData) error {

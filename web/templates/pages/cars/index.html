@@ -1,0 +1,69 @@
+{{define "content"}}
+<section class="py-4 sm:py-8">
+    <div class="max-w-2xl">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">Catalog</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Available cars</h1>
+        <p class="mt-5 text-lg leading-8 text-slate-600">
+            Browse available rental vehicles. Filters and booking requests will be added in later stages.
+        </p>
+    </div>
+</section>
+
+{{if .Cars}}
+<section class="grid gap-5 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars">
+    {{range .Cars}}
+    <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {{if .ImageURL}}
+        <img class="h-48 w-full object-cover" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}">
+        {{else}}
+        <div class="flex h-48 w-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
+            Image coming soon
+        </div>
+        {{end}}
+
+        <div class="p-5">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-950">{{.Brand}} {{.Model}}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{.Year}} · {{.CategoryName}}</p>
+                </div>
+                {{if .IsAvailable}}
+                <span class="shrink-0 rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">Available</span>
+                {{else}}
+                <span class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">Unavailable</span>
+                {{end}}
+            </div>
+
+            <p class="mt-5 text-2xl font-semibold text-slate-950">${{printf "%.2f" .PricePerDay}}<span class="text-sm font-normal text-slate-500"> / day</span></p>
+
+            <dl class="mt-5 grid grid-cols-3 gap-3 text-sm">
+                <div class="rounded-lg bg-slate-50 p-3">
+                    <dt class="text-slate-500">Transmission</dt>
+                    <dd class="mt-1 font-medium text-slate-800">{{.Transmission}}</dd>
+                </div>
+                <div class="rounded-lg bg-slate-50 p-3">
+                    <dt class="text-slate-500">Fuel</dt>
+                    <dd class="mt-1 font-medium text-slate-800">{{.FuelType}}</dd>
+                </div>
+                <div class="rounded-lg bg-slate-50 p-3">
+                    <dt class="text-slate-500">Seats</dt>
+                    <dd class="mt-1 font-medium text-slate-800">{{.Seats}}</dd>
+                </div>
+            </dl>
+
+            <a class="mt-6 inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars/{{.Slug}}">
+                View details
+            </a>
+        </div>
+    </article>
+    {{end}}
+</section>
+{{else}}
+<section class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+    <h2 class="text-xl font-semibold text-slate-950">No cars available yet</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+        The catalog is connected to the database, but seed data has not been added yet.
+    </p>
+</section>
+{{end}}
+{{end}}

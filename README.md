@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently has the application foundation in place: configuration loading, Chi routing, HTML templates, static assets, and a Tailwind CSS frontend setup.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, and Tailwind-based catalog pages.
 
-Database integration and rental business logic are planned but not implemented yet.
+Booking flows, admin tools, authentication, and catalog filtering are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -11,15 +11,19 @@ Database integration and rental business logic are planned but not implemented y
 - HTML Templates
 - Tailwind CSS
 - JavaScript
-- PostgreSQL planned
+- PostgreSQL
 
 ## Project Structure
 
 - `cmd/web` - application entry point
 - `internal/config` - environment configuration loading
+- `internal/database` - PostgreSQL connection setup
 - `internal/handler` - routes, handlers, and template rendering
+- `internal/repository` - database access layer
+- `internal/service` - application service layer
 - `web/templates` - server-rendered HTML templates
 - `web/static` - CSS, JavaScript, and image assets
+- `migrations` - database schema and demo data migrations
 
 ## Development Setup
 
@@ -79,6 +83,14 @@ migrate -path migrations -database "$DATABASE_URL" down 1
 migrate -path migrations -database "$DATABASE_URL" version
 ```
 
+## Catalog
+
+After starting PostgreSQL and running migrations, open the demo catalog:
+
+```text
+http://localhost:8080/cars
+```
+
 ## Implemented
 
 - Server-rendered Go application foundation
@@ -87,11 +99,19 @@ migrate -path migrations -database "$DATABASE_URL" version
 - Tailwind CSS build/watch workflow
 - Static file serving
 - Environment configuration loading
+- PostgreSQL integration with `pgxpool`
+- Docker Compose database setup
+- Database migrations
+- Seeded demo car catalog data
+- Repository, service, and handler flow for cars
+- Cars catalog page at `/cars`
+- Car details page at `/cars/{slug}`
 - Health endpoint at `/health`
 
 ## Planned
 
-- Cars catalog
+- Filters, search, and sorting
 - Booking requests
-- PostgreSQL integration
 - Admin dashboard
+- Authentication
+- Image upload or asset management

@@ -8,6 +8,8 @@ import (
 	"github.com/MrLoony/car-rental-web/internal/config"
 	"github.com/MrLoony/car-rental-web/internal/database"
 	"github.com/MrLoony/car-rental-web/internal/handler"
+	"github.com/MrLoony/car-rental-web/internal/repository"
+	"github.com/MrLoony/car-rental-web/internal/service"
 )
 
 func main() {
@@ -23,7 +25,10 @@ func main() {
 
 	log.Println("database connection established")
 
-	router := handler.Routes(cfg.AppName)
+	carRepository := repository.NewCarRepository(dbpool)
+	carService := service.NewCarService(carRepository)
+	appHandler := handler.New(cfg.AppName, carService)
+	router := appHandler.Routes()
 
 	log.Printf("starting %s in %s mode on %s", cfg.AppName, cfg.AppEnv, addr)
 
