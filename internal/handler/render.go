@@ -18,9 +18,15 @@ type TemplateData struct {
 	FuelTypes        []string
 	Transmissions    []string
 	HasActiveFilters bool
+	BookingForm      model.BookingForm
+	BookingID        int64
 }
 
 func render(w http.ResponseWriter, page string, data TemplateData) error {
+	return renderWithStatus(w, page, data, http.StatusOK)
+}
+
+func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, status int) error {
 	tmpl, err := template.ParseFiles(
 		"web/templates/layouts/base.html",
 		"web/templates/pages/"+page,
@@ -35,7 +41,7 @@ func render(w http.ResponseWriter, page string, data TemplateData) error {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	_, err = buf.WriteTo(w)
 	return err
 }

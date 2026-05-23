@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, and query-parameter catalog filtering.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, and a booking request flow.
 
-Booking flows, admin tools, authentication, and image management are planned but not implemented yet.
+Admin tools, authentication, availability conflict checking, notifications, and image management are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -99,6 +99,16 @@ http://localhost:8080/cars?category=suv&sort=price_desc
 
 Available filters include text search, category, fuel type, transmission, and sort order. The filter form works without JavaScript; JavaScript only enhances the experience with debounced search and automatic submit for select fields.
 
+## Bookings
+
+Booking requests can be started from a car details page:
+
+```text
+http://localhost:8080/cars/toyota-corolla/book
+```
+
+The booking form is server-rendered and works without JavaScript. Backend validation is the source of truth. Rentals are billed in 24-hour periods using `ceil(duration_hours / 24)`, with a minimum of one billing day. The estimated total is calculated as `billing_days * price_per_day`, and new booking requests are saved with `pending` status.
+
 ## Implemented
 
 - Server-rendered Go application foundation
@@ -119,12 +129,21 @@ Available filters include text search, category, fuel type, transmission, and so
 - Price sorting
 - Query-parameter based catalog filtering
 - Progressive JavaScript enhancement with no-JS fallback
+- Booking request form
+- Backend booking validation
+- 24-hour rental billing calculation
+- Estimated total calculation
+- Booking persistence in PostgreSQL
+- Booking success page
+- JavaScript booking price preview
 - Health endpoint at `/health`
 
 ## Planned
 
-- Booking requests
 - Admin dashboard
 - Authentication
+- Availability conflict checking
+- Email notifications
 - Image upload or asset management
+- Payments
 - Pagination

@@ -1,0 +1,106 @@
+{{define "content"}}
+<a class="inline-flex text-sm font-medium text-teal-700 transition hover:text-teal-800" href="/cars/{{.Car.Slug}}">
+    Back to car details
+</a>
+
+<section class="mt-6 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+    <aside class="h-fit rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Booking request</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+            {{.Car.Brand}} {{.Car.Model}}
+        </h1>
+        <p class="mt-2 text-sm text-slate-500">{{.Car.Year}} · {{.Car.CategoryName}}</p>
+
+        <p class="mt-6 text-3xl font-semibold text-slate-950">
+            ${{printf "%.2f" .Car.PricePerDay}}<span class="text-base font-normal text-slate-500"> / day</span>
+        </p>
+        <p class="mt-4 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+            Rentals are billed in 24-hour periods. Partial periods are rounded up to the next full day.
+        </p>
+    </aside>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Send booking request</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+            Share your contact details and rental times. Requests are reviewed before confirmation.
+        </p>
+
+        <form class="mt-6 space-y-5" method="POST" action="/cars/{{.Car.Slug}}/book" data-booking-form data-price-per-day="{{printf "%.2f" .Car.PricePerDay}}">
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="customer_name">Name</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_name" name="customer_name" type="text" value="{{.BookingForm.CustomerName}}" autocomplete="name">
+                {{with index .BookingForm.Errors "customer_name"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700" for="customer_email">Email</label>
+                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_email" name="customer_email" type="email" value="{{.BookingForm.CustomerEmail}}" autocomplete="email">
+                    {{with index .BookingForm.Errors "customer_email"}}
+                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    {{end}}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700" for="customer_phone">Phone</label>
+                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_phone" name="customer_phone" type="tel" value="{{.BookingForm.CustomerPhone}}" autocomplete="tel">
+                    {{with index .BookingForm.Errors "customer_phone"}}
+                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700" for="pickup_at">Pickup time</label>
+                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="pickup_at" name="pickup_at" type="datetime-local" value="{{.BookingForm.PickupAt}}" data-pickup-input>
+                    {{with index .BookingForm.Errors "pickup_at"}}
+                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    {{end}}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700" for="return_at">Return time</label>
+                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="return_at" name="return_at" type="datetime-local" value="{{.BookingForm.ReturnAt}}" data-return-input>
+                    {{with index .BookingForm.Errors "return_at"}}
+                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    {{end}}
+                </div>
+            </div>
+
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4" data-booking-preview>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <p class="text-sm text-slate-500">Billing days</p>
+                        <p class="mt-1 text-2xl font-semibold text-slate-950" data-billing-days>--</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Estimated total</p>
+                        <p class="mt-1 text-2xl font-semibold text-slate-950" data-estimated-total>--</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-sm leading-6 text-slate-600" data-booking-warning>
+                    Select pickup and return times to see an estimate.
+                </p>
+                <p class="mt-2 text-xs font-medium text-slate-500">
+                    Minimum billing period is 24 hours.
+                </p>
+                <p class="mt-1 text-xs text-slate-500">
+                    This browser estimate is for convenience; final validation and billing are calculated when you submit.
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="message">Message</label>
+                <textarea class="mt-2 min-h-32 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="message" name="message" placeholder="Optional notes about your rental request">{{.BookingForm.Message}}</textarea>
+            </div>
+
+            <button class="inline-flex w-full items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:w-auto" type="submit">
+                Send booking request
+            </button>
+        </form>
+    </div>
+</section>
+{{end}}

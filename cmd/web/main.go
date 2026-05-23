@@ -31,7 +31,10 @@ func main() {
 	categoryRepository := repository.NewCategoryRepository(dbpool)
 	categoryService := service.NewCategoryService(categoryRepository)
 
-	appHandler := handler.New(cfg.AppName, carService, categoryService)
+	bookingRepository := repository.NewBookingRepository(dbpool)
+	bookingService := service.NewBookingService(bookingRepository)
+
+	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService)
 	router := appHandler.Routes()
 
 	log.Printf("starting %s in %s mode on %s", cfg.AppName, cfg.AppEnv, addr)
