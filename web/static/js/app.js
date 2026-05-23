@@ -135,8 +135,22 @@
         return `$${amount.toFixed(2)}`;
     }
 
+    function initAdminStatusConfirm() {
+        const form = document.querySelector("[data-admin-status-form]");
+        if (!form) {
+            return;
+        }
+
+        form.addEventListener("submit", (event) => {
+            if (!window.confirm("Update booking status?")) {
+                event.preventDefault();
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         initCatalogFilters();
         initBookingPreview();
+        initAdminStatusConfirm();
     });
 })();

@@ -40,7 +40,7 @@ func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form 
 		BillingDays:    billingDays,
 		EstimatedTotal: float64(billingDays) * car.PricePerDay,
 		Message:        form.Message,
-		Status:         "pending",
+		Status:         model.BookingStatusPending,
 	}
 
 	id, err := s.repo.CreateBooking(ctx, booking)
@@ -49,6 +49,36 @@ func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form 
 	}
 
 	return id, form, nil
+}
+
+func (s *BookingService) ListBookings(ctx context.Context) ([]model.BookingAdminView, error) {
+	bookings, err := s.repo.ListBookings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list bookings: %w", err)
+	}
+
+	return bookings, nil
+}
+
+func (s *BookingService) GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error) {
+	booking, err := s.repo.GetBookingByID(ctx, id)
+	if err != nil {
+		return model.BookingAdminView{}, fmt.Errorf("get booking by id: %w", err)
+	}
+
+	return booking, nil
+}
+
+func (s *BookingService) UpdateBookingStatus(ctx context.Context, id int64, status string) error {
+	if !model.IsValidBookingStatus(status) {
+		return fmt.Errorf("invalid booking status: %s", status)
+	}
+
+	if err := s.repo.UpdateBookingStatus(ctx, id, status); err != nil {
+		return fmt.Errorf("update booking status: %w", err)
+	}
+
+	return nil
 }
 
 func normalizeBookingForm(form model.BookingForm) model.BookingForm {

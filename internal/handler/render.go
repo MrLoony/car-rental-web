@@ -2,8 +2,10 @@ package handler
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 )
@@ -20,6 +22,9 @@ type TemplateData struct {
 	HasActiveFilters bool
 	BookingForm      model.BookingForm
 	BookingID        int64
+	AdminBookings    []model.BookingAdminView
+	AdminBooking     model.BookingAdminView
+	BookingStatuses  []string
 }
 
 func render(w http.ResponseWriter, page string, data TemplateData) error {
@@ -27,7 +32,10 @@ func render(w http.ResponseWriter, page string, data TemplateData) error {
 }
 
 func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, status int) error {
-	tmpl, err := template.ParseFiles(
+	tmpl, err := template.New("").Funcs(template.FuncMap{
+		"formatDateTime": formatDateTime,
+		"formatMoney":    formatMoney,
+	}).ParseFiles(
 		"web/templates/layouts/base.html",
 		"web/templates/pages/"+page,
 	)
@@ -44,4 +52,16 @@ func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, sta
 	w.WriteHeader(status)
 	_, err = buf.WriteTo(w)
 	return err
+}
+
+func formatDateTime(value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+
+	return value.Format("Jan 02, 2006 15:04")
+}
+
+func formatMoney(value float64) string {
+	return fmt.Sprintf("$%.2f", value)
 }

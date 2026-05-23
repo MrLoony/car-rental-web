@@ -36,6 +36,10 @@ func (h *Handler) Routes() http.Handler {
 	r.Post("/cars/{slug}/book", h.BookingCreate())
 	r.Get("/cars/{slug}", h.CarsShow())
 	r.Get("/bookings/success", h.BookingSuccess())
+	r.Get("/admin", h.AdminIndex())
+	r.Get("/admin/bookings", h.AdminBookingsIndex())
+	r.Get("/admin/bookings/{id}", h.AdminBookingsShow())
+	r.Post("/admin/bookings/{id}/status", h.AdminBookingStatusUpdate())
 
 	return r
 }

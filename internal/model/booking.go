@@ -2,6 +2,13 @@ package model
 
 import "time"
 
+const (
+	BookingStatusPending   = "pending"
+	BookingStatusConfirmed = "confirmed"
+	BookingStatusCancelled = "cancelled"
+	BookingStatusCompleted = "completed"
+)
+
 // Booking represents a customer rental booking.
 type Booking struct {
 	ID    int64
@@ -22,4 +29,13 @@ type Booking struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+func IsValidBookingStatus(status string) bool {
+	switch status {
+	case BookingStatusPending, BookingStatusConfirmed, BookingStatusCancelled, BookingStatusCompleted:
+		return true
+	default:
+		return false
+	}
 }

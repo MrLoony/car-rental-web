@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, and a booking request flow.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, and a basic admin booking dashboard.
 
-Admin tools, authentication, availability conflict checking, notifications, and image management are planned but not implemented yet.
+Authentication, availability conflict checking, notifications, and image management are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -109,6 +109,16 @@ http://localhost:8080/cars/toyota-corolla/book
 
 The booking form is server-rendered and works without JavaScript. Backend validation is the source of truth. Rentals are billed in 24-hour periods using `ceil(duration_hours / 24)`, with a minimum of one billing day. The estimated total is calculated as `billing_days * price_per_day`, and new booking requests are saved with `pending` status.
 
+## Admin
+
+The admin dashboard is available at:
+
+```text
+http://localhost:8080/admin
+```
+
+Current admin pages include a booking requests list, booking detail page, and status update form. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Authentication is not implemented yet.
+
 ## Implemented
 
 - Server-rendered Go application foundation
@@ -136,11 +146,14 @@ The booking form is server-rendered and works without JavaScript. Backend valida
 - Booking persistence in PostgreSQL
 - Booking success page
 - JavaScript booking price preview
+- Admin dashboard
+- Admin booking requests list
+- Admin booking detail page
+- Admin booking status updates
 - Health endpoint at `/health`
 
 ## Planned
 
-- Admin dashboard
 - Authentication
 - Availability conflict checking
 - Email notifications
