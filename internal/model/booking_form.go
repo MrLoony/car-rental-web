@@ -9,7 +9,8 @@ type BookingForm struct {
 	PickupAt string
 	ReturnAt string
 
-	Message string
+	Message           string
+	SuggestedPickupAt string
 
 	Errors map[string]string
 }

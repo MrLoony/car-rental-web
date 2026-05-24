@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -58,6 +60,68 @@ func (r *BookingRepository) CreateBooking(ctx context.Context, booking model.Boo
 	}
 
 	return id, nil
+}
+
+func (r *BookingRepository) HasBookingConflict(ctx context.Context, carID int64, pickupAt time.Time, returnAt time.Time, bufferHours int) (bool, error) {
+	const query = `
+		SELECT EXISTS (
+			SELECT 1
+			FROM bookings b
+			WHERE b.car_id = $1
+				AND b.status IN ($2, $3)
+				AND $4 < b.return_at + ($6 * interval '1 hour')
+				AND $5 > b.pickup_at
+		)
+	`
+
+	var hasConflict bool
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		carID,
+		model.BookingStatusPending,
+		model.BookingStatusConfirmed,
+		pickupAt,
+		returnAt,
+		bufferHours,
+	).Scan(&hasConflict)
+	if err != nil {
+		return false, fmt.Errorf("check booking conflict: %w", err)
+	}
+
+	return hasConflict, nil
+}
+
+func (r *BookingRepository) FindNextAvailablePickupAt(ctx context.Context, carID int64, pickupAt time.Time, returnAt time.Time, bufferHours int) (time.Time, bool, error) {
+	const query = `
+		SELECT MAX(b.return_at + ($6 * interval '1 hour'))
+		FROM bookings b
+		WHERE b.car_id = $1
+			AND b.status IN ($2, $3)
+			AND $4 < b.return_at + ($6 * interval '1 hour')
+			AND $5 > b.pickup_at
+	`
+
+	var suggestedAt pgtype.Timestamptz
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		carID,
+		model.BookingStatusPending,
+		model.BookingStatusConfirmed,
+		pickupAt,
+		returnAt,
+		bufferHours,
+	).Scan(&suggestedAt)
+	if err != nil {
+		return time.Time{}, false, fmt.Errorf("find next available pickup time: %w", err)
+	}
+
+	if !suggestedAt.Valid {
+		return time.Time{}, false, nil
+	}
+
+	return suggestedAt.Time, true, nil
 }
 
 func (r *BookingRepository) ListBookings(ctx context.Context) ([]model.BookingAdminView, error) {

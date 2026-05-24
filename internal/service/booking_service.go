@@ -29,6 +29,24 @@ func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form 
 		return 0, form, nil
 	}
 
+	hasConflict, err := s.repo.HasBookingConflict(ctx, car.ID, pickupAt, returnAt, model.BookingReturnBufferHours)
+	if err != nil {
+		return 0, form, fmt.Errorf("check booking availability: %w", err)
+	}
+
+	if hasConflict {
+		suggestedAt, found, err := s.repo.FindNextAvailablePickupAt(ctx, car.ID, pickupAt, returnAt, model.BookingReturnBufferHours)
+		if err != nil {
+			return 0, form, fmt.Errorf("find next available pickup time: %w", err)
+		}
+		if found {
+			form.SuggestedPickupAt = suggestedAt.Format("Jan 02, 2006 15:04")
+		}
+
+		form.Errors["pickup_at"] = "This car is unavailable for the selected period. Please choose another pickup or return time."
+		return 0, form, nil
+	}
+
 	billingDays := calculateBillingDays(pickupAt, returnAt)
 	booking := model.Booking{
 		CarID:          car.ID,

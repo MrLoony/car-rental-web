@@ -7,6 +7,8 @@ const (
 	BookingStatusConfirmed = "confirmed"
 	BookingStatusCancelled = "cancelled"
 	BookingStatusCompleted = "completed"
+
+	BookingReturnBufferHours = 4
 )
 
 // Booking represents a customer rental booking.
@@ -34,6 +36,15 @@ type Booking struct {
 func IsValidBookingStatus(status string) bool {
 	switch status {
 	case BookingStatusPending, BookingStatusConfirmed, BookingStatusCancelled, BookingStatusCompleted:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsBlockingBookingStatus(status string) bool {
+	switch status {
+	case BookingStatusPending, BookingStatusConfirmed:
 		return true
 	default:
 		return false

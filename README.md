@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, and a basic admin booking dashboard.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, and a basic admin booking dashboard.
 
-Authentication, availability conflict checking, notifications, and image management are planned but not implemented yet.
+Authentication, notifications, and image management are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -109,6 +109,8 @@ http://localhost:8080/cars/toyota-corolla/book
 
 The booking form is server-rendered and works without JavaScript. Backend validation is the source of truth. Rentals are billed in 24-hour periods using `ceil(duration_hours / 24)`, with a minimum of one billing day. The estimated total is calculated as `billing_days * price_per_day`, and new booking requests are saved with `pending` status.
 
+Availability is checked before a booking request is saved. `pending` and `confirmed` bookings block overlapping requests, while `cancelled` and `completed` bookings do not. After a return time, the car remains unavailable for 4 hours to allow for possible late return, cleaning, washing, inspection, and preparation. When a selected period is unavailable, the form shows the nearest available pickup time when one can be calculated.
+
 ## Admin
 
 The admin dashboard is available at:
@@ -146,6 +148,9 @@ Current admin pages include a booking requests list, booking detail page, and st
 - Booking persistence in PostgreSQL
 - Booking success page
 - JavaScript booking price preview
+- Availability conflict checking
+- 4-hour return/preparation buffer
+- Nearest available pickup suggestion
 - Admin dashboard
 - Admin booking requests list
 - Admin booking detail page
@@ -155,7 +160,7 @@ Current admin pages include a booking requests list, booking detail page, and st
 ## Planned
 
 - Authentication
-- Availability conflict checking
+- Advanced availability window search
 - Email notifications
 - Image upload or asset management
 - Payments
