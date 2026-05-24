@@ -24,7 +24,7 @@ func (h *Handler) AdminBookingsIndex() http.HandlerFunc {
 			AdminBookings: bookings,
 		}
 
-		if err := render(w, "admin/bookings/index.html", data); err != nil {
+		if err := h.render(w, r, "admin/bookings/index.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
@@ -55,7 +55,7 @@ func (h *Handler) AdminBookingsShow() http.HandlerFunc {
 			BookingStatuses: bookingStatusOptions(),
 		}
 
-		if err := render(w, "admin/bookings/show.html", data); err != nil {
+		if err := h.render(w, r, "admin/bookings/show.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}

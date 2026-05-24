@@ -9,7 +9,7 @@ func (h *Handler) AdminIndex() http.HandlerFunc {
 			AppName: h.appName,
 		}
 
-		if err := render(w, "admin/index.html", data); err != nil {
+		if err := h.render(w, r, "admin/index.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}

@@ -42,7 +42,7 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 			HasActiveFilters: hasActiveCarFilters(filter),
 		}
 
-		if err := render(w, "cars/index.html", data); err != nil {
+		if err := h.render(w, r, "cars/index.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
@@ -77,7 +77,7 @@ func (h *Handler) CarsShow() http.HandlerFunc {
 			Car:     car,
 		}
 
-		if err := render(w, "cars/show.html", data); err != nil {
+		if err := h.render(w, r, "cars/show.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}

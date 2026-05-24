@@ -24,7 +24,7 @@ func (h *Handler) BookingNew() http.HandlerFunc {
 			BookingForm: model.NewBookingForm(),
 		}
 
-		if err := render(w, "bookings/new.html", data); err != nil {
+		if err := h.render(w, r, "bookings/new.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
@@ -65,7 +65,7 @@ func (h *Handler) BookingCreate() http.HandlerFunc {
 				BookingForm: form,
 			}
 
-			if err := renderWithStatus(w, "bookings/new.html", data, http.StatusUnprocessableEntity); err != nil {
+			if err := h.renderWithStatus(w, r, "bookings/new.html", data, http.StatusUnprocessableEntity); err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			}
 			return
@@ -91,7 +91,7 @@ func (h *Handler) BookingSuccess() http.HandlerFunc {
 			BookingID: bookingID,
 		}
 
-		if err := render(w, "bookings/success.html", data); err != nil {
+		if err := h.render(w, r, "bookings/success.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/MrLoony/car-rental-web/internal/handler"
 	"github.com/MrLoony/car-rental-web/internal/repository"
 	"github.com/MrLoony/car-rental-web/internal/service"
+	"github.com/gorilla/sessions"
 )
 
 func main() {
@@ -34,7 +35,18 @@ func main() {
 	bookingRepository := repository.NewBookingRepository(dbpool)
 	bookingService := service.NewBookingService(bookingRepository)
 
-	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService)
+	adminUserRepository := repository.NewAdminUserRepository(dbpool)
+	authService := service.NewAuthService(adminUserRepository)
+
+	sessionStore := sessions.NewCookieStore([]byte(cfg.SessionSecret))
+	sessionStore.Options = &sessions.Options{
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
+	}
+
+	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService, authService, sessionStore)
 	router := appHandler.Routes()
 
 	log.Printf("starting %s in %s mode on %s", cfg.AppName, cfg.AppEnv, addr)

@@ -11,20 +11,31 @@ import (
 )
 
 type TemplateData struct {
-	Title            string
-	AppName          string
-	Cars             []model.Car
-	Car              model.Car
-	Filter           model.CarFilter
-	Categories       []model.Category
-	FuelTypes        []string
-	Transmissions    []string
-	HasActiveFilters bool
-	BookingForm      model.BookingForm
-	BookingID        int64
-	AdminBookings    []model.BookingAdminView
-	AdminBooking     model.BookingAdminView
-	BookingStatuses  []string
+	Title                string
+	AppName              string
+	Cars                 []model.Car
+	Car                  model.Car
+	Filter               model.CarFilter
+	Categories           []model.Category
+	FuelTypes            []string
+	Transmissions        []string
+	HasActiveFilters     bool
+	BookingForm          model.BookingForm
+	BookingID            int64
+	AdminBookings        []model.BookingAdminView
+	AdminBooking         model.BookingAdminView
+	BookingStatuses      []string
+	LoginForm            model.LoginForm
+	IsAdminAuthenticated bool
+}
+
+func (h *Handler) render(w http.ResponseWriter, r *http.Request, page string, data TemplateData) error {
+	return h.renderWithStatus(w, r, page, data, http.StatusOK)
+}
+
+func (h *Handler) renderWithStatus(w http.ResponseWriter, r *http.Request, page string, data TemplateData, status int) error {
+	data.IsAdminAuthenticated = h.isAdminAuthenticated(r)
+	return renderWithStatus(w, page, data, status)
 }
 
 func render(w http.ResponseWriter, page string, data TemplateData) error {

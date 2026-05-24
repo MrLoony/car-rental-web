@@ -15,7 +15,16 @@
                 <a class="transition hover:text-teal-700" href="/">Home</a>
                 <a class="transition hover:text-teal-700" href="/cars">Cars</a>
                 <a class="transition hover:text-teal-700" href="#">Bookings</a>
+                {{if .IsAdminAuthenticated}}
                 <a class="transition hover:text-teal-700" href="/admin">Admin</a>
+                <form method="POST" action="/logout">
+                    <button class="font-medium text-slate-600 transition hover:text-teal-700" type="submit">
+                        Logout
+                    </button>
+                </form>
+                {{else}}
+                <a class="transition hover:text-teal-700" href="/login">Login</a>
+                {{end}}
             </nav>
         </div>
     </header>

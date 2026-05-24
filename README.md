@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, and a basic admin booking dashboard.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, admin booking management, and protected admin authentication.
 
-Authentication, notifications, and image management are planned but not implemented yet.
+Notifications, image management, and production security hardening are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -119,7 +119,41 @@ The admin dashboard is available at:
 http://localhost:8080/admin
 ```
 
-Current admin pages include a booking requests list, booking detail page, and status update form. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Authentication is not implemented yet.
+Current admin pages include a booking requests list, booking detail page, and status update form. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
+
+Admin routes require login:
+
+- `/admin`
+- `/admin/bookings`
+- `/admin/bookings/{id}`
+
+Public customer pages remain accessible without login:
+
+- `/`
+- `/cars`
+- `/cars/{slug}`
+- `/cars/{slug}/book`
+
+## Authentication
+
+Admin authentication is implemented with a login page, bcrypt password verification, and cookie-based sessions using `gorilla/sessions`. Logging out clears the admin session.
+
+The required session secret is configured with:
+
+```text
+SESSION_SECRET
+```
+
+Do not use the default development value in production.
+
+Demo admin credentials:
+
+```text
+Email: admin@example.com
+Password: admin123
+```
+
+These are demo credentials only. Change them before any production use, and also change `SESSION_SECRET`.
 
 ## Implemented
 
@@ -155,11 +189,21 @@ Current admin pages include a booking requests list, booking detail page, and st
 - Admin booking requests list
 - Admin booking detail page
 - Admin booking status updates
+- Admin authentication
+- Login/logout flow
+- Session-based admin protection
+- Protected admin routes
+- Bcrypt password verification
 - Health endpoint at `/health`
 
 ## Planned
 
-- Authentication
+- CSRF protection
+- Registration
+- Password reset
+- Roles and permissions
+- OAuth or social login
+- Production security hardening
 - Advanced availability window search
 - Email notifications
 - Image upload or asset management
