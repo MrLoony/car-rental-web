@@ -14,9 +14,10 @@
             <nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-slate-600" aria-label="Primary navigation">
                 <a class="transition hover:text-teal-700" href="/">Home</a>
                 <a class="transition hover:text-teal-700" href="/cars">Cars</a>
-                <a class="transition hover:text-teal-700" href="#">Bookings</a>
                 {{if .IsAdminAuthenticated}}
-                <a class="transition hover:text-teal-700" href="/admin">Admin</a>
+                <a class="transition hover:text-teal-700" href="/admin">Dashboard</a>
+                <a class="transition hover:text-teal-700" href="/admin/bookings">Bookings</a>
+                <a class="transition hover:text-teal-700" href="/admin/cars">Admin cars</a>
                 <form method="POST" action="/logout">
                     <button class="font-medium text-slate-600 transition hover:text-teal-700" type="submit">
                         Logout

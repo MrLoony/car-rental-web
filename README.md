@@ -1,6 +1,6 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, admin booking management, and protected admin authentication.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, protected admin authentication, admin booking management, and admin fleet management.
 
 Notifications, image management, and production security hardening are planned but not implemented yet.
 
@@ -119,13 +119,17 @@ The admin dashboard is available at:
 http://localhost:8080/admin
 ```
 
-Current admin pages include a booking requests list, booking detail page, and status update form. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
+Current admin pages include a booking requests list, booking detail page, booking status update form, car list, car create form, car detail page, car edit form, and availability toggle. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
 
 Admin routes require login:
 
 - `/admin`
 - `/admin/bookings`
 - `/admin/bookings/{id}`
+- `/admin/cars`
+- `/admin/cars/new`
+- `/admin/cars/{id}`
+- `/admin/cars/{id}/edit`
 
 Public customer pages remain accessible without login:
 
@@ -133,6 +137,8 @@ Public customer pages remain accessible without login:
 - `/cars`
 - `/cars/{slug}`
 - `/cars/{slug}/book`
+
+Admin car management is backed by PostgreSQL. Created and edited cars are reflected in the public catalog when they are marked available. Cars marked unavailable remain visible in admin but are hidden from public catalog results.
 
 ## Authentication
 
@@ -189,6 +195,10 @@ These are demo credentials only. Change them before any production use, and also
 - Admin booking requests list
 - Admin booking detail page
 - Admin booking status updates
+- Admin car management
+- Create/edit cars
+- Availability toggle
+- PostgreSQL-backed fleet management
 - Admin authentication
 - Login/logout flow
 - Session-based admin protection
@@ -207,5 +217,7 @@ These are demo credentials only. Change them before any production use, and also
 - Advanced availability window search
 - Email notifications
 - Image upload or asset management
+- Delete or archive cars
+- Advanced UI/UX polish
 - Payments
 - Pagination

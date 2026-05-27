@@ -24,8 +24,11 @@ type TemplateData struct {
 	BookingID            int64
 	AdminBookings        []model.BookingAdminView
 	AdminBooking         model.BookingAdminView
+	AdminCars            []model.Car
+	AdminCar             model.Car
 	BookingStatuses      []string
 	LoginForm            model.LoginForm
+	CarForm              model.CarForm
 	IsAdminAuthenticated bool
 }
 

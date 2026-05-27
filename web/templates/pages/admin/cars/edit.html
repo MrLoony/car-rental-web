@@ -1,0 +1,121 @@
+{{define "content"}}
+<a class="inline-flex text-sm font-medium text-teal-700 transition hover:text-teal-800" href="/admin/cars/{{.AdminCar.ID}}">
+    Back to car details
+</a>
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="max-w-2xl">
+        <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Admin</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Edit {{.AdminCar.Brand}} {{.AdminCar.Model}}</h1>
+        <p class="mt-3 text-sm leading-6 text-slate-600">
+            Update catalog details. Available cars appear in the public catalog immediately.
+        </p>
+    </div>
+
+    <form class="mt-8 grid gap-6" method="POST" action="/admin/cars/{{.AdminCar.ID}}">
+        <div class="grid gap-5 md:grid-cols-2">
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="category_id">Category</label>
+                <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="category_id" name="category_id">
+                    <option value="">Select category</option>
+                    {{range .Categories}}
+                    <option value="{{.ID}}" {{if eq $.CarForm.CategoryID (printf "%d" .ID)}}selected{{end}}>{{.Name}}</option>
+                    {{end}}
+                </select>
+                {{with index .CarForm.Errors "category_id"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="slug">Slug</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="slug" name="slug" type="text" value="{{.CarForm.Slug}}">
+                {{with index .CarForm.Errors "slug"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="brand">Brand</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="brand" name="brand" type="text" value="{{.CarForm.Brand}}">
+                {{with index .CarForm.Errors "brand"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="model">Model</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="model" name="model" type="text" value="{{.CarForm.Model}}">
+                {{with index .CarForm.Errors "model"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="year">Year</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="year" name="year" type="text" inputmode="numeric" value="{{.CarForm.Year}}">
+                {{with index .CarForm.Errors "year"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="price_per_day">Price per day</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="price_per_day" name="price_per_day" type="text" inputmode="decimal" value="{{.CarForm.PricePerDay}}">
+                {{with index .CarForm.Errors "price_per_day"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="transmission">Transmission</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="transmission" name="transmission" type="text" value="{{.CarForm.Transmission}}">
+                {{with index .CarForm.Errors "transmission"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="fuel_type">Fuel type</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="fuel_type" name="fuel_type" type="text" value="{{.CarForm.FuelType}}">
+                {{with index .CarForm.Errors "fuel_type"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="seats">Seats</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="seats" name="seats" type="text" inputmode="numeric" value="{{.CarForm.Seats}}">
+                {{with index .CarForm.Errors "seats"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700" for="image_url">Image URL</label>
+                <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="image_url" name="image_url" type="url" value="{{.CarForm.ImageURL}}">
+                {{with index .CarForm.Errors "image_url"}}
+                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                {{end}}
+            </div>
+        </div>
+
+        <label class="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <input class="mt-1 h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700" type="checkbox" name="is_available" value="true" {{if .CarForm.IsAvailable}}checked{{end}}>
+            <span>
+                <span class="block text-sm font-medium text-slate-950">Available in public catalog</span>
+                <span class="mt-1 block text-sm text-slate-600">Unavailable cars remain visible in admin but are hidden from public catalog results.</span>
+            </span>
+        </label>
+
+        <div class="flex flex-wrap gap-3">
+            <button class="inline-flex items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" type="submit">
+                Update car
+            </button>
+            <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/cars/{{.AdminCar.ID}}">
+                Cancel
+            </a>
+        </div>
+    </form>
+</section>
+{{end}}

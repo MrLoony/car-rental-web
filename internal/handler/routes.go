@@ -48,6 +48,13 @@ func (h *Handler) Routes() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(h.RequireAdminAuth)
 		r.Get("/admin", h.AdminIndex())
+		r.Get("/admin/cars", h.AdminCarsIndex())
+		r.Get("/admin/cars/new", h.AdminCarsNew())
+		r.Post("/admin/cars", h.AdminCarsCreate())
+		r.Get("/admin/cars/{id}/edit", h.AdminCarsEdit())
+		r.Post("/admin/cars/{id}", h.AdminCarsUpdate())
+		r.Post("/admin/cars/{id}/availability", h.AdminCarAvailabilityUpdate())
+		r.Get("/admin/cars/{id}", h.AdminCarsShow())
 		r.Get("/admin/bookings", h.AdminBookingsIndex())
 		r.Get("/admin/bookings/{id}", h.AdminBookingsShow())
 		r.Post("/admin/bookings/{id}/status", h.AdminBookingStatusUpdate())
