@@ -61,6 +61,54 @@ func TestValidateCarFormAcceptsValidInput(t *testing.T) {
 	}
 }
 
+func TestValidateCarFormImageURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		imageURL string
+		wantErr  bool
+	}{
+		{
+			name:     "empty image url",
+			imageURL: "",
+			wantErr:  false,
+		},
+		{
+			name:     "https image url",
+			imageURL: "https://example.com/car.jpg",
+			wantErr:  false,
+		},
+		{
+			name:     "http image url",
+			imageURL: "http://example.com/car.jpg",
+			wantErr:  false,
+		},
+		{
+			name:     "static image url",
+			imageURL: "/static/uploads/cars/car.jpg",
+			wantErr:  false,
+		},
+		{
+			name:     "invalid image url",
+			imageURL: "example.com/car.jpg",
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			form := normalizeCarForm(validCarForm())
+			form.ImageURL = tt.imageURL
+
+			validateCarForm(&form)
+
+			gotErr := form.Errors["image_url"] != ""
+			if gotErr != tt.wantErr {
+				t.Fatalf("validateCarForm() image_url error = %v, want %v", gotErr, tt.wantErr)
+			}
+		})
+	}
+}
+
 func validCarForm() model.CarForm {
 	return model.CarForm{
 		CategoryID:   "1",

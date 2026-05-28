@@ -148,9 +148,79 @@
         });
     }
 
+    function initImagePreview() {
+        const imageInputs = document.querySelectorAll("[data-image-url-input]");
+        if (!imageInputs.length) {
+            return;
+        }
+
+        imageInputs.forEach((input) => {
+            const form = input.closest("form");
+            const preview = form ? form.querySelector("[data-image-preview]") : null;
+            const previewImage = preview ? preview.querySelector("[data-image-preview-img]") : null;
+            const previewMessage = preview ? preview.querySelector("[data-image-preview-message]") : null;
+
+            if (!preview || !previewImage || !previewMessage) {
+                return;
+            }
+
+            function showMessage(message, isError = false) {
+                previewImage.classList.add("hidden");
+                previewMessage.textContent = message;
+                previewMessage.classList.remove("hidden", "text-red-600", "text-slate-500");
+                previewMessage.classList.add("flex", isError ? "text-red-600" : "text-slate-500");
+            }
+
+            function showImage(src) {
+                previewImage.onload = () => {
+                    previewImage.classList.remove("hidden");
+                    previewMessage.classList.add("hidden");
+                    previewMessage.classList.remove("flex");
+                };
+
+                previewImage.onerror = () => {
+                    showMessage("Image could not be loaded. Check the URL or use a different image.", true);
+                };
+
+                previewImage.src = src;
+            }
+
+            function updatePreview() {
+                const value = input.value.trim();
+                if (!value) {
+                    showMessage("Enter an image URL to preview it here.");
+                    return;
+                }
+
+                showImage(value);
+            }
+
+            input.addEventListener("input", updatePreview);
+            updatePreview();
+        });
+    }
+
+    function initFallbackImages() {
+        const placeholderSrc = "/static/images/car-placeholder.svg";
+        const images = document.querySelectorAll("[data-fallback-image]");
+
+        images.forEach((image) => {
+            image.addEventListener("error", () => {
+                if (image.getAttribute("src") === placeholderSrc) {
+                    return;
+                }
+
+                image.src = placeholderSrc;
+                image.alt = "Image unavailable";
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         initCatalogFilters();
         initBookingPreview();
         initAdminStatusConfirm();
+        initImagePreview();
+        initFallbackImages();
     });
 })();

@@ -178,6 +178,10 @@ func validateCarForm(form *model.CarForm) model.Car {
 		form.Errors["fuel_type"] = "Fuel type is required."
 	}
 
+	if form.ImageURL != "" && !isValidCarImageURL(form.ImageURL) {
+		form.Errors["image_url"] = "Image URL must start with http://, https://, or /static/."
+	}
+
 	seats := parseRequiredInt(form.Seats, "seats", "Seats is required.", form.Errors)
 	if seats <= 0 && form.Errors["seats"] == "" {
 		form.Errors["seats"] = "Seats must be greater than 0."
@@ -259,4 +263,10 @@ func isValidCarSlug(slug string) bool {
 	}
 
 	return true
+}
+
+func isValidCarImageURL(imageURL string) bool {
+	return strings.HasPrefix(imageURL, "http://") ||
+		strings.HasPrefix(imageURL, "https://") ||
+		strings.HasPrefix(imageURL, "/static/")
 }

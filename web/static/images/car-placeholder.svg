@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-labelledby="title desc">
+  <title id="title">Car image placeholder</title>
+  <desc id="desc">A simple placeholder for cars without an uploaded image.</desc>
+  <rect width="800" height="450" fill="#f1f5f9"/>
+  <path d="M214 282h372l-32-82c-10-25-29-38-58-38H304c-29 0-48 13-58 38l-32 82Z" fill="#cbd5e1"/>
+  <path d="M270 244h260l-21-50c-4-10-13-15-27-15H318c-14 0-23 5-27 15l-21 50Z" fill="#e2e8f0"/>
+  <circle cx="296" cy="300" r="34" fill="#94a3b8"/>
+  <circle cx="504" cy="300" r="34" fill="#94a3b8"/>
+  <circle cx="296" cy="300" r="15" fill="#f8fafc"/>
+  <circle cx="504" cy="300" r="15" fill="#f8fafc"/>
+  <path d="M190 282h420c17 0 30 13 30 30v12H160v-12c0-17 13-30 30-30Z" fill="#64748b"/>
+  <text x="400" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#64748b">Image coming soon</text>
+</svg>

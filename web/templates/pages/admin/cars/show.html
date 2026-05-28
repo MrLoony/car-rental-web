@@ -13,6 +13,14 @@
             </p>
         </div>
 
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            {{if .AdminCar.ImageURL}}
+            <img class="aspect-[16/9] w-full object-cover" src="{{.AdminCar.ImageURL}}" alt="{{.AdminCar.Brand}} {{.AdminCar.Model}}" data-fallback-image>
+            {{else}}
+            <img class="aspect-[16/9] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
+            {{end}}
+        </div>
+
         <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-xl font-semibold tracking-tight text-slate-950">Vehicle details</h2>
             <dl class="mt-5 grid gap-4 sm:grid-cols-2">

@@ -1,8 +1,8 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, protected admin authentication, admin booking management, and admin fleet management.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, protected admin authentication, admin booking management, admin fleet management, and basic car image management.
 
-Notifications, image management, and production security hardening are planned but not implemented yet.
+Notifications, advanced media management, and production security hardening are planned but not implemented yet.
 
 ## Tech Stack
 
@@ -140,6 +140,32 @@ Public customer pages remain accessible without login:
 
 Admin car management is backed by PostgreSQL. Created and edited cars are reflected in the public catalog when they are marked available. Cars marked unavailable remain visible in admin but are hidden from public catalog results.
 
+Admin car management includes create/edit forms, image URL management, local image upload, image preview, and availability toggles.
+
+## Image Management
+
+Cars can use an external image URL or a local uploaded image. Image URLs must start with one of:
+
+- `http://`
+- `https://`
+- `/static/`
+
+Admin car forms show a live image preview while editing the image URL. Public catalog and car detail pages display car images with a placeholder fallback when no image is set or an image cannot be loaded.
+
+Uploaded car images are saved locally under:
+
+```text
+web/static/uploads/cars
+```
+
+The public path stored in PostgreSQL looks like:
+
+```text
+/static/uploads/cars/<filename>
+```
+
+Uploaded files are ignored by Git. The `.gitkeep` file keeps the upload folder structure in the repository.
+
 ## Authentication
 
 Admin authentication is implemented with a login page, bcrypt password verification, and cookie-based sessions using `gorilla/sessions`. Logging out clears the admin session.
@@ -199,6 +225,11 @@ These are demo credentials only. Change them before any production use, and also
 - Create/edit cars
 - Availability toggle
 - PostgreSQL-backed fleet management
+- Car image URL validation
+- Admin image preview
+- Local car image uploads
+- Public catalog image display
+- Placeholder fallback for missing images
 - Admin authentication
 - Login/logout flow
 - Session-based admin protection
@@ -216,7 +247,9 @@ These are demo credentials only. Change them before any production use, and also
 - Production security hardening
 - Advanced availability window search
 - Email notifications
-- Image upload or asset management
+- Multiple image gallery
+- Old uploaded image cleanup
+- Cloud or object storage for media
 - Delete or archive cars
 - Advanced UI/UX polish
 - Payments

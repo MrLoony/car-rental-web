@@ -53,7 +53,22 @@ func (h *Handler) AdminCarsNew() http.HandlerFunc {
 
 func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := parseOptionalCarMultipartForm(r); err != nil {
+			form := parseCarForm(r)
+			form = addCarFormError(form, "image_url", "Image upload could not be processed.")
+			h.renderAdminCarForm(w, r, "admin/cars/new.html", "New car", model.Car{}, form, http.StatusUnprocessableEntity)
+			return
+		}
+
 		form := parseCarForm(r)
+		if imageURL, uploaded, err := saveOptionalCarImageUpload(r, form.Slug); err != nil {
+			form = addCarFormError(form, "image_url", err.Error())
+			h.renderAdminCarForm(w, r, "admin/cars/new.html", "New car", model.Car{}, form, http.StatusUnprocessableEntity)
+			return
+		} else if uploaded {
+			form.ImageURL = imageURL
+		}
+
 		id, form, err := h.carService.CreateCar(r.Context(), form)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -61,22 +76,7 @@ func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 		}
 
 		if form.HasErrors() {
-			categories, err := h.categoryService.ListCategories(r.Context())
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-
-			data := TemplateData{
-				Title:      "New car",
-				AppName:    h.appName,
-				CarForm:    form,
-				Categories: categories,
-			}
-
-			if err := h.renderWithStatus(w, r, "admin/cars/new.html", data, http.StatusUnprocessableEntity); err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			}
+			h.renderAdminCarForm(w, r, "admin/cars/new.html", "New car", model.Car{}, form, http.StatusUnprocessableEntity)
 			return
 		}
 
@@ -140,7 +140,22 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 			return
 		}
 
+		if err := parseOptionalCarMultipartForm(r); err != nil {
+			form := parseCarForm(r)
+			form = addCarFormError(form, "image_url", "Image upload could not be processed.")
+			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
+			return
+		}
+
 		form := parseCarForm(r)
+		if imageURL, uploaded, err := saveOptionalCarImageUpload(r, form.Slug); err != nil {
+			form = addCarFormError(form, "image_url", err.Error())
+			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
+			return
+		} else if uploaded {
+			form.ImageURL = imageURL
+		}
+
 		form, err = h.carService.UpdateCar(r.Context(), id, form)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
@@ -153,23 +168,7 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 		}
 
 		if form.HasErrors() {
-			categories, err := h.categoryService.ListCategories(r.Context())
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				return
-			}
-
-			data := TemplateData{
-				Title:      "Edit " + car.Brand + " " + car.Model,
-				AppName:    h.appName,
-				AdminCar:   car,
-				CarForm:    form,
-				Categories: categories,
-			}
-
-			if err := h.renderWithStatus(w, r, "admin/cars/edit.html", data, http.StatusUnprocessableEntity); err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			}
+			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
 			return
 		}
 
@@ -253,6 +252,62 @@ func parseCarForm(r *http.Request) model.CarForm {
 		Seats:        r.FormValue("seats"),
 		ImageURL:     r.FormValue("image_url"),
 		IsAvailable:  r.FormValue("is_available") != "",
+	}
+}
+
+func parseOptionalCarMultipartForm(r *http.Request) error {
+	err := r.ParseMultipartForm(maxCarImageUploadSize)
+	if err != nil && !errors.Is(err, http.ErrNotMultipart) {
+		return err
+	}
+
+	return nil
+}
+
+func saveOptionalCarImageUpload(r *http.Request, carSlug string) (string, bool, error) {
+	file, header, err := r.FormFile("image_file")
+	if err != nil {
+		if errors.Is(err, http.ErrMissingFile) || errors.Is(err, http.ErrNotMultipart) {
+			return "", false, nil
+		}
+
+		return "", false, err
+	}
+
+	imageURL, err := saveCarImageUpload(file, header, carSlug)
+	if err != nil {
+		return "", false, err
+	}
+
+	return imageURL, true, nil
+}
+
+func addCarFormError(form model.CarForm, field, message string) model.CarForm {
+	if form.Errors == nil {
+		form.Errors = make(map[string]string)
+	}
+
+	form.Errors[field] = message
+	return form
+}
+
+func (h *Handler) renderAdminCarForm(w http.ResponseWriter, r *http.Request, page, title string, car model.Car, form model.CarForm, status int) {
+	categories, err := h.categoryService.ListCategories(r.Context())
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data := TemplateData{
+		Title:      title,
+		AppName:    h.appName,
+		AdminCar:   car,
+		CarForm:    form,
+		Categories: categories,
+	}
+
+	if err := h.renderWithStatus(w, r, page, data, status); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 }
 

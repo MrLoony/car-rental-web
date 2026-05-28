@@ -6,3 +6,5 @@ bin/
 .idea/
 .vscode/
 node_modules/
+web/static/uploads/cars/*
+!web/static/uploads/cars/.gitkeep

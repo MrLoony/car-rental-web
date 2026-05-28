@@ -6,11 +6,9 @@
 <section class="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
     <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {{if .Car.ImageURL}}
-        <img class="h-80 w-full object-cover" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}">
+        <img class="aspect-[16/10] w-full object-cover" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image>
         {{else}}
-        <div class="flex h-80 w-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
-            Image coming soon
-        </div>
+        <img class="aspect-[16/10] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
         {{end}}
     </div>
 

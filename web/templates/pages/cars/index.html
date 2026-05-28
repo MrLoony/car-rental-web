@@ -72,11 +72,9 @@
     {{range .Cars}}
     <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {{if .ImageURL}}
-        <img class="h-48 w-full object-cover" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}">
+        <img class="aspect-[4/3] w-full object-cover" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}" data-fallback-image>
         {{else}}
-        <div class="flex h-48 w-full items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
-            Image coming soon
-        </div>
+        <img class="aspect-[4/3] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
         {{end}}
 
         <div class="p-5">
