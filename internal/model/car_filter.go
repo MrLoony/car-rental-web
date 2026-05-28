@@ -12,6 +12,8 @@ type CarFilter struct {
 	FuelType     string
 	Transmission string
 	Sort         string
+	Page         int
+	PerPage      int
 }
 
 func NormalizeCarSort(sort string) string {

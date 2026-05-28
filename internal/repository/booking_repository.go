@@ -171,6 +171,68 @@ func (r *BookingRepository) ListBookings(ctx context.Context) ([]model.BookingAd
 	return bookings, nil
 }
 
+func (r *BookingRepository) CountBookings(ctx context.Context) (int, error) {
+	const query = `
+		SELECT COUNT(*)
+		FROM bookings
+	`
+
+	var count int
+	if err := r.db.QueryRow(ctx, query).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count bookings: %w", err)
+	}
+
+	return count, nil
+}
+
+func (r *BookingRepository) ListBookingsPage(ctx context.Context, pagination model.Pagination) ([]model.BookingAdminView, error) {
+	const query = `
+		SELECT
+			b.id,
+			b.car_id,
+			c.brand,
+			c.model,
+			c.slug,
+			b.customer_name,
+			b.customer_email,
+			b.customer_phone,
+			b.pickup_at,
+			b.return_at,
+			b.billing_days,
+			b.estimated_total::double precision,
+			COALESCE(b.message, '') AS message,
+			b.status,
+			b.created_at,
+			b.updated_at
+		FROM bookings b
+		JOIN cars c ON c.id = b.car_id
+		ORDER BY b.created_at DESC, b.id DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	rows, err := r.db.Query(ctx, query, pagination.PerPage, pagination.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("list bookings page: %w", err)
+	}
+	defer rows.Close()
+
+	bookings := make([]model.BookingAdminView, 0)
+	for rows.Next() {
+		var booking model.BookingAdminView
+		if err := scanBookingAdminView(rows, &booking); err != nil {
+			return nil, fmt.Errorf("scan booking page: %w", err)
+		}
+
+		bookings = append(bookings, booking)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate bookings page: %w", err)
+	}
+
+	return bookings, nil
+}
+
 func (r *BookingRepository) GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error) {
 	const query = `
 		SELECT

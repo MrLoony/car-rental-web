@@ -12,16 +12,24 @@ import (
 
 func (h *Handler) AdminCarsIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cars, err := h.carService.ListCarsForAdmin(r.Context())
+		page := parsePositiveInt(r.URL.Query().Get("page"), model.DefaultPage)
+		cars, pagination, err := h.carService.ListCarsForAdminPage(r.Context(), page, model.DefaultPerPage)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		data := TemplateData{
-			Title:     "Cars",
-			AppName:   h.appName,
-			AdminCars: cars,
+			Title:      "Cars",
+			AppName:    h.appName,
+			AdminCars:  cars,
+			Pagination: pagination,
+		}
+		if pagination.HasPrevious {
+			data.PaginationPreviousURL = paginationURL(r, pagination.PreviousPage)
+		}
+		if pagination.HasNext {
+			data.PaginationNextURL = paginationURL(r, pagination.NextPage)
 		}
 
 		if err := h.render(w, r, "admin/cars/index.html", data); err != nil {

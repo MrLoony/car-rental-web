@@ -78,6 +78,21 @@ func (s *BookingService) ListBookings(ctx context.Context) ([]model.BookingAdmin
 	return bookings, nil
 }
 
+func (s *BookingService) ListBookingsPage(ctx context.Context, page int, perPage int) ([]model.BookingAdminView, model.Pagination, error) {
+	totalCount, err := s.repo.CountBookings(ctx)
+	if err != nil {
+		return nil, model.Pagination{}, fmt.Errorf("count bookings: %w", err)
+	}
+
+	pagination := model.NewPagination(page, perPage, totalCount)
+	bookings, err := s.repo.ListBookingsPage(ctx, pagination)
+	if err != nil {
+		return nil, model.Pagination{}, fmt.Errorf("list bookings page: %w", err)
+	}
+
+	return bookings, pagination, nil
+}
+
 func (s *BookingService) GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error) {
 	booking, err := s.repo.GetBookingByID(ctx, id)
 	if err != nil {

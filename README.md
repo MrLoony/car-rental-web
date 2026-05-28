@@ -1,6 +1,6 @@
 # Car Rental Web
 
-Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, a booking request flow, availability validation, protected admin authentication, admin booking management, admin fleet management, and basic car image management.
+Car Rental Web is a server-rendered Go web application for a car rental platform. The project currently includes the application foundation, PostgreSQL connection, database migrations, seeded demo catalog data, Tailwind-based catalog pages, query-parameter catalog filtering, server-side pagination, a booking request flow, availability validation, protected admin authentication, admin booking management, admin fleet management, and basic car image management.
 
 Notifications, advanced media management, and production security hardening are planned but not implemented yet.
 
@@ -97,7 +97,9 @@ The catalog supports server-rendered filtering through URL query parameters:
 http://localhost:8080/cars?category=suv&sort=price_desc
 ```
 
-Available filters include text search, category, fuel type, transmission, and sort order. The filter form works without JavaScript; JavaScript only enhances the experience with debounced search and automatic submit for select fields.
+Available filters include text search, category, fuel type, transmission, and sort order. The catalog uses server-side pagination, and pagination links preserve the active filter and sort query parameters. Invalid or out-of-range page values fall back safely instead of breaking the page.
+
+The filter form works without JavaScript; JavaScript only enhances the experience with debounced search and automatic submit for select fields.
 
 ## Bookings
 
@@ -120,6 +122,8 @@ http://localhost:8080/admin
 ```
 
 Current admin pages include a booking requests list, booking detail page, booking status update form, car list, car create form, car detail page, car edit form, and availability toggle. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
+
+The admin cars and admin bookings lists use server-side pagination. Admin tables also include horizontal overflow handling, compact spacing, status badges, and truncation for long customer, email, slug, and car text so the pages remain usable on narrower screens.
 
 Admin routes require login:
 
@@ -206,6 +210,10 @@ These are demo credentials only. Change them before any production use, and also
 - Category, fuel, and transmission filters
 - Price sorting
 - Query-parameter based catalog filtering
+- Public catalog pagination
+- Admin cars pagination
+- Admin bookings pagination
+- Responsive admin table overflow handling
 - Progressive JavaScript enhancement with no-JS fallback
 - Booking request form
 - Backend booking validation
@@ -245,6 +253,10 @@ These are demo credentials only. Change them before any production use, and also
 - Roles and permissions
 - OAuth or social login
 - Production security hardening
+- Admin filtering and search
+- Advanced responsive redesign
+- Infinite scroll or AJAX pagination
+- Advanced analytics and reporting
 - Advanced availability window search
 - Email notifications
 - Multiple image gallery
@@ -253,4 +265,3 @@ These are demo credentials only. Change them before any production use, and also
 - Delete or archive cars
 - Advanced UI/UX polish
 - Payments
-- Pagination

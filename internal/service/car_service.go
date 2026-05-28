@@ -38,6 +38,23 @@ func (s *CarService) ListCars(ctx context.Context, filter model.CarFilter) ([]mo
 	return cars, nil
 }
 
+func (s *CarService) ListCarsPage(ctx context.Context, filter model.CarFilter) ([]model.Car, model.Pagination, error) {
+	filter.Sort = model.NormalizeCarSort(filter.Sort)
+
+	totalCount, err := s.repo.CountCars(ctx, filter)
+	if err != nil {
+		return nil, model.Pagination{}, fmt.Errorf("count cars: %w", err)
+	}
+
+	pagination := model.NewPagination(filter.Page, filter.PerPage, totalCount)
+	cars, err := s.repo.ListCarsPage(ctx, filter, pagination)
+	if err != nil {
+		return nil, model.Pagination{}, fmt.Errorf("list cars page: %w", err)
+	}
+
+	return cars, pagination, nil
+}
+
 func (s *CarService) GetCarBySlug(ctx context.Context, slug string) (model.Car, error) {
 	car, err := s.repo.GetCarBySlug(ctx, slug)
 	if err != nil {
@@ -54,6 +71,21 @@ func (s *CarService) ListCarsForAdmin(ctx context.Context) ([]model.Car, error) 
 	}
 
 	return cars, nil
+}
+
+func (s *CarService) ListCarsForAdminPage(ctx context.Context, page int, perPage int) ([]model.Car, model.Pagination, error) {
+	totalCount, err := s.repo.CountCarsForAdmin(ctx)
+	if err != nil {
+		return nil, model.Pagination{}, fmt.Errorf("count cars for admin: %w", err)
+	}
+
+	pagination := model.NewPagination(page, perPage, totalCount)
+	cars, err := s.repo.ListCarsForAdminPage(ctx, pagination)
+	if err != nil {
+		return nil, model.Pagination{}, fmt.Errorf("list cars for admin page: %w", err)
+	}
+
+	return cars, pagination, nil
 }
 
 func (s *CarService) GetCarByID(ctx context.Context, id int64) (model.Car, error) {

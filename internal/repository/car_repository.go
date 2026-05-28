@@ -50,40 +50,8 @@ func (r *CarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([
 	`)
 
 	args := make([]any, 0)
-
-	addFilter := func(condition string, value any) {
-		args = append(args, value)
-		query.WriteString(" AND ")
-		query.WriteString(fmt.Sprintf(condition, len(args)))
-	}
-
-	if filter.Search != "" {
-		args = append(args, "%"+filter.Search+"%")
-		placeholder := len(args)
-		query.WriteString(" AND ")
-		query.WriteString(fmt.Sprintf("(c.brand ILIKE $%d OR c.model ILIKE $%d)", placeholder, placeholder))
-	}
-
-	if filter.CategorySlug != "" {
-		addFilter("cc.slug = $%d", filter.CategorySlug)
-	}
-
-	if filter.FuelType != "" {
-		addFilter("c.fuel_type = $%d", filter.FuelType)
-	}
-
-	if filter.Transmission != "" {
-		addFilter("c.transmission = $%d", filter.Transmission)
-	}
-
-	switch model.NormalizeCarSort(filter.Sort) {
-	case model.SortPriceAsc:
-		query.WriteString(" ORDER BY c.price_per_day ASC, c.id DESC")
-	case model.SortPriceDesc:
-		query.WriteString(" ORDER BY c.price_per_day DESC, c.id DESC")
-	default:
-		query.WriteString(" ORDER BY c.created_at DESC, c.id DESC")
-	}
+	appendPublicCarFilters(&query, &args, filter)
+	appendCarSort(&query, filter.Sort)
 
 	rows, err := r.db.Query(ctx, query.String(), args...)
 	if err != nil {
@@ -103,6 +71,82 @@ func (r *CarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate cars: %w", err)
+	}
+
+	return cars, nil
+}
+
+func (r *CarRepository) CountCars(ctx context.Context, filter model.CarFilter) (int, error) {
+	var query strings.Builder
+	query.WriteString(`
+		SELECT COUNT(*)
+		FROM cars c
+		JOIN car_categories cc ON cc.id = c.category_id
+		WHERE c.is_available = TRUE
+	`)
+
+	args := make([]any, 0)
+	appendPublicCarFilters(&query, &args, filter)
+
+	var count int
+	if err := r.db.QueryRow(ctx, query.String(), args...).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count cars: %w", err)
+	}
+
+	return count, nil
+}
+
+func (r *CarRepository) ListCarsPage(ctx context.Context, filter model.CarFilter, pagination model.Pagination) ([]model.Car, error) {
+	var query strings.Builder
+	query.WriteString(`
+		SELECT
+			c.id,
+			c.category_id,
+			cc.name AS category_name,
+			c.brand,
+			c.model,
+			c.slug,
+			c.year,
+			c.price_per_day::double precision,
+			c.transmission,
+			c.fuel_type,
+			c.seats,
+			COALESCE(c.image_url, '') AS image_url,
+			c.is_available,
+			c.created_at,
+			c.updated_at
+		FROM cars c
+		JOIN car_categories cc ON cc.id = c.category_id
+		WHERE c.is_available = TRUE
+	`)
+
+	args := make([]any, 0)
+	appendPublicCarFilters(&query, &args, filter)
+	appendCarSort(&query, filter.Sort)
+
+	args = append(args, pagination.PerPage, pagination.Offset)
+	limitPlaceholder := len(args) - 1
+	offsetPlaceholder := len(args)
+	query.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", limitPlaceholder, offsetPlaceholder))
+
+	rows, err := r.db.Query(ctx, query.String(), args...)
+	if err != nil {
+		return nil, fmt.Errorf("list cars page: %w", err)
+	}
+	defer rows.Close()
+
+	cars := make([]model.Car, 0)
+	for rows.Next() {
+		var car model.Car
+		if err := scanCar(rows, &car); err != nil {
+			return nil, fmt.Errorf("scan car page: %w", err)
+		}
+
+		cars = append(cars, car)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate car page: %w", err)
 	}
 
 	return cars, nil
@@ -185,6 +229,67 @@ func (r *CarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, erro
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate admin cars: %w", err)
+	}
+
+	return cars, nil
+}
+
+func (r *CarRepository) CountCarsForAdmin(ctx context.Context) (int, error) {
+	const query = `
+		SELECT COUNT(*)
+		FROM cars
+	`
+
+	var count int
+	if err := r.db.QueryRow(ctx, query).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count cars for admin: %w", err)
+	}
+
+	return count, nil
+}
+
+func (r *CarRepository) ListCarsForAdminPage(ctx context.Context, pagination model.Pagination) ([]model.Car, error) {
+	const query = `
+		SELECT
+			c.id,
+			c.category_id,
+			cc.name AS category_name,
+			c.brand,
+			c.model,
+			c.slug,
+			c.year,
+			c.price_per_day::double precision,
+			c.transmission,
+			c.fuel_type,
+			c.seats,
+			COALESCE(c.image_url, '') AS image_url,
+			c.is_available,
+			c.created_at,
+			c.updated_at
+		FROM cars c
+		JOIN car_categories cc ON cc.id = c.category_id
+		ORDER BY c.created_at DESC, c.id DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	rows, err := r.db.Query(ctx, query, pagination.PerPage, pagination.Offset)
+	if err != nil {
+		return nil, fmt.Errorf("list cars for admin page: %w", err)
+	}
+	defer rows.Close()
+
+	cars := make([]model.Car, 0)
+	for rows.Next() {
+		var car model.Car
+		if err := scanCar(rows, &car); err != nil {
+			return nil, fmt.Errorf("scan admin car page: %w", err)
+		}
+
+		cars = append(cars, car)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate admin car page: %w", err)
 	}
 
 	return cars, nil
@@ -374,4 +479,42 @@ func scanCar(scanner carScanner, car *model.Car) error {
 		&car.CreatedAt,
 		&car.UpdatedAt,
 	)
+}
+
+func appendPublicCarFilters(query *strings.Builder, args *[]any, filter model.CarFilter) {
+	addFilter := func(condition string, value any) {
+		*args = append(*args, value)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf(condition, len(*args)))
+	}
+
+	if filter.Search != "" {
+		*args = append(*args, "%"+filter.Search+"%")
+		placeholder := len(*args)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf("(c.brand ILIKE $%d OR c.model ILIKE $%d)", placeholder, placeholder))
+	}
+
+	if filter.CategorySlug != "" {
+		addFilter("cc.slug = $%d", filter.CategorySlug)
+	}
+
+	if filter.FuelType != "" {
+		addFilter("c.fuel_type = $%d", filter.FuelType)
+	}
+
+	if filter.Transmission != "" {
+		addFilter("c.transmission = $%d", filter.Transmission)
+	}
+}
+
+func appendCarSort(query *strings.Builder, sort string) {
+	switch model.NormalizeCarSort(sort) {
+	case model.SortPriceAsc:
+		query.WriteString(" ORDER BY c.price_per_day ASC, c.id DESC")
+	case model.SortPriceDesc:
+		query.WriteString(" ORDER BY c.price_per_day DESC, c.id DESC")
+	default:
+		query.WriteString(" ORDER BY c.created_at DESC, c.id DESC")
+	}
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/MrLoony/car-rental-web/internal/repository"
@@ -11,15 +12,18 @@ import (
 
 func (h *Handler) CarsIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		page := parsePositiveInt(r.URL.Query().Get("page"), model.DefaultPage)
 		filter := model.CarFilter{
 			Search:       r.URL.Query().Get("search"),
 			CategorySlug: r.URL.Query().Get("category"),
 			FuelType:     r.URL.Query().Get("fuel"),
 			Transmission: r.URL.Query().Get("transmission"),
 			Sort:         model.NormalizeCarSort(r.URL.Query().Get("sort")),
+			Page:         page,
+			PerPage:      6,
 		}
 
-		cars, err := h.carService.ListCars(r.Context(), filter)
+		cars, pagination, err := h.carService.ListCarsPage(r.Context(), filter)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
@@ -40,12 +44,34 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 			FuelTypes:        []string{"Gasoline", "Hybrid", "Diesel"},
 			Transmissions:    []string{"Automatic", "Manual"},
 			HasActiveFilters: hasActiveCarFilters(filter),
+			Pagination:       pagination,
+		}
+		if pagination.HasPrevious {
+			data.PaginationPreviousURL = paginationURL(r, pagination.PreviousPage)
+		}
+		if pagination.HasNext {
+			data.PaginationNextURL = paginationURL(r, pagination.NextPage)
 		}
 
 		if err := h.render(w, r, "cars/index.html", data); err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
+}
+
+func parsePositiveInt(value string, fallback int) int {
+	parsed, err := strconv.Atoi(value)
+	if err != nil || parsed < 1 {
+		return fallback
+	}
+
+	return parsed
+}
+
+func paginationURL(r *http.Request, page int) string {
+	values := r.URL.Query()
+	values.Set("page", strconv.Itoa(page))
+	return r.URL.Path + "?" + values.Encode()
 }
 
 func hasActiveCarFilters(filter model.CarFilter) bool {
