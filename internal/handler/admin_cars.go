@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/MrLoony/car-rental-web/internal/repository"
@@ -12,18 +13,28 @@ import (
 
 func (h *Handler) AdminCarsIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		availability := model.NormalizeAdminCarAvailability(r.URL.Query().Get("availability"))
 		page := parsePositiveInt(r.URL.Query().Get("page"), model.DefaultPage)
-		cars, pagination, err := h.carService.ListCarsForAdminPage(r.Context(), page, model.DefaultPerPage)
+		filter := model.AdminCarFilter{
+			Search:       strings.TrimSpace(r.URL.Query().Get("search")),
+			Availability: availability,
+			Page:         page,
+			PerPage:      model.DefaultPerPage,
+		}
+
+		cars, pagination, err := h.carService.ListCarsForAdminPage(r.Context(), filter)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		data := TemplateData{
-			Title:      "Cars",
-			AppName:    h.appName,
-			AdminCars:  cars,
-			Pagination: pagination,
+			Title:                    "Cars",
+			AppName:                  h.appName,
+			AdminCars:                cars,
+			AdminCarFilter:           filter,
+			HasActiveAdminCarFilters: hasActiveAdminCarFilters(filter),
+			Pagination:               pagination,
 		}
 		if pagination.HasPrevious {
 			data.PaginationPreviousURL = paginationURL(r, pagination.PreviousPage)
@@ -36,6 +47,11 @@ func (h *Handler) AdminCarsIndex() http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 	}
+}
+
+func hasActiveAdminCarFilters(filter model.AdminCarFilter) bool {
+	return filter.Search != "" ||
+		model.NormalizeAdminCarAvailability(filter.Availability) != model.AdminCarAvailabilityAll
 }
 
 func (h *Handler) AdminCarsNew() http.HandlerFunc {

@@ -123,7 +123,13 @@ http://localhost:8080/admin
 
 Current admin pages include a booking requests list, booking detail page, booking status update form, car list, car create form, car detail page, car edit form, and availability toggle. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
 
-The admin cars and admin bookings lists use server-side pagination. Admin tables also include horizontal overflow handling, compact spacing, status badges, and truncation for long customer, email, slug, and car text so the pages remain usable on narrower screens.
+The admin cars and admin bookings lists use server-side pagination. Pagination preserves active filters, so filtered URLs remain shareable and bookmarkable. Admin tables also include horizontal overflow handling, compact spacing, status badges, and truncation for long customer, email, slug, and car text so the pages remain usable on narrower screens.
+
+Admin cars can be searched by brand, model, slug, category, fuel type, and transmission. They can also be filtered by availability: `all`, `available`, or `unavailable`.
+
+Admin bookings can be searched by customer name, customer email, customer phone, car brand, car model, and car slug. They can also be filtered by status: `all`, `pending`, `confirmed`, `cancelled`, or `completed`.
+
+Admin filter forms are SSR-first GET forms and work without JavaScript. JavaScript only improves the experience with debounced search input and automatic select submission; filtering is not AJAX or SPA-based.
 
 Admin routes require login:
 
@@ -213,7 +219,12 @@ These are demo credentials only. Change them before any production use, and also
 - Public catalog pagination
 - Admin cars pagination
 - Admin bookings pagination
+- Admin car search
+- Admin car availability filtering
+- Admin booking search
+- Admin booking status filtering
 - Responsive admin table overflow handling
+- Progressive JavaScript enhancement for admin filters
 - Progressive JavaScript enhancement with no-JS fallback
 - Booking request form
 - Backend booking validation
@@ -253,7 +264,6 @@ These are demo credentials only. Change them before any production use, and also
 - Roles and permissions
 - OAuth or social login
 - Production security hardening
-- Admin filtering and search
 - Advanced responsive redesign
 - Infinite scroll or AJAX pagination
 - Advanced analytics and reporting

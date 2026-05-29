@@ -148,6 +148,64 @@
         });
     }
 
+    function initAdminFilters() {
+        const forms = document.querySelectorAll("[data-admin-filter-form]");
+        if (!forms.length) {
+            return;
+        }
+
+        forms.forEach((form) => {
+            const searchInput = form.querySelector("[data-admin-filter-search]");
+            const filterSelects = form.querySelectorAll("[data-admin-filter-select]");
+            const submitButton = form.querySelector("[data-admin-filter-submit]");
+            const status = form.querySelector("[data-admin-filter-status]");
+            let lastSubmittedState = new URLSearchParams(new FormData(form)).toString();
+
+            function showStatus() {
+                if (status) {
+                    status.classList.remove("hidden");
+                }
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+            }
+
+            function submitForm() {
+                showStatus();
+
+                if (typeof form.requestSubmit === "function") {
+                    form.requestSubmit();
+                    return;
+                }
+
+                form.submit();
+            }
+
+            function submitIfChanged() {
+                const currentState = new URLSearchParams(new FormData(form)).toString();
+                if (currentState === lastSubmittedState) {
+                    return;
+                }
+
+                lastSubmittedState = currentState;
+                submitForm();
+            }
+
+            const debouncedSubmit = debounce(submitIfChanged, 500);
+
+            filterSelects.forEach((select) => {
+                select.addEventListener("change", submitIfChanged);
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener("input", debouncedSubmit);
+            }
+
+            form.addEventListener("submit", showStatus);
+        });
+    }
+
     function initImagePreview() {
         const imageInputs = document.querySelectorAll("[data-image-url-input]");
         if (!imageInputs.length) {
@@ -220,6 +278,7 @@
         initCatalogFilters();
         initBookingPreview();
         initAdminStatusConfirm();
+        initAdminFilters();
         initImagePreview();
         initFallbackImages();
     });

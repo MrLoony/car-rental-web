@@ -73,14 +73,17 @@ func (s *CarService) ListCarsForAdmin(ctx context.Context) ([]model.Car, error) 
 	return cars, nil
 }
 
-func (s *CarService) ListCarsForAdminPage(ctx context.Context, page int, perPage int) ([]model.Car, model.Pagination, error) {
-	totalCount, err := s.repo.CountCarsForAdmin(ctx)
+func (s *CarService) ListCarsForAdminPage(ctx context.Context, filter model.AdminCarFilter) ([]model.Car, model.Pagination, error) {
+	filter.Search = strings.TrimSpace(filter.Search)
+	filter.Availability = model.NormalizeAdminCarAvailability(filter.Availability)
+
+	totalCount, err := s.repo.CountCarsForAdmin(ctx, filter)
 	if err != nil {
 		return nil, model.Pagination{}, fmt.Errorf("count cars for admin: %w", err)
 	}
 
-	pagination := model.NewPagination(page, perPage, totalCount)
-	cars, err := s.repo.ListCarsForAdminPage(ctx, pagination)
+	pagination := model.NewPagination(filter.Page, filter.PerPage, totalCount)
+	cars, err := s.repo.ListCarsForAdminPage(ctx, filter, pagination)
 	if err != nil {
 		return nil, model.Pagination{}, fmt.Errorf("list cars for admin page: %w", err)
 	}

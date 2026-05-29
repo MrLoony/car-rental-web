@@ -234,22 +234,29 @@ func (r *CarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, erro
 	return cars, nil
 }
 
-func (r *CarRepository) CountCarsForAdmin(ctx context.Context) (int, error) {
-	const query = `
+func (r *CarRepository) CountCarsForAdmin(ctx context.Context, filter model.AdminCarFilter) (int, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT COUNT(*)
-		FROM cars
-	`
+		FROM cars c
+		JOIN car_categories cc ON cc.id = c.category_id
+		WHERE TRUE
+	`)
+
+	args := make([]any, 0)
+	appendAdminCarFilters(&query, &args, filter)
 
 	var count int
-	if err := r.db.QueryRow(ctx, query).Scan(&count); err != nil {
+	if err := r.db.QueryRow(ctx, query.String(), args...).Scan(&count); err != nil {
 		return 0, fmt.Errorf("count cars for admin: %w", err)
 	}
 
 	return count, nil
 }
 
-func (r *CarRepository) ListCarsForAdminPage(ctx context.Context, pagination model.Pagination) ([]model.Car, error) {
-	const query = `
+func (r *CarRepository) ListCarsForAdminPage(ctx context.Context, filter model.AdminCarFilter, pagination model.Pagination) ([]model.Car, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT
 			c.id,
 			c.category_id,
@@ -268,11 +275,19 @@ func (r *CarRepository) ListCarsForAdminPage(ctx context.Context, pagination mod
 			c.updated_at
 		FROM cars c
 		JOIN car_categories cc ON cc.id = c.category_id
-		ORDER BY c.created_at DESC, c.id DESC
-		LIMIT $1 OFFSET $2
-	`
+		WHERE TRUE
+	`)
 
-	rows, err := r.db.Query(ctx, query, pagination.PerPage, pagination.Offset)
+	args := make([]any, 0)
+	appendAdminCarFilters(&query, &args, filter)
+	query.WriteString(" ORDER BY c.created_at DESC, c.id DESC")
+
+	args = append(args, pagination.PerPage, pagination.Offset)
+	limitPlaceholder := len(args) - 1
+	offsetPlaceholder := len(args)
+	query.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", limitPlaceholder, offsetPlaceholder))
+
+	rows, err := r.db.Query(ctx, query.String(), args...)
 	if err != nil {
 		return nil, fmt.Errorf("list cars for admin page: %w", err)
 	}
@@ -505,6 +520,29 @@ func appendPublicCarFilters(query *strings.Builder, args *[]any, filter model.Ca
 
 	if filter.Transmission != "" {
 		addFilter("c.transmission = $%d", filter.Transmission)
+	}
+}
+
+func appendAdminCarFilters(query *strings.Builder, args *[]any, filter model.AdminCarFilter) {
+	if filter.Search != "" {
+		*args = append(*args, "%"+filter.Search+"%")
+		placeholder := len(*args)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf(`(
+			c.brand ILIKE $%d OR
+			c.model ILIKE $%d OR
+			c.slug ILIKE $%d OR
+			cc.name ILIKE $%d OR
+			c.fuel_type ILIKE $%d OR
+			c.transmission ILIKE $%d
+		)`, placeholder, placeholder, placeholder, placeholder, placeholder, placeholder))
+	}
+
+	switch model.NormalizeAdminCarAvailability(filter.Availability) {
+	case model.AdminCarAvailabilityAvailable:
+		query.WriteString(" AND c.is_available = TRUE")
+	case model.AdminCarAvailabilityUnavailable:
+		query.WriteString(" AND c.is_available = FALSE")
 	}
 }
 

@@ -78,14 +78,17 @@ func (s *BookingService) ListBookings(ctx context.Context) ([]model.BookingAdmin
 	return bookings, nil
 }
 
-func (s *BookingService) ListBookingsPage(ctx context.Context, page int, perPage int) ([]model.BookingAdminView, model.Pagination, error) {
-	totalCount, err := s.repo.CountBookings(ctx)
+func (s *BookingService) ListBookingsPage(ctx context.Context, filter model.AdminBookingFilter) ([]model.BookingAdminView, model.Pagination, error) {
+	filter.Search = strings.TrimSpace(filter.Search)
+	filter.Status = model.NormalizeAdminBookingStatus(filter.Status)
+
+	totalCount, err := s.repo.CountBookings(ctx, filter)
 	if err != nil {
 		return nil, model.Pagination{}, fmt.Errorf("count bookings: %w", err)
 	}
 
-	pagination := model.NewPagination(page, perPage, totalCount)
-	bookings, err := s.repo.ListBookingsPage(ctx, pagination)
+	pagination := model.NewPagination(filter.Page, filter.PerPage, totalCount)
+	bookings, err := s.repo.ListBookingsPage(ctx, filter, pagination)
 	if err != nil {
 		return nil, model.Pagination{}, fmt.Errorf("list bookings page: %w", err)
 	}

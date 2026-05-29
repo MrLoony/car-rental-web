@@ -11,28 +11,32 @@ import (
 )
 
 type TemplateData struct {
-	Title                 string
-	AppName               string
-	Cars                  []model.Car
-	Car                   model.Car
-	Filter                model.CarFilter
-	Categories            []model.Category
-	FuelTypes             []string
-	Transmissions         []string
-	HasActiveFilters      bool
-	Pagination            model.Pagination
-	PaginationPreviousURL string
-	PaginationNextURL     string
-	BookingForm           model.BookingForm
-	BookingID             int64
-	AdminBookings         []model.BookingAdminView
-	AdminBooking          model.BookingAdminView
-	AdminCars             []model.Car
-	AdminCar              model.Car
-	BookingStatuses       []string
-	LoginForm             model.LoginForm
-	CarForm               model.CarForm
-	IsAdminAuthenticated  bool
+	Title                        string
+	AppName                      string
+	Cars                         []model.Car
+	Car                          model.Car
+	Filter                       model.CarFilter
+	Categories                   []model.Category
+	FuelTypes                    []string
+	Transmissions                []string
+	HasActiveFilters             bool
+	Pagination                   model.Pagination
+	PaginationPreviousURL        string
+	PaginationNextURL            string
+	BookingForm                  model.BookingForm
+	BookingID                    int64
+	AdminBookings                []model.BookingAdminView
+	AdminBooking                 model.BookingAdminView
+	AdminBookingFilter           model.AdminBookingFilter
+	HasActiveAdminBookingFilters bool
+	AdminCars                    []model.Car
+	AdminCar                     model.Car
+	AdminCarFilter               model.AdminCarFilter
+	HasActiveAdminCarFilters     bool
+	BookingStatuses              []string
+	LoginForm                    model.LoginForm
+	CarForm                      model.CarForm
+	IsAdminAuthenticated         bool
 }
 
 func (h *Handler) render(w http.ResponseWriter, r *http.Request, page string, data TemplateData) error {

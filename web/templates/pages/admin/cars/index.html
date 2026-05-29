@@ -18,6 +18,36 @@
     </div>
 </section>
 
+<section class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <form class="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto_auto] md:items-end" method="GET" action="/admin/cars" data-admin-filter-form>
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="admin-car-search">Search</label>
+            <input class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100" id="admin-car-search" type="search" name="search" value="{{.AdminCarFilter.Search}}" placeholder="Search cars..." data-admin-filter-search>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="admin-car-availability">Availability</label>
+            <select class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100" id="admin-car-availability" name="availability" data-admin-filter-select>
+                <option value="all" {{if eq .AdminCarFilter.Availability "all"}}selected{{end}}>All cars</option>
+                <option value="available" {{if eq .AdminCarFilter.Availability "available"}}selected{{end}}>Available</option>
+                <option value="unavailable" {{if eq .AdminCarFilter.Availability "unavailable"}}selected{{end}}>Unavailable</option>
+            </select>
+        </div>
+
+        <button class="inline-flex items-center justify-center rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-400" type="submit" data-admin-filter-submit>
+            Apply filters
+        </button>
+
+        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/cars">
+            Reset
+        </a>
+
+        <p class="hidden text-sm font-medium text-slate-500 md:col-span-4" data-admin-filter-status>
+            Applying filters...
+        </p>
+    </form>
+</section>
+
 {{if .AdminCars}}
 <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <div class="overflow-x-auto">
@@ -116,6 +146,15 @@
 {{end}}
 {{else}}
 <section class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+    {{if .HasActiveAdminCarFilters}}
+    <h2 class="text-xl font-semibold text-slate-950">No cars match your filters.</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+        Try changing the search text or availability filter.
+    </p>
+    <a class="mt-6 inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/cars">
+        Reset filters
+    </a>
+    {{else}}
     <h2 class="text-xl font-semibold text-slate-950">No cars yet</h2>
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
         Add the first car to start building the public catalog.
@@ -123,6 +162,7 @@
     <a class="mt-6 inline-flex items-center justify-center rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="/admin/cars/new">
         Add car
     </a>
+    {{end}}
 </section>
 {{end}}
 {{end}}

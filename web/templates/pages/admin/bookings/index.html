@@ -13,6 +13,38 @@
     </a>
 </section>
 
+<section class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <form class="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto_auto] md:items-end" method="GET" action="/admin/bookings" data-admin-filter-form>
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="admin-booking-search">Search</label>
+            <input class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100" id="admin-booking-search" type="search" name="search" value="{{.AdminBookingFilter.Search}}" placeholder="Search bookings..." data-admin-filter-search>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700" for="admin-booking-status">Status</label>
+            <select class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100" id="admin-booking-status" name="status" data-admin-filter-select>
+                <option value="all" {{if eq .AdminBookingFilter.Status "all"}}selected{{end}}>All statuses</option>
+                <option value="pending" {{if eq .AdminBookingFilter.Status "pending"}}selected{{end}}>Pending</option>
+                <option value="confirmed" {{if eq .AdminBookingFilter.Status "confirmed"}}selected{{end}}>Confirmed</option>
+                <option value="cancelled" {{if eq .AdminBookingFilter.Status "cancelled"}}selected{{end}}>Cancelled</option>
+                <option value="completed" {{if eq .AdminBookingFilter.Status "completed"}}selected{{end}}>Completed</option>
+            </select>
+        </div>
+
+        <button class="inline-flex items-center justify-center rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-400" type="submit" data-admin-filter-submit>
+            Apply filters
+        </button>
+
+        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/bookings">
+            Reset
+        </a>
+
+        <p class="hidden text-sm font-medium text-slate-500 md:col-span-4" data-admin-filter-status>
+            Applying filters...
+        </p>
+    </form>
+</section>
+
 {{if .AdminBookings}}
 <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <div class="overflow-x-auto">
@@ -105,10 +137,20 @@
 {{end}}
 {{else}}
 <section class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+    {{if .HasActiveAdminBookingFilters}}
+    <h2 class="text-xl font-semibold text-slate-950">No booking requests match your filters.</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+        Try changing the search text or status filter.
+    </p>
+    <a class="mt-6 inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/bookings">
+        Reset filters
+    </a>
+    {{else}}
     <h2 class="text-xl font-semibold text-slate-950">No booking requests yet</h2>
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
         New customer booking requests will appear here after they are submitted.
     </p>
+    {{end}}
 </section>
 {{end}}
 {{end}}

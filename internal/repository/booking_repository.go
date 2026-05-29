@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
@@ -171,22 +172,29 @@ func (r *BookingRepository) ListBookings(ctx context.Context) ([]model.BookingAd
 	return bookings, nil
 }
 
-func (r *BookingRepository) CountBookings(ctx context.Context) (int, error) {
-	const query = `
+func (r *BookingRepository) CountBookings(ctx context.Context, filter model.AdminBookingFilter) (int, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT COUNT(*)
-		FROM bookings
-	`
+		FROM bookings b
+		JOIN cars c ON c.id = b.car_id
+		WHERE TRUE
+	`)
+
+	args := make([]any, 0)
+	appendAdminBookingFilters(&query, &args, filter)
 
 	var count int
-	if err := r.db.QueryRow(ctx, query).Scan(&count); err != nil {
+	if err := r.db.QueryRow(ctx, query.String(), args...).Scan(&count); err != nil {
 		return 0, fmt.Errorf("count bookings: %w", err)
 	}
 
 	return count, nil
 }
 
-func (r *BookingRepository) ListBookingsPage(ctx context.Context, pagination model.Pagination) ([]model.BookingAdminView, error) {
-	const query = `
+func (r *BookingRepository) ListBookingsPage(ctx context.Context, filter model.AdminBookingFilter, pagination model.Pagination) ([]model.BookingAdminView, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT
 			b.id,
 			b.car_id,
@@ -206,11 +214,19 @@ func (r *BookingRepository) ListBookingsPage(ctx context.Context, pagination mod
 			b.updated_at
 		FROM bookings b
 		JOIN cars c ON c.id = b.car_id
-		ORDER BY b.created_at DESC, b.id DESC
-		LIMIT $1 OFFSET $2
-	`
+		WHERE TRUE
+	`)
 
-	rows, err := r.db.Query(ctx, query, pagination.PerPage, pagination.Offset)
+	args := make([]any, 0)
+	appendAdminBookingFilters(&query, &args, filter)
+	query.WriteString(" ORDER BY b.created_at DESC, b.id DESC")
+
+	args = append(args, pagination.PerPage, pagination.Offset)
+	limitPlaceholder := len(args) - 1
+	offsetPlaceholder := len(args)
+	query.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", limitPlaceholder, offsetPlaceholder))
+
+	rows, err := r.db.Query(ctx, query.String(), args...)
 	if err != nil {
 		return nil, fmt.Errorf("list bookings page: %w", err)
 	}
@@ -312,4 +328,27 @@ func scanBookingAdminView(scanner bookingAdminScanner, booking *model.BookingAdm
 		&booking.CreatedAt,
 		&booking.UpdatedAt,
 	)
+}
+
+func appendAdminBookingFilters(query *strings.Builder, args *[]any, filter model.AdminBookingFilter) {
+	if filter.Search != "" {
+		*args = append(*args, "%"+filter.Search+"%")
+		placeholder := len(*args)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf(`(
+			b.customer_name ILIKE $%d OR
+			b.customer_email ILIKE $%d OR
+			b.customer_phone ILIKE $%d OR
+			c.brand ILIKE $%d OR
+			c.model ILIKE $%d OR
+			c.slug ILIKE $%d
+		)`, placeholder, placeholder, placeholder, placeholder, placeholder, placeholder))
+	}
+
+	status := model.NormalizeAdminBookingStatus(filter.Status)
+	if status != model.AdminBookingStatusAll {
+		*args = append(*args, status)
+		query.WriteString(" AND ")
+		query.WriteString(fmt.Sprintf("b.status = $%d", len(*args)))
+	}
 }
