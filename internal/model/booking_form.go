@@ -12,6 +12,7 @@ type BookingForm struct {
 	Message                      string
 	SuggestedPickupAt            string
 	SuggestedAvailabilityWindows []AvailabilityWindow
+	SuggestedVehicles            []VehicleSuggestion
 
 	Errors map[string]string
 }

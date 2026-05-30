@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
@@ -54,8 +55,9 @@ func render(w http.ResponseWriter, page string, data TemplateData) error {
 
 func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, status int) error {
 	tmpl, err := template.New("").Funcs(template.FuncMap{
-		"formatDateTime": formatDateTime,
-		"formatMoney":    formatMoney,
+		"formatDateTime":    formatDateTime,
+		"formatMoney":       formatMoney,
+		"bookingPrefillURL": bookingPrefillURL,
 	}).ParseFiles(
 		"web/templates/layouts/base.html",
 		"web/templates/pages/"+page,
@@ -85,4 +87,35 @@ func formatDateTime(value time.Time) string {
 
 func formatMoney(value float64) string {
 	return fmt.Sprintf("$%.2f", value)
+}
+
+func bookingPrefillURL(slug string, form model.BookingForm) string {
+	path := "/cars/" + url.PathEscape(slug) + "/book"
+	values := url.Values{}
+
+	if form.CustomerName != "" {
+		values.Set("name", form.CustomerName)
+	}
+	if form.CustomerEmail != "" {
+		values.Set("email", form.CustomerEmail)
+	}
+	if form.CustomerPhone != "" {
+		values.Set("phone", form.CustomerPhone)
+	}
+	if form.PickupAt != "" {
+		values.Set("pickup_at", form.PickupAt)
+	}
+	if form.ReturnAt != "" {
+		values.Set("return_at", form.ReturnAt)
+	}
+	if form.Message != "" {
+		values.Set("message", form.Message)
+	}
+
+	encoded := values.Encode()
+	if encoded == "" {
+		return path
+	}
+
+	return path + "?" + encoded
 }

@@ -11,14 +11,22 @@ import (
 	"github.com/MrLoony/car-rental-web/internal/repository"
 )
 
-const datetimeLocalLayout = "2006-01-02T15:04"
+const (
+	datetimeLocalLayout              = "2006-01-02T15:04"
+	alternativeVehiclePriceTolerance = 0.20
+	maxSuggestedVehicles             = 3
+)
 
 type BookingService struct {
-	repo *repository.BookingRepository
+	repo    *repository.BookingRepository
+	carRepo *repository.CarRepository
 }
 
-func NewBookingService(repo *repository.BookingRepository) *BookingService {
-	return &BookingService{repo: repo}
+func NewBookingService(bookingRepo *repository.BookingRepository, carRepo *repository.CarRepository) *BookingService {
+	return &BookingService{
+		repo:    bookingRepo,
+		carRepo: carRepo,
+	}
 }
 
 func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form model.BookingForm) (int64, model.BookingForm, error) {
@@ -51,6 +59,12 @@ func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form 
 		}
 
 		form.SuggestedAvailabilityWindows = findAvailabilityWindows(pickupAt, returnAt, blockingBookings, car.PricePerDay)
+		suggestedVehicles, err := s.findSuggestedVehicles(ctx, car, pickupAt, returnAt)
+		if err != nil {
+			return 0, form, fmt.Errorf("find suggested vehicles: %w", err)
+		}
+
+		form.SuggestedVehicles = suggestedVehicles
 		form.Errors["pickup_at"] = "This car is unavailable for the selected period. Please choose another pickup or return time."
 		return 0, form, nil
 	}
@@ -192,6 +206,48 @@ func calculateBillingDays(pickupAt, returnAt time.Time) int {
 	}
 
 	return billingDays
+}
+
+func (s *BookingService) findSuggestedVehicles(ctx context.Context, car model.Car, pickupAt time.Time, returnAt time.Time) ([]model.VehicleSuggestion, error) {
+	minPrice, maxPrice := alternativeVehiclePriceRange(car.PricePerDay)
+	cars, err := s.carRepo.ListAvailableAlternativeCars(
+		ctx,
+		car.ID,
+		car.CategoryID,
+		minPrice,
+		maxPrice,
+		pickupAt,
+		returnAt,
+		model.BookingReturnBufferHours,
+		maxSuggestedVehicles,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return buildVehicleSuggestions(cars, pickupAt, returnAt), nil
+}
+
+func alternativeVehiclePriceRange(pricePerDay float64) (float64, float64) {
+	return pricePerDay * (1 - alternativeVehiclePriceTolerance), pricePerDay * (1 + alternativeVehiclePriceTolerance)
+}
+
+func buildVehicleSuggestions(cars []model.Car, pickupAt time.Time, returnAt time.Time) []model.VehicleSuggestion {
+	if len(cars) == 0 {
+		return nil
+	}
+
+	billingDays := calculateBillingDays(pickupAt, returnAt)
+	suggestions := make([]model.VehicleSuggestion, 0, len(cars))
+	for _, car := range cars {
+		suggestions = append(suggestions, model.VehicleSuggestion{
+			Car:            car,
+			BillingDays:    billingDays,
+			EstimatedTotal: float64(billingDays) * car.PricePerDay,
+		})
+	}
+
+	return suggestions
 }
 
 func findAvailabilityWindows(requestedPickup time.Time, requestedReturn time.Time, blockingBookings []model.Booking, pricePerDay float64) []model.AvailabilityWindow {

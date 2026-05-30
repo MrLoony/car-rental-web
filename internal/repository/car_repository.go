@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/jackc/pgx/v5"
@@ -186,6 +187,95 @@ func (r *CarRepository) GetCarBySlug(ctx context.Context, slug string) (model.Ca
 	}
 
 	return car, nil
+}
+
+func (r *CarRepository) ListAvailableAlternativeCars(
+	ctx context.Context,
+	currentCarID int64,
+	categoryID int64,
+	minPrice float64,
+	maxPrice float64,
+	pickupAt time.Time,
+	returnAt time.Time,
+	bufferHours int,
+	limit int,
+) ([]model.Car, error) {
+	if limit <= 0 {
+		limit = 3
+	}
+
+	const query = `
+		SELECT
+			c.id,
+			c.category_id,
+			cc.name AS category_name,
+			c.brand,
+			c.model,
+			c.slug,
+			c.year,
+			c.price_per_day::double precision,
+			c.transmission,
+			c.fuel_type,
+			c.seats,
+			COALESCE(c.image_url, '') AS image_url,
+			c.is_available,
+			c.created_at,
+			c.updated_at
+		FROM cars c
+		JOIN car_categories cc ON cc.id = c.category_id
+		WHERE c.id <> $1
+			AND c.category_id = $2
+			AND c.is_available = TRUE
+			AND c.price_per_day BETWEEN $3 AND $4
+			AND NOT EXISTS (
+				SELECT 1
+				FROM bookings b
+				WHERE b.car_id = c.id
+					AND b.status IN ($5, $6)
+					AND $7 < b.return_at + ($9 * interval '1 hour')
+					AND $8 > b.pickup_at
+			)
+		ORDER BY
+			ABS(c.price_per_day - (($3 + $4) / 2)) ASC,
+			c.price_per_day ASC,
+			c.id ASC
+		LIMIT $10
+	`
+
+	rows, err := r.db.Query(
+		ctx,
+		query,
+		currentCarID,
+		categoryID,
+		minPrice,
+		maxPrice,
+		model.BookingStatusPending,
+		model.BookingStatusConfirmed,
+		pickupAt,
+		returnAt,
+		bufferHours,
+		limit,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list available alternative cars: %w", err)
+	}
+	defer rows.Close()
+
+	cars := make([]model.Car, 0)
+	for rows.Next() {
+		var car model.Car
+		if err := scanCar(rows, &car); err != nil {
+			return nil, fmt.Errorf("scan available alternative car: %w", err)
+		}
+
+		cars = append(cars, car)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate available alternative cars: %w", err)
+	}
+
+	return cars, nil
 }
 
 func (r *CarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, error) {

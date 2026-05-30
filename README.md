@@ -115,6 +115,12 @@ Availability is checked before a booking request is saved. `pending` and `confir
 
 When a selected period is unavailable, the form shows the nearest available pickup time when one can be calculated. It can also show up to three alternative rental windows that fit the same requested rental duration. Suggested windows respect blocking bookings, non-blocking statuses, and the 4-hour return/preparation buffer. Each suggestion shows the start time, end time, billing days, and estimated total.
 
+The form can also suggest similar available vehicles when the selected car is unavailable. Alternative vehicles are selected from the same category, within a similar price range of roughly 20% above or below the selected car, and only when they are available for the selected pickup and return period. Pending and confirmed bookings block alternatives, cancelled and completed bookings do not, and the 4-hour return/preparation buffer is respected.
+
+Suggested vehicle cards show car information, price per day, billing days, estimated total, a link to view the car, and a `Book this car` link. When the user opens an alternative car booking form from that link, the app carries over the entered name, email, phone, pickup time, return time, and message so the alternative form is already populated.
+
+This carry-over is implemented with URL query parameters and is intended as a convenience feature for the SSR flow. More secure server-side transfer mechanisms may be added later. Suggestions are not AJAX/live or a full recommendation engine.
+
 ## Admin
 
 The admin dashboard is available at:
@@ -240,6 +246,11 @@ These are demo credentials only. Change them before any production use, and also
 - Nearest available pickup suggestion
 - Advanced availability window suggestions
 - Suggested rental alternatives on booking conflicts
+- Alternative vehicle suggestions on booking conflicts
+- Similar price/category vehicle recommendations
+- Available alternative car cards on booking form
+- Booking form carry-over between alternative vehicle suggestions
+- Prefilled alternative vehicle booking forms
 - Admin dashboard
 - Admin booking requests list
 - Admin booking detail page
@@ -273,8 +284,9 @@ These are demo credentials only. Change them before any production use, and also
 - Advanced analytics and reporting
 - Calendar UI
 - Click-to-fill suggested windows
+- Secure server-side booking form state transfer
 - Live availability checks
-- Multi-car alternatives
+- Multi-car alternatives and more advanced recommendation logic
 - Email notifications
 - Multiple image gallery
 - Old uploaded image cleanup

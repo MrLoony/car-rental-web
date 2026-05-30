@@ -33,7 +33,7 @@ func main() {
 	categoryService := service.NewCategoryService(categoryRepository)
 
 	bookingRepository := repository.NewBookingRepository(dbpool)
-	bookingService := service.NewBookingService(bookingRepository)
+	bookingService := service.NewBookingService(bookingRepository, carRepository)
 
 	adminUserRepository := repository.NewAdminUserRepository(dbpool)
 	authService := service.NewAuthService(adminUserRepository)

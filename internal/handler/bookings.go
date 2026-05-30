@@ -21,7 +21,7 @@ func (h *Handler) BookingNew() http.HandlerFunc {
 			Title:       "Book " + car.Brand + " " + car.Model,
 			AppName:     h.appName,
 			Car:         car,
-			BookingForm: model.NewBookingForm(),
+			BookingForm: bookingFormFromQuery(r),
 		}
 
 		if err := h.render(w, r, "bookings/new.html", data); err != nil {
@@ -112,4 +112,18 @@ func (h *Handler) loadBookingCar(w http.ResponseWriter, r *http.Request) (model.
 	}
 
 	return car, true
+}
+
+func bookingFormFromQuery(r *http.Request) model.BookingForm {
+	form := model.NewBookingForm()
+	query := r.URL.Query()
+
+	form.CustomerName = query.Get("name")
+	form.CustomerEmail = query.Get("email")
+	form.CustomerPhone = query.Get("phone")
+	form.PickupAt = query.Get("pickup_at")
+	form.ReturnAt = query.Get("return_at")
+	form.Message = query.Get("message")
+
+	return form
 }

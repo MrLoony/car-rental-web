@@ -203,6 +203,74 @@ func TestFindAvailabilityWindowsCalculatesCeilBillingDaysAndTotal(t *testing.T) 
 	assertAvailabilityWindow(t, windows[0], requestedPickup, requestedReturn, 2, 90)
 }
 
+func TestAlternativeVehiclePriceRange(t *testing.T) {
+	minPrice, maxPrice := alternativeVehiclePriceRange(100)
+
+	if minPrice != 80 {
+		t.Fatalf("minPrice = %f, want 80", minPrice)
+	}
+
+	if maxPrice != 120 {
+		t.Fatalf("maxPrice = %f, want 120", maxPrice)
+	}
+}
+
+func TestBuildVehicleSuggestionsEmptyCars(t *testing.T) {
+	pickupAt := time.Date(2026, time.June, 1, 10, 0, 0, 0, time.UTC)
+	returnAt := pickupAt.Add(24 * time.Hour)
+
+	suggestions := buildVehicleSuggestions(nil, pickupAt, returnAt)
+
+	if suggestions != nil {
+		t.Fatalf("suggestions = %#v, want nil", suggestions)
+	}
+}
+
+func TestBuildVehicleSuggestionsCalculatesBillingAndTotals(t *testing.T) {
+	pickupAt := time.Date(2026, time.June, 1, 10, 0, 0, 0, time.UTC)
+	returnAt := pickupAt.Add(25 * time.Hour)
+	cars := []model.Car{
+		{
+			ID:          10,
+			Brand:       "Hyundai",
+			Model:       "Elantra",
+			PricePerDay: 50,
+		},
+		{
+			ID:          11,
+			Brand:       "Toyota",
+			Model:       "Camry",
+			PricePerDay: 65,
+		},
+	}
+
+	suggestions := buildVehicleSuggestions(cars, pickupAt, returnAt)
+
+	if len(suggestions) != 2 {
+		t.Fatalf("len(suggestions) = %d, want 2", len(suggestions))
+	}
+
+	if suggestions[0].Car.ID != 10 {
+		t.Fatalf("suggestions[0].Car.ID = %d, want 10", suggestions[0].Car.ID)
+	}
+
+	if suggestions[0].BillingDays != 2 {
+		t.Fatalf("suggestions[0].BillingDays = %d, want 2", suggestions[0].BillingDays)
+	}
+
+	if suggestions[0].EstimatedTotal != 100 {
+		t.Fatalf("suggestions[0].EstimatedTotal = %f, want 100", suggestions[0].EstimatedTotal)
+	}
+
+	if suggestions[1].BillingDays != 2 {
+		t.Fatalf("suggestions[1].BillingDays = %d, want 2", suggestions[1].BillingDays)
+	}
+
+	if suggestions[1].EstimatedTotal != 130 {
+		t.Fatalf("suggestions[1].EstimatedTotal = %f, want 130", suggestions[1].EstimatedTotal)
+	}
+}
+
 func assertAvailabilityWindow(t *testing.T, window model.AvailabilityWindow, startAt time.Time, endAt time.Time, billingDays int, estimatedTotal float64) {
 	t.Helper()
 

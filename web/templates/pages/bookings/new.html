@@ -100,6 +100,71 @@
             </section>
             {{end}}
 
+            {{if .BookingForm.SuggestedVehicles}}
+            <section class="rounded-lg border border-slate-200 bg-white p-4">
+                <h3 class="text-sm font-semibold uppercase tracking-wide text-teal-800">Similar cars available for your dates</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Booking one of these cars will carry over your selected dates and contact details.
+                </p>
+                <div class="mt-3 grid gap-4 md:grid-cols-2">
+                    {{range .BookingForm.SuggestedVehicles}}
+                    <article class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                        {{if .Car.ImageURL}}
+                        <img class="aspect-[4/3] w-full object-cover" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image>
+                        {{else}}
+                        <img class="aspect-[4/3] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
+                        {{end}}
+
+                        <div class="p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-slate-950">{{.Car.Brand}} {{.Car.Model}}</h4>
+                                    <p class="mt-1 text-sm text-slate-500">{{.Car.Year}} · {{.Car.CategoryName}}</p>
+                                </div>
+                                <p class="shrink-0 text-sm font-semibold text-slate-950">{{formatMoney .Car.PricePerDay}}<span class="font-normal text-slate-500"> / day</span></p>
+                            </div>
+
+                            <dl class="mt-4 grid grid-cols-3 gap-2 text-xs">
+                                <div class="rounded-md bg-slate-50 p-2">
+                                    <dt class="text-slate-500">Transmission</dt>
+                                    <dd class="mt-1 font-medium text-slate-800">{{.Car.Transmission}}</dd>
+                                </div>
+                                <div class="rounded-md bg-slate-50 p-2">
+                                    <dt class="text-slate-500">Fuel</dt>
+                                    <dd class="mt-1 font-medium text-slate-800">{{.Car.FuelType}}</dd>
+                                </div>
+                                <div class="rounded-md bg-slate-50 p-2">
+                                    <dt class="text-slate-500">Seats</dt>
+                                    <dd class="mt-1 font-medium text-slate-800">{{.Car.Seats}}</dd>
+                                </div>
+                            </dl>
+
+                            <dl class="mt-4 grid gap-3 border-t border-slate-200 pt-4 text-sm sm:grid-cols-2">
+                                <div>
+                                    <dt class="text-slate-500">Billing days</dt>
+                                    <dd class="mt-1 font-medium text-slate-950">{{.BillingDays}}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-slate-500">Estimated total</dt>
+                                    <dd class="mt-1 font-medium text-slate-950">{{formatMoney .EstimatedTotal}}</dd>
+                                </div>
+                            </dl>
+
+                            <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                                <a class="inline-flex flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars/{{.Car.Slug}}">
+                                    View car
+                                </a>
+                                <a class="inline-flex flex-1 items-center justify-center rounded-md bg-teal-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="{{bookingPrefillURL .Car.Slug $.BookingForm}}">
+                                    Book this car
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                    {{end}}
+                </div>
+            </section>
+            {{end}}
+
             <div class="rounded-lg border border-slate-200 bg-slate-50 p-4" data-booking-preview>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>

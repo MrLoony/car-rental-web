@@ -18,6 +18,10 @@ func TestNewBookingFormSuggestedAvailabilityWindowsDefault(t *testing.T) {
 		t.Fatalf("SuggestedAvailabilityWindows = %#v, want nil", form.SuggestedAvailabilityWindows)
 	}
 
+	if form.SuggestedVehicles != nil {
+		t.Fatalf("SuggestedVehicles = %#v, want nil", form.SuggestedVehicles)
+	}
+
 	if form.HasErrors() {
 		t.Fatal("HasErrors() = true, want false")
 	}
