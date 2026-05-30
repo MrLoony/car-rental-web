@@ -111,7 +111,9 @@ http://localhost:8080/cars/toyota-corolla/book
 
 The booking form is server-rendered and works without JavaScript. Backend validation is the source of truth. Rentals are billed in 24-hour periods using `ceil(duration_hours / 24)`, with a minimum of one billing day. The estimated total is calculated as `billing_days * price_per_day`, and new booking requests are saved with `pending` status.
 
-Availability is checked before a booking request is saved. `pending` and `confirmed` bookings block overlapping requests, while `cancelled` and `completed` bookings do not. After a return time, the car remains unavailable for 4 hours to allow for possible late return, cleaning, washing, inspection, and preparation. When a selected period is unavailable, the form shows the nearest available pickup time when one can be calculated.
+Availability is checked before a booking request is saved. `pending` and `confirmed` bookings block overlapping requests, while `cancelled` and `completed` bookings do not. After a return time, the car remains unavailable for 4 hours to allow for possible late return, cleaning, washing, inspection, and preparation.
+
+When a selected period is unavailable, the form shows the nearest available pickup time when one can be calculated. It can also show up to three alternative rental windows that fit the same requested rental duration. Suggested windows respect blocking bookings, non-blocking statuses, and the 4-hour return/preparation buffer. Each suggestion shows the start time, end time, billing days, and estimated total.
 
 ## Admin
 
@@ -236,6 +238,8 @@ These are demo credentials only. Change them before any production use, and also
 - Availability conflict checking
 - 4-hour return/preparation buffer
 - Nearest available pickup suggestion
+- Advanced availability window suggestions
+- Suggested rental alternatives on booking conflicts
 - Admin dashboard
 - Admin booking requests list
 - Admin booking detail page
@@ -267,7 +271,10 @@ These are demo credentials only. Change them before any production use, and also
 - Advanced responsive redesign
 - Infinite scroll or AJAX pagination
 - Advanced analytics and reporting
-- Advanced availability window search
+- Calendar UI
+- Click-to-fill suggested windows
+- Live availability checks
+- Multi-car alternatives
 - Email notifications
 - Multiple image gallery
 - Old uploaded image cleanup

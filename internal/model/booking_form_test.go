@@ -10,3 +10,15 @@ func TestBookingFormSuggestedPickupAt(t *testing.T) {
 		t.Fatalf("SuggestedPickupAt = %q", form.SuggestedPickupAt)
 	}
 }
+
+func TestNewBookingFormSuggestedAvailabilityWindowsDefault(t *testing.T) {
+	form := NewBookingForm()
+
+	if form.SuggestedAvailabilityWindows != nil {
+		t.Fatalf("SuggestedAvailabilityWindows = %#v, want nil", form.SuggestedAvailabilityWindows)
+	}
+
+	if form.HasErrors() {
+		t.Fatal("HasErrors() = true, want false")
+	}
+}

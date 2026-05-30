@@ -125,6 +125,51 @@ func (r *BookingRepository) FindNextAvailablePickupAt(ctx context.Context, carID
 	return suggestedAt.Time, true, nil
 }
 
+func (r *BookingRepository) ListBlockingBookingsForCar(ctx context.Context, carID int64, from time.Time, to time.Time) ([]model.Booking, error) {
+	const query = `
+		SELECT
+			b.id,
+			b.car_id,
+			b.pickup_at,
+			b.return_at,
+			b.status
+		FROM bookings b
+		WHERE b.car_id = $1
+			AND b.status IN ($2, $3)
+			AND b.pickup_at < $4
+			AND b.return_at > $5
+		ORDER BY b.pickup_at ASC, b.id ASC
+	`
+
+	rows, err := r.db.Query(ctx, query, carID, model.BookingStatusPending, model.BookingStatusConfirmed, to, from)
+	if err != nil {
+		return nil, fmt.Errorf("list blocking bookings for car %d: %w", carID, err)
+	}
+	defer rows.Close()
+
+	bookings := make([]model.Booking, 0)
+	for rows.Next() {
+		var booking model.Booking
+		if err := rows.Scan(
+			&booking.ID,
+			&booking.CarID,
+			&booking.PickupAt,
+			&booking.ReturnAt,
+			&booking.Status,
+		); err != nil {
+			return nil, fmt.Errorf("scan blocking booking for car %d: %w", carID, err)
+		}
+
+		bookings = append(bookings, booking)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate blocking bookings for car %d: %w", carID, err)
+	}
+
+	return bookings, nil
+}
+
 func (r *BookingRepository) ListBookings(ctx context.Context) ([]model.BookingAdminView, error) {
 	const query = `
 		SELECT

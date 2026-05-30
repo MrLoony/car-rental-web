@@ -43,6 +43,14 @@ func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form 
 			form.SuggestedPickupAt = suggestedAt.Format("Jan 02, 2006 15:04")
 		}
 
+		searchFrom := pickupAt.Add(-time.Duration(model.BookingReturnBufferHours) * time.Hour)
+		searchTo := returnAt.AddDate(0, 0, 30)
+		blockingBookings, err := s.repo.ListBlockingBookingsForCar(ctx, car.ID, searchFrom, searchTo)
+		if err != nil {
+			return 0, form, fmt.Errorf("list blocking bookings for availability windows: %w", err)
+		}
+
+		form.SuggestedAvailabilityWindows = findAvailabilityWindows(pickupAt, returnAt, blockingBookings, car.PricePerDay)
 		form.Errors["pickup_at"] = "This car is unavailable for the selected period. Please choose another pickup or return time."
 		return 0, form, nil
 	}
@@ -184,4 +192,55 @@ func calculateBillingDays(pickupAt, returnAt time.Time) int {
 	}
 
 	return billingDays
+}
+
+func findAvailabilityWindows(requestedPickup time.Time, requestedReturn time.Time, blockingBookings []model.Booking, pricePerDay float64) []model.AvailabilityWindow {
+	const maxSuggestions = 3
+
+	requestedDuration := requestedReturn.Sub(requestedPickup)
+	if requestedDuration <= 0 {
+		return nil
+	}
+
+	windows := make([]model.AvailabilityWindow, 0, maxSuggestions)
+	cursor := requestedPickup
+
+	addWindow := func(start time.Time) {
+		if len(windows) >= maxSuggestions {
+			return
+		}
+
+		end := start.Add(requestedDuration)
+		billingDays := calculateBillingDays(start, end)
+		windows = append(windows, model.AvailabilityWindow{
+			StartAt:        start,
+			EndAt:          end,
+			BillingDays:    billingDays,
+			EstimatedTotal: float64(billingDays) * pricePerDay,
+		})
+	}
+
+	for _, booking := range blockingBookings {
+		if len(windows) >= maxSuggestions {
+			break
+		}
+
+		blockedStart := booking.PickupAt
+		blockedEnd := booking.ReturnAt.Add(time.Duration(model.BookingReturnBufferHours) * time.Hour)
+
+		if cursor.Before(blockedStart) {
+			gapDuration := blockedStart.Sub(cursor)
+			if gapDuration >= requestedDuration {
+				addWindow(cursor)
+			}
+		}
+
+		if blockedEnd.After(cursor) {
+			cursor = blockedEnd
+		}
+	}
+
+	addWindow(cursor)
+
+	return windows
 }
