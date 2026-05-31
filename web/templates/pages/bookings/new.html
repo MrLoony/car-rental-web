@@ -154,7 +154,7 @@
                                 <a class="inline-flex flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars/{{.Car.Slug}}">
                                     View car
                                 </a>
-                                <a class="inline-flex flex-1 items-center justify-center rounded-md bg-teal-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="{{bookingPrefillURL .Car.Slug $.BookingForm}}">
+                                <a class="inline-flex flex-1 items-center justify-center rounded-md bg-teal-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="{{with index $.SuggestedVehicleBookingURLs .Car.ID}}{{.}}{{else}}/cars/{{.Car.Slug}}/book{{end}}">
                                     Book this car
                                 </a>
                             </div>

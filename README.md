@@ -117,9 +117,9 @@ When a selected period is unavailable, the form shows the nearest available pick
 
 The form can also suggest similar available vehicles when the selected car is unavailable. Alternative vehicles are selected from the same category, within a similar price range of roughly 20% above or below the selected car, and only when they are available for the selected pickup and return period. Pending and confirmed bookings block alternatives, cancelled and completed bookings do not, and the 4-hour return/preparation buffer is respected.
 
-Suggested vehicle cards show car information, price per day, billing days, estimated total, a link to view the car, and a `Book this car` link. When the user opens an alternative car booking form from that link, the app carries over the entered name, email, phone, pickup time, return time, and message so the alternative form is already populated.
+Suggested vehicle cards show car information, price per day, billing days, estimated total, a link to view the car, and a `Book this car` link. When the user clicks `Book this car`, the alternative vehicle booking form opens with the previously entered name, email, phone, pickup time, return time, and message restored automatically.
 
-This carry-over is implemented with URL query parameters and is intended as a convenience feature for the SSR flow. More secure server-side transfer mechanisms may be added later. Suggestions are not AJAX/live or a full recommendation engine.
+This carry-over uses a server-side prefill token. Alternative booking URLs use the format `/cars/{slug}/book?prefill=<token>`, so customer details and selected times are not exposed in the URL. Prefill tokens are URL-safe, expire after 30 minutes, and invalid or expired tokens safely fall back to a normal empty booking form. Suggestions are not AJAX/live or a full recommendation engine.
 
 ## Admin
 
@@ -250,6 +250,8 @@ These are demo credentials only. Change them before any production use, and also
 - Similar price/category vehicle recommendations
 - Available alternative car cards on booking form
 - Booking form carry-over between alternative vehicle suggestions
+- Secure server-side booking form state transfer
+- Expiring booking prefill tokens
 - Prefilled alternative vehicle booking forms
 - Admin dashboard
 - Admin booking requests list
@@ -284,7 +286,6 @@ These are demo credentials only. Change them before any production use, and also
 - Advanced analytics and reporting
 - Calendar UI
 - Click-to-fill suggested windows
-- Secure server-side booking form state transfer
 - Live availability checks
 - Multi-car alternatives and more advanced recommendation logic
 - Email notifications

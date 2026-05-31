@@ -9,22 +9,24 @@ import (
 )
 
 type Handler struct {
-	appName         string
-	carService      *service.CarService
-	categoryService *service.CategoryService
-	bookingService  *service.BookingService
-	authService     *service.AuthService
-	sessionStore    *sessions.CookieStore
+	appName               string
+	carService            *service.CarService
+	categoryService       *service.CategoryService
+	bookingService        *service.BookingService
+	bookingPrefillService *service.BookingPrefillService
+	authService           *service.AuthService
+	sessionStore          *sessions.CookieStore
 }
 
-func New(appName string, carService *service.CarService, categoryService *service.CategoryService, bookingService *service.BookingService, authService *service.AuthService, sessionStore *sessions.CookieStore) *Handler {
+func New(appName string, carService *service.CarService, categoryService *service.CategoryService, bookingService *service.BookingService, bookingPrefillService *service.BookingPrefillService, authService *service.AuthService, sessionStore *sessions.CookieStore) *Handler {
 	return &Handler{
-		appName:         appName,
-		carService:      carService,
-		categoryService: categoryService,
-		bookingService:  bookingService,
-		authService:     authService,
-		sessionStore:    sessionStore,
+		appName:               appName,
+		carService:            carService,
+		categoryService:       categoryService,
+		bookingService:        bookingService,
+		bookingPrefillService: bookingPrefillService,
+		authService:           authService,
+		sessionStore:          sessionStore,
 	}
 }
 

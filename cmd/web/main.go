@@ -35,6 +35,9 @@ func main() {
 	bookingRepository := repository.NewBookingRepository(dbpool)
 	bookingService := service.NewBookingService(bookingRepository, carRepository)
 
+	bookingPrefillRepository := repository.NewBookingPrefillRepository(dbpool)
+	bookingPrefillService := service.NewBookingPrefillService(bookingPrefillRepository)
+
 	adminUserRepository := repository.NewAdminUserRepository(dbpool)
 	authService := service.NewAuthService(adminUserRepository)
 
@@ -46,7 +49,7 @@ func main() {
 		Secure:   false,
 	}
 
-	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService, authService, sessionStore)
+	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService, bookingPrefillService, authService, sessionStore)
 	router := appHandler.Routes()
 
 	log.Printf("starting %s in %s mode on %s", cfg.AppName, cfg.AppEnv, addr)

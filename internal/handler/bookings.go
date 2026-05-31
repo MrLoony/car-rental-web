@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
@@ -17,11 +18,16 @@ func (h *Handler) BookingNew() http.HandlerFunc {
 			return
 		}
 
+		form, ok := h.bookingFormForNewRequest(w, r)
+		if !ok {
+			return
+		}
+
 		data := TemplateData{
 			Title:       "Book " + car.Brand + " " + car.Model,
 			AppName:     h.appName,
 			Car:         car,
-			BookingForm: bookingFormFromQuery(r),
+			BookingForm: form,
 		}
 
 		if err := h.render(w, r, "bookings/new.html", data); err != nil {
@@ -58,11 +64,18 @@ func (h *Handler) BookingCreate() http.HandlerFunc {
 		}
 
 		if form.HasErrors() {
+			suggestedVehicleBookingURLs, err := h.suggestedVehicleBookingURLs(r, form)
+			if err != nil {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
 			data := TemplateData{
-				Title:       "Book " + car.Brand + " " + car.Model,
-				AppName:     h.appName,
-				Car:         car,
-				BookingForm: form,
+				Title:                       "Book " + car.Brand + " " + car.Model,
+				AppName:                     h.appName,
+				Car:                         car,
+				BookingForm:                 form,
+				SuggestedVehicleBookingURLs: suggestedVehicleBookingURLs,
 			}
 
 			if err := h.renderWithStatus(w, r, "bookings/new.html", data, http.StatusUnprocessableEntity); err != nil {
@@ -126,4 +139,48 @@ func bookingFormFromQuery(r *http.Request) model.BookingForm {
 	form.Message = query.Get("message")
 
 	return form
+}
+
+func (h *Handler) bookingFormForNewRequest(w http.ResponseWriter, r *http.Request) (model.BookingForm, bool) {
+	token := r.URL.Query().Get("prefill")
+	if token == "" {
+		return bookingFormFromQuery(r), true
+	}
+
+	form, err := h.bookingPrefillService.GetFormByToken(r.Context(), token)
+	if err != nil {
+		if errors.Is(err, repository.ErrBookingPrefillNotFound) {
+			return model.NewBookingForm(), true
+		}
+
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return model.BookingForm{}, false
+	}
+
+	return form, true
+}
+
+func (h *Handler) suggestedVehicleBookingURLs(r *http.Request, form model.BookingForm) (map[int64]string, error) {
+	if len(form.SuggestedVehicles) == 0 {
+		return nil, nil
+	}
+
+	urls := make(map[int64]string, len(form.SuggestedVehicles))
+	for _, suggestion := range form.SuggestedVehicles {
+		token, err := h.bookingPrefillService.CreateFromBookingForm(r.Context(), form)
+		if err != nil {
+			return nil, err
+		}
+
+		urls[suggestion.Car.ID] = bookingPrefillTokenURL(suggestion.Car.Slug, token)
+	}
+
+	return urls, nil
+}
+
+func bookingPrefillTokenURL(slug string, token string) string {
+	values := url.Values{}
+	values.Set("prefill", token)
+
+	return "/cars/" + url.PathEscape(slug) + "/book?" + values.Encode()
 }
