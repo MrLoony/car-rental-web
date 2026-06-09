@@ -39,17 +39,13 @@ func main() {
 	bookingPrefillService := service.NewBookingPrefillService(bookingPrefillRepository)
 
 	adminUserRepository := repository.NewAdminUserRepository(dbpool)
-	authService := service.NewAuthService(adminUserRepository)
+	loginAttemptLimiter := service.NewLoginAttemptLimiter()
+	authService := service.NewAuthService(adminUserRepository, loginAttemptLimiter)
 
 	sessionStore := sessions.NewCookieStore([]byte(cfg.SessionSecret))
-	sessionStore.Options = &sessions.Options{
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   false,
-	}
+	sessionStore.Options = sessionOptions(cfg.IsProduction)
 
-	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService, bookingPrefillService, authService, sessionStore)
+	appHandler := handler.New(cfg.AppName, carService, categoryService, bookingService, bookingPrefillService, authService, sessionStore, cfg.IsProduction)
 	router := appHandler.Routes()
 
 	log.Printf("starting %s in %s mode on %s", cfg.AppName, cfg.AppEnv, addr)

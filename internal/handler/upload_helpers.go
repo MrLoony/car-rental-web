@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +15,7 @@ import (
 const maxCarImageUploadSize = 5 << 20
 const carImageUploadDir = "web/static/uploads/cars"
 const carImagePublicPath = "/static/uploads/cars"
+const carImageSniffBytes = 512
 
 var allowedCarImageExtensions = map[string]struct{}{
 	".jpg":  {},
@@ -21,18 +24,35 @@ var allowedCarImageExtensions = map[string]struct{}{
 	".webp": {},
 }
 
-func validateCarImageUpload(header *multipart.FileHeader) error {
+func validateCarImageUpload(header *multipart.FileHeader, file multipart.File) error {
 	if header == nil {
 		return nil
 	}
 
-	if header.Size > maxCarImageUploadSize {
-		return fmt.Errorf("car image upload exceeds 5 MB")
+	if header.Size == 0 {
+		return errors.New("Uploaded image cannot be empty.")
 	}
 
-	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if header.Size > maxCarImageUploadSize {
+		return errors.New("Uploaded image must be 5 MB or smaller.")
+	}
+
+	ext := carImageExtension(header.Filename)
 	if _, ok := allowedCarImageExtensions[ext]; !ok {
-		return fmt.Errorf("unsupported car image extension")
+		return errors.New("Uploaded image must be a JPEG, PNG, or WebP file.")
+	}
+
+	if file == nil {
+		return errors.New("Uploaded image must be a JPEG, PNG, or WebP file.")
+	}
+
+	contentType, err := sniffCarImageContentType(file)
+	if err != nil {
+		return err
+	}
+
+	if !carImageExtensionMatchesContentType(ext, contentType) {
+		return errors.New("Uploaded image must be a JPEG, PNG, or WebP file.")
 	}
 
 	return nil
@@ -41,7 +61,7 @@ func validateCarImageUpload(header *multipart.FileHeader) error {
 func saveCarImageUpload(file multipart.File, header *multipart.FileHeader, carSlug string) (string, error) {
 	defer file.Close()
 
-	if err := validateCarImageUpload(header); err != nil {
+	if err := validateCarImageUpload(header, file); err != nil {
 		return "", err
 	}
 
@@ -50,7 +70,10 @@ func saveCarImageUpload(file multipart.File, header *multipart.FileHeader, carSl
 	}
 
 	filename := generateCarImageFilename(carSlug, time.Now().UnixNano(), header.Filename)
-	destinationPath := filepath.Join(carImageUploadDir, filename)
+	destinationPath, err := carImageDestinationPath(filename)
+	if err != nil {
+		return "", err
+	}
 
 	destination, err := os.Create(destinationPath)
 	if err != nil {
@@ -71,7 +94,7 @@ func generateCarImageFilename(carSlug string, timestamp int64, originalFilename 
 		base = "car-image"
 	}
 
-	ext := strings.ToLower(filepath.Ext(originalFilename))
+	ext := carImageExtension(originalFilename)
 	return fmt.Sprintf("%s-%d%s", base, timestamp, ext)
 }
 
@@ -88,11 +111,82 @@ func sanitizeCarImageFilenameBase(value string) string {
 			continue
 		}
 
-		if char == '-' && !previousHyphen {
-			builder.WriteRune(char)
+		if (char == '-' || char == ' ' || char == '_') && !previousHyphen {
+			builder.WriteByte('-')
 			previousHyphen = true
 		}
 	}
 
 	return strings.Trim(builder.String(), "-")
+}
+
+func sniffCarImageContentType(file multipart.File) (string, error) {
+	buffer := make([]byte, carImageSniffBytes)
+	bytesRead, err := file.Read(buffer)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return "", fmt.Errorf("read uploaded image: %w", err)
+	}
+
+	if bytesRead == 0 {
+		return "", errors.New("Uploaded image cannot be empty.")
+	}
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return "", fmt.Errorf("reset uploaded image: %w", err)
+	}
+
+	sniffedBytes := buffer[:bytesRead]
+	if isWebP(sniffedBytes) {
+		return "image/webp", nil
+	}
+
+	return http.DetectContentType(sniffedBytes), nil
+}
+
+func carImageExtension(filename string) string {
+	return strings.ToLower(filepath.Ext(filename))
+}
+
+func carImageExtensionMatchesContentType(ext string, contentType string) bool {
+	switch ext {
+	case ".jpg", ".jpeg":
+		return contentType == "image/jpeg"
+	case ".png":
+		return contentType == "image/png"
+	case ".webp":
+		return contentType == "image/webp"
+	default:
+		return false
+	}
+}
+
+func isWebP(data []byte) bool {
+	return len(data) >= 12 &&
+		string(data[0:4]) == "RIFF" &&
+		string(data[8:12]) == "WEBP"
+}
+
+func carImageDestinationPath(filename string) (string, error) {
+	destinationPath := filepath.Join(carImageUploadDir, filename)
+
+	uploadDirAbs, err := filepath.Abs(carImageUploadDir)
+	if err != nil {
+		return "", fmt.Errorf("resolve car image upload directory: %w", err)
+	}
+
+	destinationAbs, err := filepath.Abs(destinationPath)
+	if err != nil {
+		return "", fmt.Errorf("resolve car image upload path: %w", err)
+	}
+
+	relativePath, err := filepath.Rel(uploadDirAbs, destinationAbs)
+	if err != nil {
+		return "", fmt.Errorf("validate car image upload path: %w", err)
+	}
+
+	if relativePath == "." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) || relativePath == ".." || filepath.IsAbs(relativePath) {
+		return "", errors.New("invalid car image upload path")
+	}
+
+	return destinationPath, nil
 }

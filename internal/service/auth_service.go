@@ -11,14 +11,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const invalidCredentialsMessage = "Invalid email or password."
+const (
+	invalidCredentialsMessage      = "Invalid email or password."
+	invalidCredentialsLaterMessage = "Invalid email or password. Please try again later."
+)
 
 type AuthService struct {
 	adminUserRepo *repository.AdminUserRepository
+	loginLimiter  *LoginAttemptLimiter
 }
 
-func NewAuthService(adminUserRepo *repository.AdminUserRepository) *AuthService {
-	return &AuthService{adminUserRepo: adminUserRepo}
+func NewAuthService(adminUserRepo *repository.AdminUserRepository, loginLimiter *LoginAttemptLimiter) *AuthService {
+	if loginLimiter == nil {
+		loginLimiter = NewLoginAttemptLimiter()
+	}
+
+	return &AuthService{
+		adminUserRepo: adminUserRepo,
+		loginLimiter:  loginLimiter,
+	}
 }
 
 func (s *AuthService) Authenticate(ctx context.Context, form model.LoginForm) (model.AdminUser, model.LoginForm, error) {
@@ -27,9 +38,15 @@ func (s *AuthService) Authenticate(ctx context.Context, form model.LoginForm) (m
 		return model.AdminUser{}, form, nil
 	}
 
+	if locked, _ := s.loginLimiter.IsLocked(form.Email); locked {
+		addCredentialsErrorMessage(&form, invalidCredentialsLaterMessage)
+		return model.AdminUser{}, form, nil
+	}
+
 	user, err := s.adminUserRepo.GetAdminUserByEmail(ctx, form.Email)
 	if err != nil {
 		if errors.Is(err, repository.ErrAdminUserNotFound) {
+			s.loginLimiter.RecordFailure(form.Email)
 			addCredentialsError(&form)
 			return model.AdminUser{}, form, nil
 		}
@@ -38,10 +55,12 @@ func (s *AuthService) Authenticate(ctx context.Context, form model.LoginForm) (m
 	}
 
 	if !passwordMatchesHash(form.Password, user.PasswordHash) {
+		s.loginLimiter.RecordFailure(form.Email)
 		addCredentialsError(&form)
 		return model.AdminUser{}, form, nil
 	}
 
+	s.loginLimiter.RecordSuccess(form.Email)
 	return user, form, nil
 }
 
@@ -66,7 +85,11 @@ func validateLoginForm(form *model.LoginForm) {
 }
 
 func addCredentialsError(form *model.LoginForm) {
-	form.Errors["credentials"] = invalidCredentialsMessage
+	addCredentialsErrorMessage(form, invalidCredentialsMessage)
+}
+
+func addCredentialsErrorMessage(form *model.LoginForm, message string) {
+	form.Errors["credentials"] = message
 }
 
 func passwordMatchesHash(password string, passwordHash string) bool {

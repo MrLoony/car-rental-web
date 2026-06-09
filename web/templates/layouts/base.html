@@ -19,6 +19,7 @@
                 <a class="transition hover:text-teal-700" href="/admin/bookings">Bookings</a>
                 <a class="transition hover:text-teal-700" href="/admin/cars">Admin cars</a>
                 <form method="POST" action="/logout">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <button class="font-medium text-slate-600 transition hover:text-teal-700" type="submit">
                         Logout
                     </button>

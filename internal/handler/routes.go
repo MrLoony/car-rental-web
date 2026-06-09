@@ -16,9 +16,10 @@ type Handler struct {
 	bookingPrefillService *service.BookingPrefillService
 	authService           *service.AuthService
 	sessionStore          *sessions.CookieStore
+	isProduction          bool
 }
 
-func New(appName string, carService *service.CarService, categoryService *service.CategoryService, bookingService *service.BookingService, bookingPrefillService *service.BookingPrefillService, authService *service.AuthService, sessionStore *sessions.CookieStore) *Handler {
+func New(appName string, carService *service.CarService, categoryService *service.CategoryService, bookingService *service.BookingService, bookingPrefillService *service.BookingPrefillService, authService *service.AuthService, sessionStore *sessions.CookieStore, isProduction bool) *Handler {
 	return &Handler{
 		appName:               appName,
 		carService:            carService,
@@ -27,11 +28,13 @@ func New(appName string, carService *service.CarService, categoryService *servic
 		bookingPrefillService: bookingPrefillService,
 		authService:           authService,
 		sessionStore:          sessionStore,
+		isProduction:          isProduction,
 	}
 }
 
 func (h *Handler) Routes() http.Handler {
 	r := chi.NewRouter()
+	r.Use(h.SecurityHeaders)
 
 	fileServer := http.FileServer(http.Dir("web/static"))
 	r.Handle("/static/*", http.StripPrefix("/static/", fileServer))
@@ -39,11 +42,11 @@ func (h *Handler) Routes() http.Handler {
 	r.Get("/", h.Home())
 	r.Get("/health", h.Health())
 	r.Get("/login", h.LoginNew())
-	r.Post("/login", h.LoginCreate())
-	r.Post("/logout", h.Logout())
+	r.With(h.RequireCSRF).Post("/login", h.LoginCreate())
+	r.With(h.RequireCSRF).Post("/logout", h.Logout())
 	r.Get("/cars", h.CarsIndex())
 	r.Get("/cars/{slug}/book", h.BookingNew())
-	r.Post("/cars/{slug}/book", h.BookingCreate())
+	r.With(h.RequireCSRF).Post("/cars/{slug}/book", h.BookingCreate())
 	r.Get("/cars/{slug}", h.CarsShow())
 	r.Get("/bookings/success", h.BookingSuccess())
 
@@ -52,14 +55,14 @@ func (h *Handler) Routes() http.Handler {
 		r.Get("/admin", h.AdminIndex())
 		r.Get("/admin/cars", h.AdminCarsIndex())
 		r.Get("/admin/cars/new", h.AdminCarsNew())
-		r.Post("/admin/cars", h.AdminCarsCreate())
+		r.With(h.RequireCSRF).Post("/admin/cars", h.AdminCarsCreate())
 		r.Get("/admin/cars/{id}/edit", h.AdminCarsEdit())
-		r.Post("/admin/cars/{id}", h.AdminCarsUpdate())
-		r.Post("/admin/cars/{id}/availability", h.AdminCarAvailabilityUpdate())
+		r.With(h.RequireCSRF).Post("/admin/cars/{id}", h.AdminCarsUpdate())
+		r.With(h.RequireCSRF).Post("/admin/cars/{id}/availability", h.AdminCarAvailabilityUpdate())
 		r.Get("/admin/cars/{id}", h.AdminCarsShow())
 		r.Get("/admin/bookings", h.AdminBookingsIndex())
 		r.Get("/admin/bookings/{id}", h.AdminBookingsShow())
-		r.Post("/admin/bookings/{id}/status", h.AdminBookingStatusUpdate())
+		r.With(h.RequireCSRF).Post("/admin/bookings/{id}/status", h.AdminBookingStatusUpdate())
 	})
 
 	return r

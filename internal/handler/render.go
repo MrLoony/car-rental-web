@@ -38,6 +38,7 @@ type TemplateData struct {
 	LoginForm                    model.LoginForm
 	CarForm                      model.CarForm
 	IsAdminAuthenticated         bool
+	CSRFToken                    string
 }
 
 func (h *Handler) render(w http.ResponseWriter, r *http.Request, page string, data TemplateData) error {
@@ -46,6 +47,12 @@ func (h *Handler) render(w http.ResponseWriter, r *http.Request, page string, da
 
 func (h *Handler) renderWithStatus(w http.ResponseWriter, r *http.Request, page string, data TemplateData, status int) error {
 	data.IsAdminAuthenticated = h.isAdminAuthenticated(r)
+	csrfToken, err := h.getCSRFToken(w, r)
+	if err != nil {
+		return err
+	}
+	data.CSRFToken = csrfToken
+
 	return renderWithStatus(w, page, data, status)
 }
 

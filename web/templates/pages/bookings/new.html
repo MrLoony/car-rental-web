@@ -26,6 +26,8 @@
         </p>
 
         <form class="mt-6 space-y-5" method="POST" action="/cars/{{.Car.Slug}}/book" data-booking-form data-price-per-day="{{printf "%.2f" .Car.PricePerDay}}">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
             <div>
                 <label class="block text-sm font-medium text-slate-700" for="customer_name">Name</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_name" name="customer_name" type="text" value="{{.BookingForm.CustomerName}}" autocomplete="name">

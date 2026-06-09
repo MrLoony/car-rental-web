@@ -93,6 +93,7 @@
                     Public page
                 </a>
                 <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/availability">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     {{if .AdminCar.IsAvailable}}
                     <button class="inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" type="submit">
                         Mark unavailable
