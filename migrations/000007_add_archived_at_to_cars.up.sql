@@ -1,0 +1,2 @@
+ALTER TABLE cars
+ADD COLUMN archived_at TIMESTAMPTZ NULL;

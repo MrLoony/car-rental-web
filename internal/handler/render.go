@@ -83,12 +83,25 @@ func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, sta
 	return err
 }
 
-func formatDateTime(value time.Time) string {
-	if value.IsZero() {
+func formatDateTime(value any) string {
+	var t time.Time
+	switch typed := value.(type) {
+	case time.Time:
+		t = typed
+	case *time.Time:
+		if typed == nil {
+			return ""
+		}
+		t = *typed
+	default:
 		return ""
 	}
 
-	return value.Format("Jan 02, 2006 15:04")
+	if t.IsZero() {
+		return ""
+	}
+
+	return t.Format("Jan 02, 2006 15:04")
 }
 
 func formatMoney(value float64) string {

@@ -43,11 +43,13 @@ func (r *CarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
 		JOIN car_categories cc ON cc.id = c.category_id
 		WHERE c.is_available = TRUE
+			AND c.archived_at IS NULL
 	`)
 
 	args := make([]any, 0)
@@ -84,6 +86,7 @@ func (r *CarRepository) CountCars(ctx context.Context, filter model.CarFilter) (
 		FROM cars c
 		JOIN car_categories cc ON cc.id = c.category_id
 		WHERE c.is_available = TRUE
+			AND c.archived_at IS NULL
 	`)
 
 	args := make([]any, 0)
@@ -114,11 +117,13 @@ func (r *CarRepository) ListCarsPage(ctx context.Context, filter model.CarFilter
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
 		JOIN car_categories cc ON cc.id = c.category_id
 		WHERE c.is_available = TRUE
+			AND c.archived_at IS NULL
 	`)
 
 	args := make([]any, 0)
@@ -169,11 +174,14 @@ func (r *CarRepository) GetCarBySlug(ctx context.Context, slug string) (model.Ca
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
 		JOIN car_categories cc ON cc.id = c.category_id
 		WHERE c.slug = $1
+			AND c.is_available = TRUE
+			AND c.archived_at IS NULL
 	`
 
 	var car model.Car
@@ -219,6 +227,7 @@ func (r *CarRepository) ListAvailableAlternativeCars(
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
@@ -226,6 +235,7 @@ func (r *CarRepository) ListAvailableAlternativeCars(
 		WHERE c.id <> $1
 			AND c.category_id = $2
 			AND c.is_available = TRUE
+			AND c.archived_at IS NULL
 			AND c.price_per_day BETWEEN $3 AND $4
 			AND NOT EXISTS (
 				SELECT 1
@@ -294,6 +304,7 @@ func (r *CarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, erro
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
@@ -361,6 +372,7 @@ func (r *CarRepository) ListCarsForAdminPage(ctx context.Context, filter model.A
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
@@ -416,6 +428,7 @@ func (r *CarRepository) GetCarByID(ctx context.Context, id int64) (model.Car, er
 			c.seats,
 			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
+			c.archived_at,
 			c.created_at,
 			c.updated_at
 		FROM cars c
@@ -544,6 +557,47 @@ func (r *CarRepository) UpdateCarAvailability(ctx context.Context, id int64, isA
 	return nil
 }
 
+func (r *CarRepository) ArchiveCar(ctx context.Context, id int64) error {
+	const query = `
+		UPDATE cars
+		SET archived_at = NOW(),
+			is_available = FALSE,
+			updated_at = NOW()
+		WHERE id = $1
+	`
+
+	tag, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("archive car %d: %w", id, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("archive car %d: %w", id, ErrCarNotFound)
+	}
+
+	return nil
+}
+
+func (r *CarRepository) UnarchiveCar(ctx context.Context, id int64) error {
+	const query = `
+		UPDATE cars
+		SET archived_at = NULL,
+			updated_at = NOW()
+		WHERE id = $1
+	`
+
+	tag, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("unarchive car %d: %w", id, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("unarchive car %d: %w", id, ErrCarNotFound)
+	}
+
+	return nil
+}
+
 func (r *CarRepository) CarSlugExists(ctx context.Context, slug string, excludeID int64) (bool, error) {
 	const query = `
 		SELECT EXISTS (
@@ -581,6 +635,7 @@ func scanCar(scanner carScanner, car *model.Car) error {
 		&car.Seats,
 		&car.ImageURL,
 		&car.IsAvailable,
+		&car.ArchivedAt,
 		&car.CreatedAt,
 		&car.UpdatedAt,
 	)

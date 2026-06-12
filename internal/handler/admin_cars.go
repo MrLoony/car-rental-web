@@ -223,6 +223,50 @@ func (h *Handler) AdminCarAvailabilityUpdate() http.HandlerFunc {
 	}
 }
 
+func (h *Handler) AdminCarArchive() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := parseCarID(w, r)
+		if !ok {
+			return
+		}
+
+		err := h.carService.ArchiveCar(r.Context(), id)
+		if err != nil {
+			if errors.Is(err, repository.ErrCarNotFound) {
+				http.Error(w, "car not found", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+	}
+}
+
+func (h *Handler) AdminCarUnarchive() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := parseCarID(w, r)
+		if !ok {
+			return
+		}
+
+		err := h.carService.UnarchiveCar(r.Context(), id)
+		if err != nil {
+			if errors.Is(err, repository.ErrCarNotFound) {
+				http.Error(w, "car not found", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+	}
+}
+
 func (h *Handler) AdminCarsShow() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, ok := parseCarID(w, r)

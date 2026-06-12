@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
@@ -109,6 +110,40 @@ func TestValidateCarFormImageURL(t *testing.T) {
 	}
 }
 
+func TestCarServiceArchiveCarDelegatesToRepository(t *testing.T) {
+	repo := &fakeCarRepository{}
+	service := NewCarService(repo)
+
+	if err := service.ArchiveCar(context.Background(), 42); err != nil {
+		t.Fatalf("ArchiveCar() error = %v, want nil", err)
+	}
+
+	if !repo.archiveCalled {
+		t.Fatal("ArchiveCar() did not call repository")
+	}
+
+	if repo.archiveID != 42 {
+		t.Fatalf("ArchiveCar() id = %d, want 42", repo.archiveID)
+	}
+}
+
+func TestCarServiceUnarchiveCarDelegatesToRepository(t *testing.T) {
+	repo := &fakeCarRepository{}
+	service := NewCarService(repo)
+
+	if err := service.UnarchiveCar(context.Background(), 42); err != nil {
+		t.Fatalf("UnarchiveCar() error = %v, want nil", err)
+	}
+
+	if !repo.unarchiveCalled {
+		t.Fatal("UnarchiveCar() did not call repository")
+	}
+
+	if repo.unarchiveID != 42 {
+		t.Fatalf("UnarchiveCar() id = %d, want 42", repo.unarchiveID)
+	}
+}
+
 func validCarForm() model.CarForm {
 	return model.CarForm{
 		CategoryID:   "1",
@@ -123,4 +158,71 @@ func validCarForm() model.CarForm {
 		IsAvailable:  true,
 		Errors:       make(map[string]string),
 	}
+}
+
+type fakeCarRepository struct {
+	archiveCalled   bool
+	archiveID       int64
+	unarchiveCalled bool
+	unarchiveID     int64
+}
+
+func (r *fakeCarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([]model.Car, error) {
+	return nil, nil
+}
+
+func (r *fakeCarRepository) CountCars(ctx context.Context, filter model.CarFilter) (int, error) {
+	return 0, nil
+}
+
+func (r *fakeCarRepository) ListCarsPage(ctx context.Context, filter model.CarFilter, pagination model.Pagination) ([]model.Car, error) {
+	return nil, nil
+}
+
+func (r *fakeCarRepository) GetCarBySlug(ctx context.Context, slug string) (model.Car, error) {
+	return model.Car{}, nil
+}
+
+func (r *fakeCarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, error) {
+	return nil, nil
+}
+
+func (r *fakeCarRepository) CountCarsForAdmin(ctx context.Context, filter model.AdminCarFilter) (int, error) {
+	return 0, nil
+}
+
+func (r *fakeCarRepository) ListCarsForAdminPage(ctx context.Context, filter model.AdminCarFilter, pagination model.Pagination) ([]model.Car, error) {
+	return nil, nil
+}
+
+func (r *fakeCarRepository) GetCarByID(ctx context.Context, id int64) (model.Car, error) {
+	return model.Car{}, nil
+}
+
+func (r *fakeCarRepository) CreateCar(ctx context.Context, car model.Car) (int64, error) {
+	return 0, nil
+}
+
+func (r *fakeCarRepository) UpdateCar(ctx context.Context, car model.Car) error {
+	return nil
+}
+
+func (r *fakeCarRepository) UpdateCarAvailability(ctx context.Context, id int64, isAvailable bool) error {
+	return nil
+}
+
+func (r *fakeCarRepository) ArchiveCar(ctx context.Context, id int64) error {
+	r.archiveCalled = true
+	r.archiveID = id
+	return nil
+}
+
+func (r *fakeCarRepository) UnarchiveCar(ctx context.Context, id int64) error {
+	r.unarchiveCalled = true
+	r.unarchiveID = id
+	return nil
+}
+
+func (r *fakeCarRepository) CarSlugExists(ctx context.Context, slug string, excludeID int64) (bool, error) {
+	return false, nil
 }

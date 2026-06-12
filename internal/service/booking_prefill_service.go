@@ -65,6 +65,10 @@ func (s *BookingPrefillService) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
+func (s *BookingPrefillService) CleanupExpiredPrefills(ctx context.Context) error {
+	return s.DeleteExpired(ctx)
+}
+
 func generateBookingPrefillToken() (string, error) {
 	bytes := make([]byte, bookingPrefillTokenBytes)
 	if _, err := rand.Read(bytes); err != nil {

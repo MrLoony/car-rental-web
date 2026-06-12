@@ -112,6 +112,8 @@ Available filters include text search, category, fuel type, transmission, and so
 
 The filter form works without JavaScript; JavaScript only enhances the experience with debounced search and automatic submit for select fields.
 
+Cars archived by an admin are removed from the public customer-facing fleet. Archived cars do not appear in the public catalog, public car detail pages return not found, and archived cars cannot be booked from public booking URLs.
+
 ## Bookings
 
 Booking requests can be started from a car details page:
@@ -126,11 +128,13 @@ Availability is checked before a booking request is saved. `pending` and `confir
 
 When a selected period is unavailable, the form shows the nearest available pickup time when one can be calculated. It can also show up to three alternative rental windows that fit the same requested rental duration. Suggested windows respect blocking bookings, non-blocking statuses, and the 4-hour return/preparation buffer. Each suggestion shows the start time, end time, billing days, and estimated total.
 
-The form can also suggest similar available vehicles when the selected car is unavailable. Alternative vehicles are selected from the same category, within a similar price range of roughly 20% above or below the selected car, and only when they are available for the selected pickup and return period. Pending and confirmed bookings block alternatives, cancelled and completed bookings do not, and the 4-hour return/preparation buffer is respected.
+The form can also suggest similar available vehicles when the selected car is unavailable. Alternative vehicles are selected from the same category, within a similar price range of roughly 20% above or below the selected car, and only when they are available for the selected pickup and return period. Pending and confirmed bookings block alternatives, cancelled and completed bookings do not, archived cars are excluded, and the 4-hour return/preparation buffer is respected.
 
 Suggested vehicle cards show car information, price per day, billing days, estimated total, a link to view the car, and a `Book this car` link. When the user clicks `Book this car`, the alternative vehicle booking form opens with the previously entered name, email, phone, pickup time, return time, and message restored automatically.
 
 This carry-over uses a server-side prefill token. Alternative booking URLs use the format `/cars/{slug}/book?prefill=<token>`, so customer details and selected times are not exposed in the URL. Prefill tokens are URL-safe, expire after 30 minutes, and invalid or expired tokens safely fall back to a normal empty booking form. Suggestions are not AJAX/live or a full recommendation engine.
+
+Booking records are currently managed through statuses. Cancelled and completed bookings remain as history. Physical deletion or archive handling for booking history is not implemented yet.
 
 ## Admin
 
@@ -140,7 +144,7 @@ The admin dashboard is available at:
 http://localhost:8080/admin
 ```
 
-Current admin pages include a booking requests list, booking detail page, booking status update form, car list, car create form, car detail page, car edit form, and availability toggle. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
+Current admin pages include a booking requests list, booking detail page, booking status update form, car list, car create form, car detail page, car edit form, availability toggle, and car archive/restore actions. Supported booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`. Admin routes are protected with session-based authentication.
 
 The admin cars and admin bookings lists use server-side pagination. Pagination preserves active filters, so filtered URLs remain shareable and bookmarkable. Admin tables also include horizontal overflow handling, compact spacing, status badges, and truncation for long customer, email, slug, and car text so the pages remain usable on narrower screens.
 
@@ -169,7 +173,9 @@ Public customer pages remain accessible without login:
 
 Admin car management is backed by PostgreSQL. Created and edited cars are reflected in the public catalog when they are marked available. Cars marked unavailable remain visible in admin but are hidden from public catalog results.
 
-Admin car management includes create/edit forms, image URL management, local image upload, image preview, and availability toggles.
+Admin car management includes create/edit forms, image URL management, local image upload, image preview, availability toggles, and archive/restore actions. Admin pages display active/archived status. Archived cars remain visible and manageable in admin, but they are removed from public catalog, public detail, public booking, and alternative vehicle suggestion flows. Archiving a car sets `archived_at` and marks it unavailable. Restoring a car clears `archived_at` but does not automatically make it publicly available; an admin must explicitly enable availability after restore. Availability controls are hidden for archived cars until they are restored.
+
+The admin dashboard includes a manual maintenance action for expired booking prefill tokens. `POST /admin/cleanup/prefills` requires admin authentication and CSRF protection, deletes expired temporary booking form state records, and redirects back to the dashboard. There is no background scheduler, cron job, or automatic startup cleanup.
 
 ## Image Management
 
@@ -292,12 +298,16 @@ This is not intended to claim complete production compliance, distributed rate l
 - Expiring booking prefill tokens
 - Prefilled alternative vehicle booking forms
 - Admin dashboard
+- Admin cleanup for expired booking prefill tokens
 - Admin booking requests list
 - Admin booking detail page
 - Admin booking status updates
 - Admin car management
 - Create/edit cars
 - Availability toggle
+- Car archive/restore flow
+- Archived car exclusion from public catalog and booking
+- Archived car exclusion from alternative vehicle suggestions
 - PostgreSQL-backed fleet management
 - Car image URL validation
 - Admin image preview
@@ -334,6 +344,8 @@ This is not intended to claim complete production compliance, distributed rate l
 - Multiple image gallery
 - Old uploaded image cleanup
 - Cloud or object storage for media
-- Delete or archive cars
+- Delete or archive bookings
+- Hard delete cars when safe
+- Broader admin cleanup tools
 - Advanced UI/UX polish
 - Payments

@@ -7,14 +7,30 @@ import (
 	"strings"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
-	"github.com/MrLoony/car-rental-web/internal/repository"
 )
 
 type CarService struct {
-	repo *repository.CarRepository
+	repo carRepository
 }
 
-func NewCarService(repo *repository.CarRepository) *CarService {
+type carRepository interface {
+	ListCars(ctx context.Context, filter model.CarFilter) ([]model.Car, error)
+	CountCars(ctx context.Context, filter model.CarFilter) (int, error)
+	ListCarsPage(ctx context.Context, filter model.CarFilter, pagination model.Pagination) ([]model.Car, error)
+	GetCarBySlug(ctx context.Context, slug string) (model.Car, error)
+	ListCarsForAdmin(ctx context.Context) ([]model.Car, error)
+	CountCarsForAdmin(ctx context.Context, filter model.AdminCarFilter) (int, error)
+	ListCarsForAdminPage(ctx context.Context, filter model.AdminCarFilter, pagination model.Pagination) ([]model.Car, error)
+	GetCarByID(ctx context.Context, id int64) (model.Car, error)
+	CreateCar(ctx context.Context, car model.Car) (int64, error)
+	UpdateCar(ctx context.Context, car model.Car) error
+	UpdateCarAvailability(ctx context.Context, id int64, isAvailable bool) error
+	ArchiveCar(ctx context.Context, id int64) error
+	UnarchiveCar(ctx context.Context, id int64) error
+	CarSlugExists(ctx context.Context, slug string, excludeID int64) (bool, error)
+}
+
+func NewCarService(repo carRepository) *CarService {
 	return &CarService{repo: repo}
 }
 
@@ -151,6 +167,22 @@ func (s *CarService) UpdateCar(ctx context.Context, id int64, form model.CarForm
 func (s *CarService) UpdateCarAvailability(ctx context.Context, id int64, isAvailable bool) error {
 	if err := s.repo.UpdateCarAvailability(ctx, id, isAvailable); err != nil {
 		return fmt.Errorf("update car availability: %w", err)
+	}
+
+	return nil
+}
+
+func (s *CarService) ArchiveCar(ctx context.Context, id int64) error {
+	if err := s.repo.ArchiveCar(ctx, id); err != nil {
+		return fmt.Errorf("archive car: %w", err)
+	}
+
+	return nil
+}
+
+func (s *CarService) UnarchiveCar(ctx context.Context, id int64) error {
+	if err := s.repo.UnarchiveCar(ctx, id); err != nil {
+		return fmt.Errorf("unarchive car: %w", err)
 	}
 
 	return nil

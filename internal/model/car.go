@@ -17,6 +17,7 @@ type Car struct {
 	Seats        int
 	ImageURL     string
 	IsAvailable  bool
+	ArchivedAt   *time.Time
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
