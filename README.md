@@ -64,6 +64,67 @@ APP_ENV=production
 
 Empty or unknown `APP_ENV` values are treated as `development`.
 
+### Email Configuration
+
+Email notification settings are available in configuration. Notifications are disabled by default:
+
+```text
+EMAIL_ENABLED=false
+```
+
+`EMAIL_ENABLED=false` is suitable for local development and allows SMTP fields to stay empty. When `EMAIL_ENABLED=true`, the application validates that the required email settings are present:
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_FROM`
+- `ADMIN_NOTIFICATION_EMAIL`
+
+`SMTP_PORT` defaults to `587`, and `SMTP_FROM_NAME` defaults to `Car Rental Web`. `SMTP_USERNAME` and `SMTP_PASSWORD` are optional for now so local or development SMTP providers without authentication can be configured later.
+
+The email sender foundation includes a no-op sender for local development and an SMTP sender for notification stages. Reusable admin booking-created and customer booking-status email templates also exist. New booking requests can notify the administrator by email when email is enabled. When an admin changes a booking status to `confirmed`, `cancelled`, or `completed`, the customer can be notified by email. Status changes back to `pending` do not send a customer email. Booking creation and admin status updates do not fail if email sending fails; the error is logged and the normal flow continues.
+
+### Email Notifications Manual Test
+
+For normal local development, keep email disabled:
+
+```text
+EMAIL_ENABLED=false
+```
+
+To manually verify SMTP delivery, use a sandbox SMTP provider such as Mailtrap or a similar testing service, or provider-specific SMTP credentials such as a Gmail app password if appropriate. Never commit real SMTP credentials.
+
+Set the required values in your local `.env`:
+
+```text
+EMAIL_ENABLED=true
+SMTP_HOST=smtp.example.test
+SMTP_PORT=587
+SMTP_USERNAME=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+SMTP_FROM=no-reply@example.test
+SMTP_FROM_NAME="Car Rental Web"
+ADMIN_NOTIFICATION_EMAIL=admin@example.test
+```
+
+Admin notification smoke test:
+
+1. Start the app with SMTP enabled.
+2. Create a public booking request from a car booking page.
+3. Confirm the booking request succeeds and redirects normally.
+4. Confirm the administrator receives the new booking email.
+5. Check the server logs for SMTP errors.
+
+Customer status notification smoke test:
+
+1. Log in as admin.
+2. Open an existing booking request.
+3. Change the booking status to `confirmed`, `cancelled`, or `completed`.
+4. Confirm the status update succeeds.
+5. Confirm the customer receives the status-change email.
+6. Temporarily disable or break SMTP settings and repeat a status update to confirm the status still changes while the email failure is only logged.
+
+Email delivery is best-effort. A failed admin notification does not fail booking creation, and a failed customer notification does not rollback a booking status update. Failures are logged server-side for manual inspection.
+
 ## Database Setup
 
 Start PostgreSQL with Docker Compose:
@@ -257,6 +318,12 @@ This is not intended to claim complete production compliance, distributed rate l
 - Static file serving
 - Environment configuration loading
 - Environment-aware security configuration
+- Email notification configuration foundation
+- Email sender foundation with no-op and SMTP implementations
+- Email notification template/content foundation
+- Admin email notification attempt for new booking requests
+- Customer email notification attempt for booking status changes
+- Email notification manual SMTP smoke-test documentation
 - PostgreSQL integration with `pgxpool`
 - Docker Compose database setup
 - Database migrations
@@ -340,7 +407,6 @@ This is not intended to claim complete production compliance, distributed rate l
 - Click-to-fill suggested windows
 - Live availability checks
 - Multi-car alternatives and more advanced recommendation logic
-- Email notifications
 - Multiple image gallery
 - Old uploaded image cleanup
 - Cloud or object storage for media

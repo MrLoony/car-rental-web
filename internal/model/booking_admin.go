@@ -9,6 +9,7 @@ type BookingAdminView struct {
 	CarBrand string
 	CarModel string
 	CarSlug  string
+	CarYear  int
 
 	CustomerName  string
 	CustomerEmail string

@@ -1,0 +1,17 @@
+New booking request #{{.BookingID}}
+
+Car: {{.CarBrand}} {{.CarModel}} ({{.CarYear}})
+Customer: {{.CustomerName}}
+Email: {{.CustomerEmail}}
+Phone: {{.CustomerPhone}}
+Pickup: {{.PickupAt}}
+Return: {{.ReturnAt}}
+Billing days: {{.BillingDays}}
+Estimated total: {{.EstimatedTotal}}
+Status: {{.Status}}
+{{if .Message}}
+Customer message:
+{{.Message}}
+{{else}}
+Customer message: none
+{{end}}

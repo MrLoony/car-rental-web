@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.5;">
+    <h1 style="font-size: 20px; margin-bottom: 16px;">New booking request #{{.BookingID}}</h1>
+    <table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
+        <tr><td><strong>Car</strong></td><td>{{.CarBrand}} {{.CarModel}} ({{.CarYear}})</td></tr>
+        <tr><td><strong>Customer</strong></td><td>{{.CustomerName}}</td></tr>
+        <tr><td><strong>Email</strong></td><td>{{.CustomerEmail}}</td></tr>
+        <tr><td><strong>Phone</strong></td><td>{{.CustomerPhone}}</td></tr>
+        <tr><td><strong>Pickup</strong></td><td>{{.PickupAt}}</td></tr>
+        <tr><td><strong>Return</strong></td><td>{{.ReturnAt}}</td></tr>
+        <tr><td><strong>Billing days</strong></td><td>{{.BillingDays}}</td></tr>
+        <tr><td><strong>Estimated total</strong></td><td>{{.EstimatedTotal}}</td></tr>
+        <tr><td><strong>Status</strong></td><td>{{.Status}}</td></tr>
+    </table>
+    {{if .Message}}
+    <h2 style="font-size: 16px; margin-top: 20px;">Customer message</h2>
+    <p>{{.Message}}</p>
+    {{else}}
+    <p style="margin-top: 20px;">No customer message was provided.</p>
+    {{end}}
+</body>
+</html>

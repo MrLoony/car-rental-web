@@ -1,0 +1,16 @@
+Hello {{.CustomerName}},
+
+Your booking request #{{.BookingID}} is {{.Status}}.
+
+Car: {{.CarBrand}} {{.CarModel}} ({{.CarYear}})
+Pickup: {{.PickupAt}}
+Return: {{.ReturnAt}}
+Billing days: {{.BillingDays}}
+Estimated total: {{.EstimatedTotal}}
+{{if .Message}}
+Your message:
+{{.Message}}
+{{end}}
+
+Thank you,
+Car Rental Web

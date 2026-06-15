@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
-	"github.com/MrLoony/car-rental-web/internal/repository"
 )
 
 const (
@@ -18,14 +18,42 @@ const (
 )
 
 type BookingService struct {
-	repo    *repository.BookingRepository
-	carRepo *repository.CarRepository
+	repo     bookingRepository
+	carRepo  bookingCarRepository
+	notifier BookingNotifier
 }
 
-func NewBookingService(bookingRepo *repository.BookingRepository, carRepo *repository.CarRepository) *BookingService {
+type bookingRepository interface {
+	CreateBooking(ctx context.Context, booking model.Booking) (int64, error)
+	HasBookingConflict(ctx context.Context, carID int64, pickupAt time.Time, returnAt time.Time, bufferHours int) (bool, error)
+	FindNextAvailablePickupAt(ctx context.Context, carID int64, pickupAt time.Time, returnAt time.Time, bufferHours int) (time.Time, bool, error)
+	ListBlockingBookingsForCar(ctx context.Context, carID int64, from time.Time, to time.Time) ([]model.Booking, error)
+	ListBookings(ctx context.Context) ([]model.BookingAdminView, error)
+	CountBookings(ctx context.Context, filter model.AdminBookingFilter) (int, error)
+	ListBookingsPage(ctx context.Context, filter model.AdminBookingFilter, pagination model.Pagination) ([]model.BookingAdminView, error)
+	GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error)
+	UpdateBookingStatus(ctx context.Context, id int64, status string) error
+}
+
+type bookingCarRepository interface {
+	ListAvailableAlternativeCars(
+		ctx context.Context,
+		currentCarID int64,
+		categoryID int64,
+		minPrice float64,
+		maxPrice float64,
+		pickupAt time.Time,
+		returnAt time.Time,
+		bufferHours int,
+		limit int,
+	) ([]model.Car, error)
+}
+
+func NewBookingService(bookingRepo bookingRepository, carRepo bookingCarRepository, notifier BookingNotifier) *BookingService {
 	return &BookingService{
-		repo:    bookingRepo,
-		carRepo: carRepo,
+		repo:     bookingRepo,
+		carRepo:  carRepo,
+		notifier: notifier,
 	}
 }
 
@@ -87,6 +115,13 @@ func (s *BookingService) CreateBooking(ctx context.Context, car model.Car, form 
 	if err != nil {
 		return 0, form, fmt.Errorf("create booking: %w", err)
 	}
+	booking.ID = id
+
+	if s.notifier != nil {
+		if err := s.notifier.NotifyAdminBookingCreated(ctx, booking, car); err != nil {
+			log.Printf("failed to send admin booking notification: %v", err)
+		}
+	}
 
 	return id, form, nil
 }
@@ -136,7 +171,53 @@ func (s *BookingService) UpdateBookingStatus(ctx context.Context, id int64, stat
 		return fmt.Errorf("update booking status: %w", err)
 	}
 
+	if s.notifier != nil && shouldNotifyCustomerBookingStatus(status) {
+		adminView, err := s.repo.GetBookingByID(ctx, id)
+		if err != nil {
+			log.Printf("failed to send booking status notification: %v", err)
+			return nil
+		}
+
+		booking, car := bookingAdminViewNotificationModels(adminView)
+		if err := s.notifier.NotifyCustomerBookingStatusChanged(ctx, booking, car); err != nil {
+			log.Printf("failed to send booking status notification: %v", err)
+		}
+	}
+
 	return nil
+}
+
+func shouldNotifyCustomerBookingStatus(status string) bool {
+	switch status {
+	case model.BookingStatusConfirmed, model.BookingStatusCancelled, model.BookingStatusCompleted:
+		return true
+	default:
+		return false
+	}
+}
+
+func bookingAdminViewNotificationModels(view model.BookingAdminView) (model.Booking, model.Car) {
+	return model.Booking{
+			ID:             view.ID,
+			CarID:          view.CarID,
+			CustomerName:   view.CustomerName,
+			CustomerEmail:  view.CustomerEmail,
+			CustomerPhone:  view.CustomerPhone,
+			PickupAt:       view.PickupAt,
+			ReturnAt:       view.ReturnAt,
+			BillingDays:    view.BillingDays,
+			EstimatedTotal: view.EstimatedTotal,
+			Message:        view.Message,
+			Status:         view.Status,
+			CreatedAt:      view.CreatedAt,
+			UpdatedAt:      view.UpdatedAt,
+		}, model.Car{
+			ID:    view.CarID,
+			Brand: view.CarBrand,
+			Model: view.CarModel,
+			Slug:  view.CarSlug,
+			Year:  view.CarYear,
+		}
 }
 
 func normalizeBookingForm(form model.BookingForm) model.BookingForm {

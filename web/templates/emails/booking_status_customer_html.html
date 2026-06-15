@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.5;">
+    <h1 style="font-size: 20px; margin-bottom: 16px;">Booking request #{{.BookingID}}</h1>
+    <p>Hello {{.CustomerName}},</p>
+    <p>Your booking request is <strong>{{.Status}}</strong>.</p>
+    <table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
+        <tr><td><strong>Car</strong></td><td>{{.CarBrand}} {{.CarModel}} ({{.CarYear}})</td></tr>
+        <tr><td><strong>Pickup</strong></td><td>{{.PickupAt}}</td></tr>
+        <tr><td><strong>Return</strong></td><td>{{.ReturnAt}}</td></tr>
+        <tr><td><strong>Billing days</strong></td><td>{{.BillingDays}}</td></tr>
+        <tr><td><strong>Estimated total</strong></td><td>{{.EstimatedTotal}}</td></tr>
+    </table>
+    {{if .Message}}
+    <h2 style="font-size: 16px; margin-top: 20px;">Your message</h2>
+    <p>{{.Message}}</p>
+    {{end}}
+    <p style="margin-top: 20px;">Thank you,<br>Car Rental Web</p>
+</body>
+</html>

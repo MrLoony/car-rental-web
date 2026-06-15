@@ -14,7 +14,10 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("configuration error: %v", err)
+	}
 	addr := ":" + cfg.AppPort
 
 	ctx := context.Background()
@@ -32,8 +35,15 @@ func main() {
 	categoryRepository := repository.NewCategoryRepository(dbpool)
 	categoryService := service.NewCategoryService(categoryRepository)
 
+	emailSender := service.NewEmailSender(cfg)
+	emailNotificationService, err := service.NewEmailNotificationService(cfg)
+	if err != nil {
+		log.Fatalf("email notification setup failed: %v", err)
+	}
+	bookingNotifier := service.NewAdminBookingEmailNotifier(emailSender, emailNotificationService)
+
 	bookingRepository := repository.NewBookingRepository(dbpool)
-	bookingService := service.NewBookingService(bookingRepository, carRepository)
+	bookingService := service.NewBookingService(bookingRepository, carRepository, bookingNotifier)
 
 	bookingPrefillRepository := repository.NewBookingPrefillRepository(dbpool)
 	bookingPrefillService := service.NewBookingPrefillService(bookingPrefillRepository)
