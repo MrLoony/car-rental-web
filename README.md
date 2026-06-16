@@ -281,10 +281,14 @@ These are demo credentials only. Change them before any real deployment, and use
 ## Project Status
 
 Completed:
-
+- Public vehicle catalog
+- Booking workflow
+- Admin panel
 - Email notifications
-- Admin UX improvements and custom error pages
-- Dashboard reporting and booking CSV export
+- Dashboard reporting
+- Booking CSV export
+- Security hardening
+- UX improvements
 
 The application is suitable as a portfolio-scale SSR Go project. Additional production work would still be needed before real-world deployment.
 
