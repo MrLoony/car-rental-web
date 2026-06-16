@@ -296,6 +296,180 @@ func (r *BookingRepository) ListBookingsPage(ctx context.Context, filter model.A
 	return bookings, nil
 }
 
+func (r *BookingRepository) ListBookingsForExport(ctx context.Context, filter model.AdminBookingFilter) ([]model.BookingExportRow, error) {
+	var query strings.Builder
+	query.WriteString(`
+		SELECT
+			b.id,
+			b.status,
+			b.customer_name,
+			b.customer_email,
+			b.customer_phone,
+			CONCAT(c.brand, ' ', c.model) AS car,
+			b.pickup_at,
+			b.return_at,
+			b.billing_days,
+			b.estimated_total::double precision,
+			b.created_at
+		FROM bookings b
+		JOIN cars c ON c.id = b.car_id
+		WHERE TRUE
+	`)
+
+	args := make([]any, 0)
+	appendAdminBookingFilters(&query, &args, filter)
+	query.WriteString(" ORDER BY b.created_at DESC, b.id DESC")
+
+	rows, err := r.db.Query(ctx, query.String(), args...)
+	if err != nil {
+		return nil, fmt.Errorf("list bookings for export: %w", err)
+	}
+	defer rows.Close()
+
+	bookings := make([]model.BookingExportRow, 0)
+	for rows.Next() {
+		var booking model.BookingExportRow
+		if err := rows.Scan(
+			&booking.ID,
+			&booking.Status,
+			&booking.CustomerName,
+			&booking.CustomerEmail,
+			&booking.CustomerPhone,
+			&booking.Car,
+			&booking.PickupAt,
+			&booking.ReturnAt,
+			&booking.BillingDays,
+			&booking.EstimatedTotal,
+			&booking.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan booking export row: %w", err)
+		}
+
+		bookings = append(bookings, booking)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate booking export rows: %w", err)
+	}
+
+	return bookings, nil
+}
+
+func (r *BookingRepository) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
+	const query = `
+		SELECT
+			COUNT(*) AS total,
+			COUNT(*) FILTER (WHERE status = $1) AS pending,
+			COUNT(*) FILTER (WHERE status = $2) AS confirmed,
+			COUNT(*) FILTER (WHERE status = $3) AS cancelled,
+			COUNT(*) FILTER (WHERE status = $4) AS completed
+		FROM bookings
+	`
+
+	var stats model.BookingStats
+	if err := r.db.QueryRow(
+		ctx,
+		query,
+		model.BookingStatusPending,
+		model.BookingStatusConfirmed,
+		model.BookingStatusCancelled,
+		model.BookingStatusCompleted,
+	).Scan(
+		&stats.Total,
+		&stats.Pending,
+		&stats.Confirmed,
+		&stats.Cancelled,
+		&stats.Completed,
+	); err != nil {
+		return model.BookingStats{}, fmt.Errorf("get booking stats: %w", err)
+	}
+
+	return stats, nil
+}
+
+func (r *BookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
+	const query = `
+		SELECT
+			COALESCE(SUM(estimated_total), 0)::double precision AS total_potential,
+			COALESCE(SUM(estimated_total) FILTER (WHERE status = $1), 0)::double precision AS pending,
+			COALESCE(SUM(estimated_total) FILTER (WHERE status = $2), 0)::double precision AS confirmed,
+			COALESCE(SUM(estimated_total) FILTER (WHERE status = $3), 0)::double precision AS completed,
+			COALESCE(SUM(estimated_total) FILTER (WHERE status = $4), 0)::double precision AS cancelled
+		FROM bookings
+	`
+
+	var stats model.RevenueStats
+	if err := r.db.QueryRow(
+		ctx,
+		query,
+		model.BookingStatusPending,
+		model.BookingStatusConfirmed,
+		model.BookingStatusCompleted,
+		model.BookingStatusCancelled,
+	).Scan(
+		&stats.TotalPotential,
+		&stats.Pending,
+		&stats.Confirmed,
+		&stats.Completed,
+		&stats.Cancelled,
+	); err != nil {
+		return model.RevenueStats{}, fmt.Errorf("get revenue stats: %w", err)
+	}
+
+	return stats, nil
+}
+
+func (r *BookingRepository) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+
+	const query = `
+		SELECT
+			b.id,
+			b.customer_name,
+			CONCAT(c.brand, ' ', c.model) AS car_name,
+			b.status,
+			b.pickup_at,
+			b.return_at,
+			b.created_at
+		FROM bookings b
+		JOIN cars c ON c.id = b.car_id
+		ORDER BY b.created_at DESC, b.id DESC
+		LIMIT $1
+	`
+
+	rows, err := r.db.Query(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("get recent bookings: %w", err)
+	}
+	defer rows.Close()
+
+	activities := make([]model.RecentBookingActivity, 0)
+	for rows.Next() {
+		var activity model.RecentBookingActivity
+		if err := rows.Scan(
+			&activity.ID,
+			&activity.CustomerName,
+			&activity.CarName,
+			&activity.Status,
+			&activity.PickupTime,
+			&activity.ReturnTime,
+			&activity.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan recent booking: %w", err)
+		}
+
+		activities = append(activities, activity)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate recent bookings: %w", err)
+	}
+
+	return activities, nil
+}
+
 func (r *BookingRepository) GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error) {
 	const query = `
 		SELECT

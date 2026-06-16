@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"encoding/csv"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -34,6 +37,7 @@ func (h *Handler) AdminBookingsIndex() http.HandlerFunc {
 			AdminBookings:                bookings,
 			AdminBookingFilter:           filter,
 			HasActiveAdminBookingFilters: hasActiveAdminBookingFilters(filter),
+			AdminBookingExportURL:        adminBookingExportURL(filter),
 			Pagination:                   pagination,
 		}
 		if pagination.HasPrevious {
@@ -49,9 +53,96 @@ func (h *Handler) AdminBookingsIndex() http.HandlerFunc {
 	}
 }
 
+func (h *Handler) AdminBookingsExport() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filter := adminBookingFilterFromRequest(r)
+		bookings, err := h.bookingService.ListBookingsForExport(r.Context(), filter)
+		if err != nil {
+			h.renderServerError(w, r, err)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+		w.Header().Set("Content-Disposition", `attachment; filename="bookings.csv"`)
+
+		if err := writeBookingsCSV(w, bookings); err != nil {
+			h.renderServerError(w, r, err)
+		}
+	}
+}
+
+func adminBookingFilterFromRequest(r *http.Request) model.AdminBookingFilter {
+	return model.AdminBookingFilter{
+		Search:  strings.TrimSpace(r.URL.Query().Get("search")),
+		Status:  model.NormalizeAdminBookingStatus(r.URL.Query().Get("status")),
+		Page:    model.DefaultPage,
+		PerPage: model.DefaultPerPage,
+	}
+}
+
 func hasActiveAdminBookingFilters(filter model.AdminBookingFilter) bool {
 	return filter.Search != "" ||
 		model.NormalizeAdminBookingStatus(filter.Status) != model.AdminBookingStatusAll
+}
+
+func adminBookingExportURL(filter model.AdminBookingFilter) string {
+	values := url.Values{}
+	if filter.Search != "" {
+		values.Set("search", filter.Search)
+	}
+	if status := model.NormalizeAdminBookingStatus(filter.Status); status != model.AdminBookingStatusAll {
+		values.Set("status", status)
+	}
+
+	if encoded := values.Encode(); encoded != "" {
+		return "/admin/bookings/export.csv?" + encoded
+	}
+
+	return "/admin/bookings/export.csv"
+}
+
+func writeBookingsCSV(w http.ResponseWriter, bookings []model.BookingExportRow) error {
+	writer := csv.NewWriter(w)
+	if err := writer.Write([]string{
+		"ID",
+		"Status",
+		"Customer Name",
+		"Customer Email",
+		"Customer Phone",
+		"Car",
+		"Pickup At",
+		"Return At",
+		"Billing Days",
+		"Estimated Total",
+		"Created At",
+	}); err != nil {
+		return fmt.Errorf("write booking export header: %w", err)
+	}
+
+	for _, booking := range bookings {
+		if err := writer.Write([]string{
+			strconv.FormatInt(booking.ID, 10),
+			booking.Status,
+			booking.CustomerName,
+			booking.CustomerEmail,
+			booking.CustomerPhone,
+			booking.Car,
+			formatDateTime(booking.PickupAt),
+			formatDateTime(booking.ReturnAt),
+			strconv.Itoa(booking.BillingDays),
+			fmt.Sprintf("%.2f", booking.EstimatedTotal),
+			formatDateTime(booking.CreatedAt),
+		}); err != nil {
+			return fmt.Errorf("write booking export row: %w", err)
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return fmt.Errorf("flush booking export: %w", err)
+	}
+
+	return nil
 }
 
 func (h *Handler) AdminBookingsShow() http.HandlerFunc {

@@ -73,6 +73,7 @@ func (h *Handler) Routes() http.Handler {
 		r.With(h.RequireCSRF).Post("/admin/cars/{id}/unarchive", h.AdminCarUnarchive())
 		r.Get("/admin/cars/{id}", h.AdminCarsShow())
 		r.Get("/admin/bookings", h.AdminBookingsIndex())
+		r.Get("/admin/bookings/export.csv", h.AdminBookingsExport())
 		r.Get("/admin/bookings/{id}", h.AdminBookingsShow())
 		r.With(h.RequireCSRF).Post("/admin/bookings/{id}/status", h.AdminBookingStatusUpdate())
 	})

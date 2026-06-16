@@ -243,9 +243,12 @@ func (s *fakeHandlerBookingPrefillService) CleanupExpiredPrefills(ctx context.Co
 }
 
 type fakeHandlerBookingRepository struct {
-	getBooking model.BookingAdminView
-	getErr     error
-	updateErr  error
+	getBooking   model.BookingAdminView
+	getErr       error
+	updateErr    error
+	exportRows   []model.BookingExportRow
+	exportErr    error
+	exportFilter model.AdminBookingFilter
 }
 
 func (r *fakeHandlerBookingRepository) CreateBooking(ctx context.Context, booking model.Booking) (int64, error) {
@@ -273,6 +276,27 @@ func (r *fakeHandlerBookingRepository) CountBookings(ctx context.Context, filter
 }
 
 func (r *fakeHandlerBookingRepository) ListBookingsPage(ctx context.Context, filter model.AdminBookingFilter, pagination model.Pagination) ([]model.BookingAdminView, error) {
+	return nil, nil
+}
+
+func (r *fakeHandlerBookingRepository) ListBookingsForExport(ctx context.Context, filter model.AdminBookingFilter) ([]model.BookingExportRow, error) {
+	r.exportFilter = filter
+	if r.exportErr != nil {
+		return nil, r.exportErr
+	}
+
+	return r.exportRows, nil
+}
+
+func (r *fakeHandlerBookingRepository) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
+	return model.BookingStats{}, nil
+}
+
+func (r *fakeHandlerBookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
+	return model.RevenueStats{}, nil
+}
+
+func (r *fakeHandlerBookingRepository) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
 	return nil, nil
 }
 

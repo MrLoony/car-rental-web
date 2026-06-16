@@ -26,3 +26,18 @@ type BookingAdminView struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+// BookingExportRow represents one row in the admin bookings CSV export.
+type BookingExportRow struct {
+	ID             int64
+	Status         string
+	CustomerName   string
+	CustomerEmail  string
+	CustomerPhone  string
+	Car            string
+	PickupAt       time.Time
+	ReturnAt       time.Time
+	BillingDays    int
+	EstimatedTotal float64
+	CreatedAt      time.Time
+}

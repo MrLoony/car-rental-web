@@ -31,6 +31,10 @@ type bookingRepository interface {
 	ListBookings(ctx context.Context) ([]model.BookingAdminView, error)
 	CountBookings(ctx context.Context, filter model.AdminBookingFilter) (int, error)
 	ListBookingsPage(ctx context.Context, filter model.AdminBookingFilter, pagination model.Pagination) ([]model.BookingAdminView, error)
+	ListBookingsForExport(ctx context.Context, filter model.AdminBookingFilter) ([]model.BookingExportRow, error)
+	GetBookingStats(ctx context.Context) (model.BookingStats, error)
+	GetRevenueStats(ctx context.Context) (model.RevenueStats, error)
+	GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error)
 	GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error)
 	UpdateBookingStatus(ctx context.Context, id int64, status string) error
 }
@@ -151,6 +155,49 @@ func (s *BookingService) ListBookingsPage(ctx context.Context, filter model.Admi
 	}
 
 	return bookings, pagination, nil
+}
+
+func (s *BookingService) ListBookingsForExport(ctx context.Context, filter model.AdminBookingFilter) ([]model.BookingExportRow, error) {
+	filter.Search = strings.TrimSpace(filter.Search)
+	filter.Status = model.NormalizeAdminBookingStatus(filter.Status)
+
+	bookings, err := s.repo.ListBookingsForExport(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("list bookings for export: %w", err)
+	}
+
+	return bookings, nil
+}
+
+func (s *BookingService) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
+	stats, err := s.repo.GetBookingStats(ctx)
+	if err != nil {
+		return model.BookingStats{}, fmt.Errorf("get booking stats: %w", err)
+	}
+
+	return stats, nil
+}
+
+func (s *BookingService) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
+	stats, err := s.repo.GetRevenueStats(ctx)
+	if err != nil {
+		return model.RevenueStats{}, fmt.Errorf("get revenue stats: %w", err)
+	}
+
+	return stats, nil
+}
+
+func (s *BookingService) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+
+	bookings, err := s.repo.GetRecentBookings(ctx, limit)
+	if err != nil {
+		return nil, fmt.Errorf("get recent bookings: %w", err)
+	}
+
+	return bookings, nil
 }
 
 func (s *BookingService) GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error) {

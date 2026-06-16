@@ -352,6 +352,180 @@ func TestUpdateBookingStatusSkipsCustomerNotificationForPending(t *testing.T) {
 	}
 }
 
+func TestGetBookingStatsReturnsRepositoryStats(t *testing.T) {
+	want := model.BookingStats{
+		Total:     12,
+		Pending:   3,
+		Confirmed: 4,
+		Cancelled: 2,
+		Completed: 3,
+	}
+	bookingRepo := &fakeBookingRepository{stats: want}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	got, err := service.GetBookingStats(context.Background())
+	if err != nil {
+		t.Fatalf("GetBookingStats() error = %v, want nil", err)
+	}
+
+	if !bookingRepo.statsCalled {
+		t.Fatal("GetBookingStats() did not call repository")
+	}
+	if got != want {
+		t.Fatalf("GetBookingStats() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetBookingStatsWrapsRepositoryError(t *testing.T) {
+	bookingRepo := &fakeBookingRepository{statsErr: errors.New("database unavailable")}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	_, err := service.GetBookingStats(context.Background())
+	if err == nil {
+		t.Fatal("GetBookingStats() error = nil, want error")
+	}
+}
+
+func TestGetRevenueStatsReturnsRepositoryStats(t *testing.T) {
+	want := model.RevenueStats{
+		TotalPotential: 1200,
+		Pending:        200,
+		Confirmed:      350,
+		Completed:      500,
+		Cancelled:      150,
+	}
+	bookingRepo := &fakeBookingRepository{revenueStats: want}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	got, err := service.GetRevenueStats(context.Background())
+	if err != nil {
+		t.Fatalf("GetRevenueStats() error = %v, want nil", err)
+	}
+
+	if !bookingRepo.revenueStatsCalled {
+		t.Fatal("GetRevenueStats() did not call repository")
+	}
+	if got != want {
+		t.Fatalf("GetRevenueStats() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetRevenueStatsWrapsRepositoryError(t *testing.T) {
+	bookingRepo := &fakeBookingRepository{revenueStatsErr: errors.New("database unavailable")}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	_, err := service.GetRevenueStats(context.Background())
+	if err == nil {
+		t.Fatal("GetRevenueStats() error = nil, want error")
+	}
+}
+
+func TestGetRecentBookingsReturnsRepositoryRows(t *testing.T) {
+	want := []model.RecentBookingActivity{
+		{
+			ID:           42,
+			CustomerName: "Jane Customer",
+			CarName:      "Toyota Corolla",
+			Status:       model.BookingStatusPending,
+			PickupTime:   time.Date(2026, time.July, 10, 9, 30, 0, 0, time.UTC),
+			ReturnTime:   time.Date(2026, time.July, 12, 11, 0, 0, 0, time.UTC),
+			CreatedAt:    time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC),
+		},
+	}
+	bookingRepo := &fakeBookingRepository{recentBookings: want}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	got, err := service.GetRecentBookings(context.Background(), 5)
+	if err != nil {
+		t.Fatalf("GetRecentBookings() error = %v, want nil", err)
+	}
+
+	if !bookingRepo.recentBookingsCalled {
+		t.Fatal("GetRecentBookings() did not call repository")
+	}
+	if bookingRepo.recentBookingsLimit != 5 {
+		t.Fatalf("recentBookingsLimit = %d, want 5", bookingRepo.recentBookingsLimit)
+	}
+	if len(got) != len(want) || got[0] != want[0] {
+		t.Fatalf("GetRecentBookings() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetRecentBookingsDefaultsInvalidLimit(t *testing.T) {
+	bookingRepo := &fakeBookingRepository{}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	_, err := service.GetRecentBookings(context.Background(), 0)
+	if err != nil {
+		t.Fatalf("GetRecentBookings() error = %v, want nil", err)
+	}
+
+	if bookingRepo.recentBookingsLimit != 10 {
+		t.Fatalf("recentBookingsLimit = %d, want 10", bookingRepo.recentBookingsLimit)
+	}
+}
+
+func TestGetRecentBookingsWrapsRepositoryError(t *testing.T) {
+	bookingRepo := &fakeBookingRepository{recentBookingsErr: errors.New("database unavailable")}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	_, err := service.GetRecentBookings(context.Background(), 10)
+	if err == nil {
+		t.Fatal("GetRecentBookings() error = nil, want error")
+	}
+}
+
+func TestListBookingsForExportNormalizesFilter(t *testing.T) {
+	want := []model.BookingExportRow{
+		{
+			ID:             42,
+			Status:         model.BookingStatusPending,
+			CustomerName:   "Jane Customer",
+			CustomerEmail:  "jane@example.test",
+			CustomerPhone:  "555-0100",
+			Car:            "Toyota Corolla",
+			PickupAt:       time.Date(2026, time.July, 10, 9, 30, 0, 0, time.UTC),
+			ReturnAt:       time.Date(2026, time.July, 12, 11, 0, 0, 0, time.UTC),
+			BillingDays:    3,
+			EstimatedTotal: 270,
+			CreatedAt:      time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC),
+		},
+	}
+	bookingRepo := &fakeBookingRepository{exportRows: want}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	got, err := service.ListBookingsForExport(context.Background(), model.AdminBookingFilter{
+		Search: "  jane  ",
+		Status: "PENDING",
+	})
+	if err != nil {
+		t.Fatalf("ListBookingsForExport() error = %v, want nil", err)
+	}
+
+	if !bookingRepo.exportCalled {
+		t.Fatal("ListBookingsForExport() did not call repository")
+	}
+	if bookingRepo.exportFilter.Search != "jane" {
+		t.Fatalf("exportFilter.Search = %q, want %q", bookingRepo.exportFilter.Search, "jane")
+	}
+	if bookingRepo.exportFilter.Status != model.BookingStatusPending {
+		t.Fatalf("exportFilter.Status = %q, want %q", bookingRepo.exportFilter.Status, model.BookingStatusPending)
+	}
+	if len(got) != len(want) || got[0] != want[0] {
+		t.Fatalf("ListBookingsForExport() = %#v, want %#v", got, want)
+	}
+}
+
+func TestListBookingsForExportWrapsRepositoryError(t *testing.T) {
+	bookingRepo := &fakeBookingRepository{exportErr: errors.New("database unavailable")}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	_, err := service.ListBookingsForExport(context.Background(), model.AdminBookingFilter{})
+	if err == nil {
+		t.Fatal("ListBookingsForExport() error = nil, want error")
+	}
+}
+
 func TestFindAvailabilityWindowsNoBlockingBookings(t *testing.T) {
 	requestedPickup := time.Date(2026, time.June, 1, 10, 0, 0, 0, time.UTC)
 	requestedReturn := requestedPickup.Add(48 * time.Hour)
@@ -620,19 +794,33 @@ func testBookingAdminView(status string) model.BookingAdminView {
 }
 
 type fakeBookingRepository struct {
-	createCalled       bool
-	createID           int64
-	createdBooking     model.Booking
-	hasConflict        bool
-	nextAvailableAt    time.Time
-	nextAvailableFound bool
-	updateCalled       bool
-	updateID           int64
-	updateStatus       string
-	updateErr          error
-	getCalled          bool
-	getBooking         model.BookingAdminView
-	getErr             error
+	createCalled         bool
+	createID             int64
+	createdBooking       model.Booking
+	hasConflict          bool
+	nextAvailableAt      time.Time
+	nextAvailableFound   bool
+	updateCalled         bool
+	updateID             int64
+	updateStatus         string
+	updateErr            error
+	getCalled            bool
+	getBooking           model.BookingAdminView
+	getErr               error
+	statsCalled          bool
+	stats                model.BookingStats
+	statsErr             error
+	revenueStatsCalled   bool
+	revenueStats         model.RevenueStats
+	revenueStatsErr      error
+	recentBookingsCalled bool
+	recentBookingsLimit  int
+	recentBookings       []model.RecentBookingActivity
+	recentBookingsErr    error
+	exportCalled         bool
+	exportFilter         model.AdminBookingFilter
+	exportRows           []model.BookingExportRow
+	exportErr            error
 }
 
 func (r *fakeBookingRepository) CreateBooking(ctx context.Context, booking model.Booking) (int64, error) {
@@ -667,6 +855,44 @@ func (r *fakeBookingRepository) CountBookings(ctx context.Context, filter model.
 
 func (r *fakeBookingRepository) ListBookingsPage(ctx context.Context, filter model.AdminBookingFilter, pagination model.Pagination) ([]model.BookingAdminView, error) {
 	return nil, nil
+}
+
+func (r *fakeBookingRepository) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
+	r.statsCalled = true
+	if r.statsErr != nil {
+		return model.BookingStats{}, r.statsErr
+	}
+
+	return r.stats, nil
+}
+
+func (r *fakeBookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
+	r.revenueStatsCalled = true
+	if r.revenueStatsErr != nil {
+		return model.RevenueStats{}, r.revenueStatsErr
+	}
+
+	return r.revenueStats, nil
+}
+
+func (r *fakeBookingRepository) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
+	r.recentBookingsCalled = true
+	r.recentBookingsLimit = limit
+	if r.recentBookingsErr != nil {
+		return nil, r.recentBookingsErr
+	}
+
+	return r.recentBookings, nil
+}
+
+func (r *fakeBookingRepository) ListBookingsForExport(ctx context.Context, filter model.AdminBookingFilter) ([]model.BookingExportRow, error) {
+	r.exportCalled = true
+	r.exportFilter = filter
+	if r.exportErr != nil {
+		return nil, r.exportErr
+	}
+
+	return r.exportRows, nil
 }
 
 func (r *fakeBookingRepository) GetBookingByID(ctx context.Context, id int64) (model.BookingAdminView, error) {

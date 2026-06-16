@@ -8,9 +8,15 @@
         </p>
     </div>
 
-    <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin">
-        Admin dashboard
-    </a>
+    <div class="flex flex-wrap gap-3">
+        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="{{.AdminBookingExportURL}}">
+            Export CSV
+        </a>
+
+        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin">
+            Admin dashboard
+        </a>
+    </div>
 </section>
 
 <section class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

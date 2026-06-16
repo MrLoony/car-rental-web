@@ -30,6 +30,10 @@ type TemplateData struct {
 	AdminBooking                 model.BookingAdminView
 	AdminBookingFilter           model.AdminBookingFilter
 	HasActiveAdminBookingFilters bool
+	AdminBookingExportURL        string
+	BookingStats                 model.BookingStats
+	RevenueStats                 model.RevenueStats
+	RecentBookings               []model.RecentBookingActivity
 	AdminCars                    []model.Car
 	AdminCar                     model.Car
 	AdminCarFilter               model.AdminCarFilter
