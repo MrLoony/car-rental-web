@@ -33,6 +33,12 @@
 
     <main>
         <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+            {{with .Flash}}
+            <div class="mb-6 rounded-md border px-4 py-3 text-sm {{if eq .Type "success"}}border-emerald-200 bg-emerald-50 text-emerald-800{{else if eq .Type "warning"}}border-amber-200 bg-amber-50 text-amber-800{{else}}border-red-200 bg-red-50 text-red-800{{end}}" role="status">
+                <span class="font-semibold">{{if eq .Type "success"}}Success{{else if eq .Type "warning"}}Warning{{else}}Error{{end}}:</span>
+                <span>{{.Message}}</span>
+            </div>
+            {{end}}
             {{template "content" .}}
         </div>
     </main>

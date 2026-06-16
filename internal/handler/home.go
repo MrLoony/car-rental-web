@@ -10,7 +10,7 @@ func (h *Handler) Home() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "home.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }

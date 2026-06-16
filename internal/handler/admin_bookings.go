@@ -24,7 +24,7 @@ func (h *Handler) AdminBookingsIndex() http.HandlerFunc {
 
 		bookings, pagination, err := h.bookingService.ListBookingsPage(r.Context(), filter)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -44,7 +44,7 @@ func (h *Handler) AdminBookingsIndex() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/bookings/index.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -64,11 +64,11 @@ func (h *Handler) AdminBookingsShow() http.HandlerFunc {
 		booking, err := h.bookingService.GetBookingByID(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, repository.ErrBookingNotFound) {
-				http.Error(w, "booking not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -80,7 +80,7 @@ func (h *Handler) AdminBookingsShow() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/bookings/show.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -96,20 +96,23 @@ func (h *Handler) AdminBookingStatusUpdate() http.HandlerFunc {
 		err := h.bookingService.UpdateBookingStatus(r.Context(), id, status)
 		if err != nil {
 			if !model.IsValidBookingStatus(status) {
-				http.Error(w, "invalid booking status", http.StatusBadRequest)
+				http.Error(w, "Invalid booking status.", http.StatusBadRequest)
 				return
 			}
 
 			if errors.Is(err, repository.ErrBookingNotFound) {
-				http.Error(w, "booking not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
-		http.Redirect(w, r, "/admin/bookings/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		h.redirectWithFlash(w, r, "/admin/bookings/"+strconv.FormatInt(id, 10), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Booking status updated to " + status + ".",
+		})
 	}
 }
 

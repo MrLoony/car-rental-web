@@ -24,7 +24,7 @@ func (h *Handler) AdminCarsIndex() http.HandlerFunc {
 
 		cars, pagination, err := h.carService.ListCarsForAdminPage(r.Context(), filter)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -44,7 +44,7 @@ func (h *Handler) AdminCarsIndex() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/cars/index.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -58,7 +58,7 @@ func (h *Handler) AdminCarsNew() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		categories, err := h.categoryService.ListCategories(r.Context())
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -70,7 +70,7 @@ func (h *Handler) AdminCarsNew() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/cars/new.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -79,7 +79,7 @@ func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := parseOptionalCarMultipartForm(r); err != nil {
 			form := parseCarForm(r)
-			form = addCarFormError(form, "image_url", "Image upload could not be processed.")
+			form = addCarFormError(form, "image_url", "The uploaded image could not be processed.")
 			h.renderAdminCarForm(w, r, "admin/cars/new.html", "New car", model.Car{}, form, http.StatusUnprocessableEntity)
 			return
 		}
@@ -95,7 +95,7 @@ func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 
 		id, form, err := h.carService.CreateCar(r.Context(), form)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -104,7 +104,10 @@ func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Car created successfully.",
+		})
 	}
 }
 
@@ -118,17 +121,17 @@ func (h *Handler) AdminCarsEdit() http.HandlerFunc {
 		car, err := h.carService.GetCarByID(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
 		categories, err := h.categoryService.ListCategories(r.Context())
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -141,7 +144,7 @@ func (h *Handler) AdminCarsEdit() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/cars/edit.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -156,38 +159,40 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 		car, err := h.carService.GetCarByID(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
 		if err := parseOptionalCarMultipartForm(r); err != nil {
 			form := parseCarForm(r)
-			form = addCarFormError(form, "image_url", "Image upload could not be processed.")
+			form = addCarFormError(form, "image_url", "The uploaded image could not be processed.")
 			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
 			return
 		}
 
 		form := parseCarForm(r)
+		imageUploaded := false
 		if imageURL, uploaded, err := saveOptionalCarImageUpload(r, form.Slug); err != nil {
 			form = addCarFormError(form, "image_url", err.Error())
 			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
 			return
 		} else if uploaded {
 			form.ImageURL = imageURL
+			imageUploaded = true
 		}
 
 		form, err = h.carService.UpdateCar(r.Context(), id, form)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -196,7 +201,15 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		message := "Car updated successfully."
+		if imageUploaded {
+			message = "Car image updated successfully."
+		}
+
+		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: message,
+		})
 	}
 }
 
@@ -211,15 +224,23 @@ func (h *Handler) AdminCarAvailabilityUpdate() http.HandlerFunc {
 		err := h.carService.UpdateCarAvailability(r.Context(), id, isAvailable)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
-		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		message := "Car is now unavailable."
+		if isAvailable {
+			message = "Car is now available."
+		}
+
+		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: message,
+		})
 	}
 }
 
@@ -233,15 +254,18 @@ func (h *Handler) AdminCarArchive() http.HandlerFunc {
 		err := h.carService.ArchiveCar(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
-		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Car archived successfully.",
+		})
 	}
 }
 
@@ -255,15 +279,18 @@ func (h *Handler) AdminCarUnarchive() http.HandlerFunc {
 		err := h.carService.UnarchiveCar(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
-		http.Redirect(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Car restored successfully.",
+		})
 	}
 }
 
@@ -277,11 +304,11 @@ func (h *Handler) AdminCarsShow() http.HandlerFunc {
 		car, err := h.carService.GetCarByID(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -292,7 +319,7 @@ func (h *Handler) AdminCarsShow() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/cars/show.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -362,7 +389,7 @@ func addCarFormError(form model.CarForm, field, message string) model.CarForm {
 func (h *Handler) renderAdminCarForm(w http.ResponseWriter, r *http.Request, page, title string, car model.Car, form model.CarForm, status int) {
 	categories, err := h.categoryService.ListCategories(r.Context())
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.renderServerError(w, r, err)
 		return
 	}
 
@@ -375,7 +402,7 @@ func (h *Handler) renderAdminCarForm(w http.ResponseWriter, r *http.Request, pag
 	}
 
 	if err := h.renderWithStatus(w, r, page, data, status); err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.renderServerError(w, r, err)
 	}
 }
 

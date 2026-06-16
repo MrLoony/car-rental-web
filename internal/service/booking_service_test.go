@@ -70,6 +70,33 @@ func TestCreateBookingInitializesFormErrors(t *testing.T) {
 	}
 }
 
+func TestCreateBookingValidationUsesFriendlyMessages(t *testing.T) {
+	service := BookingService{}
+	form := model.BookingForm{
+		CustomerEmail: "not-an-email",
+		PickupAt:      time.Now().Add(48 * time.Hour).Format(datetimeLocalLayout),
+		ReturnAt:      time.Now().Add(24 * time.Hour).Format(datetimeLocalLayout),
+	}
+
+	_, form, err := service.CreateBooking(context.Background(), model.Car{}, form)
+	if err != nil {
+		t.Fatalf("CreateBooking() error = %v, want nil", err)
+	}
+
+	if form.Errors["customer_name"] != "Enter your name." {
+		t.Fatalf("customer_name error = %q", form.Errors["customer_name"])
+	}
+	if form.Errors["customer_email"] != "Enter a valid email address." {
+		t.Fatalf("customer_email error = %q", form.Errors["customer_email"])
+	}
+	if form.Errors["customer_phone"] != "Enter your phone number." {
+		t.Fatalf("customer_phone error = %q", form.Errors["customer_phone"])
+	}
+	if form.Errors["return_at"] != "Return time must be after the pickup time." {
+		t.Fatalf("return_at error = %q", form.Errors["return_at"])
+	}
+}
+
 func TestCreateBookingSendsAdminNotificationAfterSuccessfulCreate(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{createID: 101}
 	notifier := &fakeBookingNotifier{}

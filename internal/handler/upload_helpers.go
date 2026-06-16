@@ -34,16 +34,16 @@ func validateCarImageUpload(header *multipart.FileHeader, file multipart.File) e
 	}
 
 	if header.Size > maxCarImageUploadSize {
-		return errors.New("Uploaded image must be 5 MB or smaller.")
+		return errors.New("Image file is too large. Upload a JPEG, PNG, or WebP image up to 5 MB.")
 	}
 
 	ext := carImageExtension(header.Filename)
 	if _, ok := allowedCarImageExtensions[ext]; !ok {
-		return errors.New("Uploaded image must be a JPEG, PNG, or WebP file.")
+		return errors.New("Please upload a JPEG, PNG, or WebP image.")
 	}
 
 	if file == nil {
-		return errors.New("Uploaded image must be a JPEG, PNG, or WebP file.")
+		return errors.New("Please upload a JPEG, PNG, or WebP image.")
 	}
 
 	contentType, err := sniffCarImageContentType(file)
@@ -52,7 +52,7 @@ func validateCarImageUpload(header *multipart.FileHeader, file multipart.File) e
 	}
 
 	if !carImageExtensionMatchesContentType(ext, contentType) {
-		return errors.New("Uploaded image must be a JPEG, PNG, or WebP file.")
+		return errors.New("Please upload a JPEG, PNG, or WebP image.")
 	}
 
 	return nil

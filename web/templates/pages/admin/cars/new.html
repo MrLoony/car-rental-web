@@ -8,7 +8,7 @@
         <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Admin</p>
         <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">New car</h1>
         <p class="mt-3 text-sm leading-6 text-slate-600">
-            Add a vehicle to the catalog. Images can use a URL for now; uploads will come later.
+            Add a vehicle to the catalog. You can provide an image URL or upload a local JPEG, PNG, or WebP image.
         </p>
     </div>
 
@@ -25,7 +25,7 @@
                     {{end}}
                 </select>
                 {{with index .CarForm.Errors "category_id"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -33,7 +33,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="slug">Slug</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="slug" name="slug" type="text" value="{{.CarForm.Slug}}" placeholder="toyota-corolla">
                 {{with index .CarForm.Errors "slug"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -41,7 +41,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="brand">Brand</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="brand" name="brand" type="text" value="{{.CarForm.Brand}}">
                 {{with index .CarForm.Errors "brand"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -49,7 +49,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="model">Model</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="model" name="model" type="text" value="{{.CarForm.Model}}">
                 {{with index .CarForm.Errors "model"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -57,7 +57,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="year">Year</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="year" name="year" type="text" inputmode="numeric" value="{{.CarForm.Year}}">
                 {{with index .CarForm.Errors "year"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -65,7 +65,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="price_per_day">Price per day</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="price_per_day" name="price_per_day" type="text" inputmode="decimal" value="{{.CarForm.PricePerDay}}">
                 {{with index .CarForm.Errors "price_per_day"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -73,7 +73,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="transmission">Transmission</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="transmission" name="transmission" type="text" value="{{.CarForm.Transmission}}" placeholder="Automatic">
                 {{with index .CarForm.Errors "transmission"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -81,7 +81,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="fuel_type">Fuel type</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="fuel_type" name="fuel_type" type="text" value="{{.CarForm.FuelType}}" placeholder="Gasoline">
                 {{with index .CarForm.Errors "fuel_type"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -89,7 +89,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="seats">Seats</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="seats" name="seats" type="text" inputmode="numeric" value="{{.CarForm.Seats}}">
                 {{with index .CarForm.Errors "seats"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -100,7 +100,7 @@
                     Upload an image file or provide an image URL. Uploaded files take priority.
                 </p>
                 {{with index .CarForm.Errors "image_url"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
                 <div class="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-slate-50" data-image-preview>
                     <img class="{{if not .CarForm.ImageURL}}hidden {{end}}aspect-video w-full object-cover" src="{{if .CarForm.ImageURL}}{{.CarForm.ImageURL}}{{else}}/static/images/car-placeholder.svg{{end}}" alt="Car image preview" data-image-preview-img>

@@ -25,13 +25,13 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 
 		cars, pagination, err := h.carService.ListCarsPage(r.Context(), filter)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
 		categories, err := h.categoryService.ListCategories(r.Context())
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -54,7 +54,7 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "cars/index.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -89,11 +89,11 @@ func (h *Handler) CarsShow() http.HandlerFunc {
 		car, err := h.carService.GetCarBySlug(r.Context(), slug)
 		if err != nil {
 			if errors.Is(err, repository.ErrCarNotFound) {
-				http.Error(w, "car not found", http.StatusNotFound)
+				h.renderNotFound(w, r)
 				return
 			}
 
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -104,7 +104,7 @@ func (h *Handler) CarsShow() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "cars/show.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }

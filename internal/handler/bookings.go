@@ -31,7 +31,7 @@ func (h *Handler) BookingNew() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "bookings/new.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -59,14 +59,14 @@ func (h *Handler) BookingCreate() http.HandlerFunc {
 
 		bookingID, form, err := h.bookingService.CreateBooking(r.Context(), car, form)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
 		if form.HasErrors() {
 			suggestedVehicleBookingURLs, err := h.suggestedVehicleBookingURLs(r, form)
 			if err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				h.renderServerError(w, r, err)
 				return
 			}
 
@@ -79,7 +79,7 @@ func (h *Handler) BookingCreate() http.HandlerFunc {
 			}
 
 			if err := h.renderWithStatus(w, r, "bookings/new.html", data, http.StatusUnprocessableEntity); err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				h.renderServerError(w, r, err)
 			}
 			return
 		}
@@ -105,7 +105,7 @@ func (h *Handler) BookingSuccess() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "bookings/success.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -116,11 +116,11 @@ func (h *Handler) loadBookingCar(w http.ResponseWriter, r *http.Request) (model.
 	car, err := h.carService.GetCarBySlug(r.Context(), slug)
 	if err != nil {
 		if errors.Is(err, repository.ErrCarNotFound) {
-			http.Error(w, "car not found", http.StatusNotFound)
+			h.renderNotFound(w, r)
 			return model.Car{}, false
 		}
 
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.renderServerError(w, r, err)
 		return model.Car{}, false
 	}
 
@@ -153,7 +153,7 @@ func (h *Handler) bookingFormForNewRequest(w http.ResponseWriter, r *http.Reques
 			return model.NewBookingForm(), true
 		}
 
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.renderServerError(w, r, err)
 		return model.BookingForm{}, false
 	}
 

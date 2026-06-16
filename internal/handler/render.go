@@ -39,6 +39,7 @@ type TemplateData struct {
 	CarForm                      model.CarForm
 	IsAdminAuthenticated         bool
 	CSRFToken                    string
+	Flash                        *model.FlashMessage
 }
 
 func (h *Handler) render(w http.ResponseWriter, r *http.Request, page string, data TemplateData) error {
@@ -52,6 +53,13 @@ func (h *Handler) renderWithStatus(w http.ResponseWriter, r *http.Request, page 
 		return err
 	}
 	data.CSRFToken = csrfToken
+	if data.Flash == nil {
+		flash, err := h.popFlash(w, r)
+		if err != nil {
+			return err
+		}
+		data.Flash = flash
+	}
 
 	return renderWithStatus(w, page, data, status)
 }

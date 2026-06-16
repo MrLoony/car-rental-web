@@ -104,8 +104,12 @@ func TestValidateCarImageUploadRejectsOversizedFile(t *testing.T) {
 	header, file := testCarImageUpload("car.jpg", jpegBytes())
 	header.Size = maxCarImageUploadSize + 1
 
-	if err := validateCarImageUpload(header, file); err == nil {
+	err := validateCarImageUpload(header, file)
+	if err == nil {
 		t.Fatal("validateCarImageUpload() error = nil, want size error")
+	}
+	if err.Error() != "Image file is too large. Upload a JPEG, PNG, or WebP image up to 5 MB." {
+		t.Fatalf("validateCarImageUpload() error = %q", err.Error())
 	}
 }
 

@@ -1,6 +1,10 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/MrLoony/car-rental-web/internal/model"
+)
 
 func (h *Handler) AdminIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -10,7 +14,7 @@ func (h *Handler) AdminIndex() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "admin/index.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -18,10 +22,13 @@ func (h *Handler) AdminIndex() http.HandlerFunc {
 func (h *Handler) AdminCleanupPrefills() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := h.bookingPrefillService.CleanupExpiredPrefills(r.Context()); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		h.redirectWithFlash(w, r, "/admin", model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Expired prefill tokens cleaned successfully.",
+		})
 	}
 }

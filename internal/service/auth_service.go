@@ -76,11 +76,11 @@ func normalizeLoginForm(form model.LoginForm) model.LoginForm {
 
 func validateLoginForm(form *model.LoginForm) {
 	if form.Email == "" {
-		form.Errors["email"] = "Email is required."
+		form.Errors["email"] = "Enter your email address."
 	}
 
 	if form.Password == "" {
-		form.Errors["password"] = "Password is required."
+		form.Errors["password"] = "Enter your password."
 	}
 }
 

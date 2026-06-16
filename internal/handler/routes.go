@@ -1,19 +1,27 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/MrLoony/car-rental-web/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 )
+
+type bookingPrefillService interface {
+	CreateFromBookingForm(ctx context.Context, form model.BookingForm) (string, error)
+	GetFormByToken(ctx context.Context, token string) (model.BookingForm, error)
+	CleanupExpiredPrefills(ctx context.Context) error
+}
 
 type Handler struct {
 	appName               string
 	carService            *service.CarService
 	categoryService       *service.CategoryService
 	bookingService        *service.BookingService
-	bookingPrefillService *service.BookingPrefillService
+	bookingPrefillService bookingPrefillService
 	authService           *service.AuthService
 	sessionStore          *sessions.CookieStore
 	isProduction          bool
@@ -35,6 +43,7 @@ func New(appName string, carService *service.CarService, categoryService *servic
 func (h *Handler) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(h.SecurityHeaders)
+	r.NotFound(h.NotFound())
 
 	fileServer := http.FileServer(http.Dir("web/static"))
 	r.Handle("/static/*", http.StripPrefix("/static/", fileServer))

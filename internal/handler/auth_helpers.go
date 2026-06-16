@@ -23,9 +23,13 @@ func (h *Handler) clearAdminSession(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	delete(session.Values, sessionAdminUserIDKey)
+	clearAdminSessionValues(session.Values)
 	session.Options.MaxAge = -1
 	return session.Save(r, w)
+}
+
+func clearAdminSessionValues(values map[interface{}]interface{}) {
+	delete(values, sessionAdminUserIDKey)
 }
 
 func (h *Handler) isAdminAuthenticated(r *http.Request) bool {

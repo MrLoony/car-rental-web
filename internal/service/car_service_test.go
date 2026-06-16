@@ -44,6 +44,21 @@ func TestValidateCarFormRejectsInvalidNumericFields(t *testing.T) {
 	}
 }
 
+func TestValidateCarFormUsesFriendlyNumericMessages(t *testing.T) {
+	form := normalizeCarForm(validCarForm())
+	form.PricePerDay = "0"
+	form.Seats = "0"
+
+	validateCarForm(&form)
+
+	if form.Errors["price_per_day"] != "Price per day must be greater than $0." {
+		t.Fatalf("price_per_day error = %q", form.Errors["price_per_day"])
+	}
+	if form.Errors["seats"] != "Seats must be at least 1." {
+		t.Fatalf("seats error = %q", form.Errors["seats"])
+	}
+}
+
 func TestValidateCarFormAcceptsValidInput(t *testing.T) {
 	form := normalizeCarForm(validCarForm())
 

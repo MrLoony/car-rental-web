@@ -13,12 +13,12 @@ func TestValidateLoginForm(t *testing.T) {
 	form := normalizeLoginForm(model.LoginForm{})
 	validateLoginForm(&form)
 
-	if form.Errors["email"] == "" {
-		t.Fatal("validateLoginForm() did not validate required email")
+	if form.Errors["email"] != "Enter your email address." {
+		t.Fatalf("email error = %q", form.Errors["email"])
 	}
 
-	if form.Errors["password"] == "" {
-		t.Fatal("validateLoginForm() did not validate required password")
+	if form.Errors["password"] != "Enter your password." {
+		t.Fatalf("password error = %q", form.Errors["password"])
 	}
 }
 

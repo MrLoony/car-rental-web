@@ -237,28 +237,28 @@ func normalizeBookingForm(form model.BookingForm) model.BookingForm {
 
 func validateBookingForm(form *model.BookingForm) (time.Time, time.Time) {
 	if form.CustomerName == "" {
-		form.Errors["customer_name"] = "Name is required."
+		form.Errors["customer_name"] = "Enter your name."
 	}
 
 	if form.CustomerEmail == "" {
-		form.Errors["customer_email"] = "Email is required."
+		form.Errors["customer_email"] = "Enter your email address."
 	} else if !strings.Contains(form.CustomerEmail, "@") || !strings.Contains(form.CustomerEmail, ".") {
 		form.Errors["customer_email"] = "Enter a valid email address."
 	}
 
 	if form.CustomerPhone == "" {
-		form.Errors["customer_phone"] = "Phone number is required."
+		form.Errors["customer_phone"] = "Enter your phone number."
 	}
 
-	pickupAt, pickupOK := parseRequiredDatetime(form.PickupAt, "pickup_at", "Pickup time is required.", form.Errors)
-	returnAt, returnOK := parseRequiredDatetime(form.ReturnAt, "return_at", "Return time is required.", form.Errors)
+	pickupAt, pickupOK := parseRequiredDatetime(form.PickupAt, "pickup_at", "Select a pickup time.", form.Errors)
+	returnAt, returnOK := parseRequiredDatetime(form.ReturnAt, "return_at", "Select a return time.", form.Errors)
 
 	if pickupOK && pickupAt.Before(time.Now()) {
 		form.Errors["pickup_at"] = "Pickup time cannot be in the past."
 	}
 
 	if pickupOK && returnOK && !returnAt.After(pickupAt) {
-		form.Errors["return_at"] = "Return time must be after pickup time."
+		form.Errors["return_at"] = "Return time must be after the pickup time."
 	}
 
 	return pickupAt, returnAt

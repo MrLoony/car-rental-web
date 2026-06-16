@@ -20,7 +20,7 @@ func (h *Handler) LoginNew() http.HandlerFunc {
 		}
 
 		if err := h.render(w, r, "auth/login.html", data); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 		}
 	}
 }
@@ -39,7 +39,7 @@ func (h *Handler) LoginCreate() http.HandlerFunc {
 
 		adminUser, form, err := h.authService.Authenticate(r.Context(), form)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
@@ -49,26 +49,38 @@ func (h *Handler) LoginCreate() http.HandlerFunc {
 				AppName:   h.appName,
 				LoginForm: form,
 			}
+			if message := form.Errors["credentials"]; message != "" {
+				data.Flash = &model.FlashMessage{
+					Type:    model.FlashError,
+					Message: message,
+				}
+			}
 
 			if err := h.renderWithStatus(w, r, "auth/login.html", data, http.StatusUnprocessableEntity); err != nil {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				h.renderServerError(w, r, err)
 			}
 			return
 		}
 
 		if err := h.setAdminSession(w, r, adminUser.ID); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.renderServerError(w, r, err)
 			return
 		}
 
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		h.redirectWithFlash(w, r, "/admin", model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Welcome back.",
+		})
 	}
 }
 
 func (h *Handler) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := h.clearAdminSession(w, r); err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		if err := h.clearAdminSessionWithFlash(w, r, model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "You have been logged out.",
+		}); err != nil {
+			h.renderServerError(w, r, err)
 			return
 		}
 

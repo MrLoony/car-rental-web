@@ -234,7 +234,7 @@ func validateCarForm(form *model.CarForm) model.Car {
 
 	pricePerDay := parseRequiredFloat(form.PricePerDay, "price_per_day", "Price per day is required.", form.Errors)
 	if pricePerDay <= 0 && form.Errors["price_per_day"] == "" {
-		form.Errors["price_per_day"] = "Price per day must be greater than 0."
+		form.Errors["price_per_day"] = "Price per day must be greater than $0."
 	}
 
 	if form.Transmission == "" {
@@ -249,9 +249,9 @@ func validateCarForm(form *model.CarForm) model.Car {
 		form.Errors["image_url"] = "Image URL must start with http://, https://, or /static/."
 	}
 
-	seats := parseRequiredInt(form.Seats, "seats", "Seats is required.", form.Errors)
+	seats := parseRequiredInt(form.Seats, "seats", "Seats are required.", form.Errors)
 	if seats <= 0 && form.Errors["seats"] == "" {
-		form.Errors["seats"] = "Seats must be greater than 0."
+		form.Errors["seats"] = "Seats must be at least 1."
 	}
 
 	return model.Car{

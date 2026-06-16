@@ -32,7 +32,7 @@
                 <label class="block text-sm font-medium text-slate-700" for="customer_name">Name</label>
                 <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_name" name="customer_name" type="text" value="{{.BookingForm.CustomerName}}" autocomplete="name">
                 {{with index .BookingForm.Errors "customer_name"}}
-                <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
@@ -41,7 +41,7 @@
                     <label class="block text-sm font-medium text-slate-700" for="customer_email">Email</label>
                     <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_email" name="customer_email" type="email" value="{{.BookingForm.CustomerEmail}}" autocomplete="email">
                     {{with index .BookingForm.Errors "customer_email"}}
-                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                     {{end}}
                 </div>
 
@@ -49,7 +49,7 @@
                     <label class="block text-sm font-medium text-slate-700" for="customer_phone">Phone</label>
                     <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_phone" name="customer_phone" type="tel" value="{{.BookingForm.CustomerPhone}}" autocomplete="tel">
                     {{with index .BookingForm.Errors "customer_phone"}}
-                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                     {{end}}
                 </div>
             </div>
@@ -59,7 +59,7 @@
                     <label class="block text-sm font-medium text-slate-700" for="pickup_at">Pickup time</label>
                     <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="pickup_at" name="pickup_at" type="datetime-local" value="{{.BookingForm.PickupAt}}" data-pickup-input>
                     {{with index .BookingForm.Errors "pickup_at"}}
-                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                     {{end}}
                     {{if .BookingForm.SuggestedPickupAt}}
                     <p class="mt-2 rounded-md bg-teal-50 px-3 py-2 text-sm font-medium text-teal-800">
@@ -72,7 +72,7 @@
                     <label class="block text-sm font-medium text-slate-700" for="return_at">Return time</label>
                     <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="return_at" name="return_at" type="datetime-local" value="{{.BookingForm.ReturnAt}}" data-return-input>
                     {{with index .BookingForm.Errors "return_at"}}
-                    <p class="mt-2 text-sm text-red-600">{{.}}</p>
+                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
                     {{end}}
                 </div>
             </div>
