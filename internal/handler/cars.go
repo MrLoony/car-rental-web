@@ -3,7 +3,9 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/MrLoony/car-rental-web/internal/repository"
@@ -36,10 +38,14 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 		}
 
 		data := TemplateData{
-			Title:            "Cars",
-			AppName:          h.appName,
-			Cars:             cars,
-			Filter:           filter,
+			Title:   "Cars",
+			AppName: h.appName,
+			Cars:    cars,
+			Filter:  filter,
+			CatalogFilterChips: catalogFilterChips(
+				filter,
+				categories,
+			),
 			Categories:       categories,
 			FuelTypes:        []string{"Gasoline", "Hybrid", "Diesel"},
 			Transmissions:    []string{"Automatic", "Manual"},
@@ -80,6 +86,94 @@ func hasActiveCarFilters(filter model.CarFilter) bool {
 		filter.FuelType != "" ||
 		filter.Transmission != "" ||
 		(filter.Sort != "" && filter.Sort != model.SortNewest)
+}
+
+func catalogFilterChips(filter model.CarFilter, categories []model.Category) []CatalogFilterChip {
+	chips := []CatalogFilterChip{}
+
+	if search := strings.TrimSpace(filter.Search); search != "" {
+		chips = append(chips, CatalogFilterChip{
+			Label:     "Search: " + search,
+			RemoveURL: catalogFilterURL(filter, "search"),
+		})
+	}
+
+	if filter.CategorySlug != "" {
+		chips = append(chips, CatalogFilterChip{
+			Label:     "Category: " + categoryLabel(filter.CategorySlug, categories),
+			RemoveURL: catalogFilterURL(filter, "category"),
+		})
+	}
+
+	if filter.FuelType != "" {
+		chips = append(chips, CatalogFilterChip{
+			Label:     "Fuel: " + filter.FuelType,
+			RemoveURL: catalogFilterURL(filter, "fuel"),
+		})
+	}
+
+	if filter.Transmission != "" {
+		chips = append(chips, CatalogFilterChip{
+			Label:     "Transmission: " + filter.Transmission,
+			RemoveURL: catalogFilterURL(filter, "transmission"),
+		})
+	}
+
+	if filter.Sort != "" && filter.Sort != model.SortNewest {
+		chips = append(chips, CatalogFilterChip{
+			Label:     "Sort: " + catalogSortLabel(filter.Sort),
+			RemoveURL: catalogFilterURL(filter, "sort"),
+		})
+	}
+
+	return chips
+}
+
+func catalogFilterURL(filter model.CarFilter, removeParam string) string {
+	values := url.Values{}
+
+	if strings.TrimSpace(filter.Search) != "" && removeParam != "search" {
+		values.Set("search", strings.TrimSpace(filter.Search))
+	}
+	if filter.CategorySlug != "" && removeParam != "category" {
+		values.Set("category", filter.CategorySlug)
+	}
+	if filter.FuelType != "" && removeParam != "fuel" {
+		values.Set("fuel", filter.FuelType)
+	}
+	if filter.Transmission != "" && removeParam != "transmission" {
+		values.Set("transmission", filter.Transmission)
+	}
+	if filter.Sort != "" && filter.Sort != model.SortNewest && removeParam != "sort" {
+		values.Set("sort", filter.Sort)
+	}
+
+	if encoded := values.Encode(); encoded != "" {
+		return "/cars?" + encoded
+	}
+
+	return "/cars"
+}
+
+func categoryLabel(slug string, categories []model.Category) string {
+	for _, category := range categories {
+		if category.Slug == slug {
+			return category.Name
+		}
+	}
+
+	return slug
+}
+
+func catalogSortLabel(sort string) string {
+	switch sort {
+	case model.SortPriceAsc:
+		return "Price: low to high"
+	case model.SortPriceDesc:
+		return "Price: high to low"
+	default:
+		return "Newest"
+	}
 }
 
 func (h *Handler) CarsShow() http.HandlerFunc {

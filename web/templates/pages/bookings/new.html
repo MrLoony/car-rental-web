@@ -1,203 +1,245 @@
 {{define "content"}}
-<a class="inline-flex text-sm font-medium text-teal-700 transition hover:text-teal-800" href="/cars/{{.Car.Slug}}">
+<a class="inline-flex text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/cars/{{.Car.Slug}}">
     Back to car details
 </a>
 
-<section class="mt-6 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-    <aside class="h-fit rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Booking request</p>
-        <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+<section class="mt-6">
+    <div class="max-w-3xl">
+        <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Booking request</p>
+        <h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
             {{.Car.Brand}} {{.Car.Model}}
         </h1>
-        <p class="mt-2 text-sm text-slate-500">{{.Car.Year}} · {{.Car.CategoryName}}</p>
-
-        <p class="mt-6 text-3xl font-semibold text-slate-950">
-            ${{printf "%.2f" .Car.PricePerDay}}<span class="text-base font-normal text-slate-500"> / day</span>
+        <p class="mt-4 text-lg leading-8 text-slate-600">
+            Request this {{.Car.Year}} {{.Car.CategoryName}} and review your rental estimate before submitting.
         </p>
-        <p class="mt-4 rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-            Rentals are billed in 24-hour periods. Partial periods are rounded up to the next full day.
-        </p>
-    </aside>
+    </div>
+</section>
 
-    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Send booking request</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600">
-            Share your contact details and rental times. Requests are reviewed before confirmation.
-        </p>
+<form class="mt-8" method="POST" action="/cars/{{.Car.Slug}}/book" data-booking-form data-price-per-day="{{printf "%.2f" .Car.PricePerDay}}">
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-        <form class="mt-6 space-y-5" method="POST" action="/cars/{{.Car.Slug}}/book" data-booking-form data-price-per-day="{{printf "%.2f" .Car.PricePerDay}}">
-            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <div class="booking-layout">
+        <section class="booking-form-card" data-booking-form-card>
+            <div>
+                <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Trip and contact details</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Requests are reviewed before confirmation. Server-side validation remains authoritative.
+                </p>
+            </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-700" for="customer_name">Name</label>
-                <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_name" name="customer_name" type="text" value="{{.BookingForm.CustomerName}}" autocomplete="name">
+                <label class="form-label" for="customer_name">Name</label>
+                <input class="form-input mt-2" id="customer_name" name="customer_name" type="text" value="{{.BookingForm.CustomerName}}" autocomplete="name">
                 {{with index .BookingForm.Errors "customer_name"}}
-                <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
+                <p class="form-error" role="alert">{{.}}</p>
                 {{end}}
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700" for="customer_email">Email</label>
-                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_email" name="customer_email" type="email" value="{{.BookingForm.CustomerEmail}}" autocomplete="email">
+                    <label class="form-label" for="customer_email">Email</label>
+                    <input class="form-input mt-2" id="customer_email" name="customer_email" type="email" value="{{.BookingForm.CustomerEmail}}" autocomplete="email">
                     {{with index .BookingForm.Errors "customer_email"}}
-                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
+                    <p class="form-error" role="alert">{{.}}</p>
                     {{end}}
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700" for="customer_phone">Phone</label>
-                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="customer_phone" name="customer_phone" type="tel" value="{{.BookingForm.CustomerPhone}}" autocomplete="tel">
+                    <label class="form-label" for="customer_phone">Phone</label>
+                    <input class="form-input mt-2" id="customer_phone" name="customer_phone" type="tel" value="{{.BookingForm.CustomerPhone}}" autocomplete="tel">
                     {{with index .BookingForm.Errors "customer_phone"}}
-                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
+                    <p class="form-error" role="alert">{{.}}</p>
                     {{end}}
                 </div>
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700" for="pickup_at">Pickup time</label>
-                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="pickup_at" name="pickup_at" type="datetime-local" value="{{.BookingForm.PickupAt}}" data-pickup-input>
+                    <label class="form-label" for="pickup_at">Pickup time</label>
+                    <input class="form-input mt-2" id="pickup_at" name="pickup_at" type="datetime-local" value="{{.BookingForm.PickupAt}}" data-pickup-input>
                     {{with index .BookingForm.Errors "pickup_at"}}
-                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
+                    <p class="form-error" role="alert">{{.}}</p>
                     {{end}}
                     {{if .BookingForm.SuggestedPickupAt}}
-                    <p class="mt-2 rounded-md bg-teal-50 px-3 py-2 text-sm font-medium text-teal-800">
+                    <p class="mt-2 rounded-md bg-sky-50 px-3 py-2 text-sm font-medium text-sky-800">
                         Nearest available pickup time: {{.BookingForm.SuggestedPickupAt}}
                     </p>
                     {{end}}
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700" for="return_at">Return time</label>
-                    <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="return_at" name="return_at" type="datetime-local" value="{{.BookingForm.ReturnAt}}" data-return-input>
+                    <label class="form-label" for="return_at">Return time</label>
+                    <input class="form-input mt-2" id="return_at" name="return_at" type="datetime-local" value="{{.BookingForm.ReturnAt}}" data-return-input>
                     {{with index .BookingForm.Errors "return_at"}}
-                    <p class="mt-2 text-sm font-medium text-red-700" role="alert">{{.}}</p>
+                    <p class="form-error" role="alert">{{.}}</p>
                     {{end}}
                 </div>
-            </div>
-
-            {{if .BookingForm.SuggestedAvailabilityWindows}}
-            <section class="rounded-lg border border-teal-200 bg-teal-50 p-4">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-teal-800">Available alternatives</h3>
-                <div class="mt-3 grid gap-3">
-                    {{range .BookingForm.SuggestedAvailabilityWindows}}
-                    <article class="rounded-md border border-teal-100 bg-white p-4 shadow-sm">
-                        <p class="text-sm font-semibold text-slate-950">
-                            {{formatDateTime .StartAt}} &rarr; {{formatDateTime .EndAt}}
-                        </p>
-                        <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                            <div>
-                                <dt class="text-slate-500">Billing days</dt>
-                                <dd class="mt-1 font-medium text-slate-950">{{.BillingDays}}</dd>
-                            </div>
-                            <div>
-                                <dt class="text-slate-500">Estimated total</dt>
-                                <dd class="mt-1 font-medium text-slate-950">{{formatMoney .EstimatedTotal}}</dd>
-                            </div>
-                        </dl>
-                    </article>
-                    {{end}}
-                </div>
-            </section>
-            {{end}}
-
-            {{if .BookingForm.SuggestedVehicles}}
-            <section class="rounded-lg border border-slate-200 bg-white p-4">
-                <h3 class="text-sm font-semibold uppercase tracking-wide text-teal-800">Similar cars available for your dates</h3>
-                <p class="mt-2 text-sm leading-6 text-slate-600">
-                    Booking one of these cars will carry over your selected dates and contact details.
-                </p>
-                <div class="mt-3 grid gap-4 md:grid-cols-2">
-                    {{range .BookingForm.SuggestedVehicles}}
-                    <article class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                        {{if .Car.ImageURL}}
-                        <img class="aspect-[4/3] w-full object-cover" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image>
-                        {{else}}
-                        <img class="aspect-[4/3] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
-                        {{end}}
-
-                        <div class="p-4">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <h4 class="text-lg font-semibold text-slate-950">{{.Car.Brand}} {{.Car.Model}}</h4>
-                                    <p class="mt-1 text-sm text-slate-500">{{.Car.Year}} · {{.Car.CategoryName}}</p>
-                                </div>
-                                <p class="shrink-0 text-sm font-semibold text-slate-950">{{formatMoney .Car.PricePerDay}}<span class="font-normal text-slate-500"> / day</span></p>
-                            </div>
-
-                            <dl class="mt-4 grid grid-cols-3 gap-2 text-xs">
-                                <div class="rounded-md bg-slate-50 p-2">
-                                    <dt class="text-slate-500">Transmission</dt>
-                                    <dd class="mt-1 font-medium text-slate-800">{{.Car.Transmission}}</dd>
-                                </div>
-                                <div class="rounded-md bg-slate-50 p-2">
-                                    <dt class="text-slate-500">Fuel</dt>
-                                    <dd class="mt-1 font-medium text-slate-800">{{.Car.FuelType}}</dd>
-                                </div>
-                                <div class="rounded-md bg-slate-50 p-2">
-                                    <dt class="text-slate-500">Seats</dt>
-                                    <dd class="mt-1 font-medium text-slate-800">{{.Car.Seats}}</dd>
-                                </div>
-                            </dl>
-
-                            <dl class="mt-4 grid gap-3 border-t border-slate-200 pt-4 text-sm sm:grid-cols-2">
-                                <div>
-                                    <dt class="text-slate-500">Billing days</dt>
-                                    <dd class="mt-1 font-medium text-slate-950">{{.BillingDays}}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-slate-500">Estimated total</dt>
-                                    <dd class="mt-1 font-medium text-slate-950">{{formatMoney .EstimatedTotal}}</dd>
-                                </div>
-                            </dl>
-
-                            <div class="mt-4 flex flex-col gap-2 sm:flex-row">
-                                <a class="inline-flex flex-1 items-center justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars/{{.Car.Slug}}">
-                                    View car
-                                </a>
-                                <a class="inline-flex flex-1 items-center justify-center rounded-md bg-teal-700 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="{{with index $.SuggestedVehicleBookingURLs .Car.ID}}{{.}}{{else}}/cars/{{.Car.Slug}}/book{{end}}">
-                                    Book this car
-                                </a>
-                            </div>
-                        </div>
-                    </article>
-                    {{end}}
-                </div>
-            </section>
-            {{end}}
-
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4" data-booking-preview>
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <p class="text-sm text-slate-500">Billing days</p>
-                        <p class="mt-1 text-2xl font-semibold text-slate-950" data-billing-days>--</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-slate-500">Estimated total</p>
-                        <p class="mt-1 text-2xl font-semibold text-slate-950" data-estimated-total>--</p>
-                    </div>
-                </div>
-                <p class="mt-4 text-sm leading-6 text-slate-600" data-booking-warning>
-                    Select pickup and return times to see an estimate.
-                </p>
-                <p class="mt-2 text-xs font-medium text-slate-500">
-                    Minimum billing period is 24 hours.
-                </p>
-                <p class="mt-1 text-xs text-slate-500">
-                    This browser estimate is for convenience; final validation and billing are calculated when you submit.
-                </p>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-700" for="message">Message</label>
-                <textarea class="mt-2 min-h-32 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="message" name="message" placeholder="Optional notes about your rental request">{{.BookingForm.Message}}</textarea>
+                <p class="text-sm font-medium text-slate-700">Quick duration</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    <button class="duration-button" type="button" data-booking-duration-button data-duration-hours="24">1 day</button>
+                    <button class="duration-button" type="button" data-booking-duration-button data-duration-hours="48">2 days</button>
+                    <button class="duration-button" type="button" data-booking-duration-button data-duration-hours="72">3 days</button>
+                    <button class="duration-button" type="button" data-booking-duration-button data-duration-hours="168">1 week</button>
+                </div>
+                <p class="booking-client-hint hidden" data-booking-client-hint aria-live="polite"></p>
             </div>
 
-            <button class="inline-flex w-full items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:w-auto" type="submit">
+            <p class="booking-client-hint hidden" data-date-warning aria-live="polite"></p>
+
+            <div>
+                <label class="form-label" for="message">Message</label>
+                <textarea class="form-input mt-2 min-h-32" id="message" name="message" placeholder="Optional notes about your rental request">{{.BookingForm.Message}}</textarea>
+            </div>
+
+            <button class="btn btn-primary w-full sm:w-auto" type="submit">
                 Send booking request
             </button>
-        </form>
+        </section>
+
+        <aside class="booking-summary-card" data-booking-summary>
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Live estimate</p>
+                <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Booking summary</h2>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4">
+                <p class="text-sm text-slate-500">Vehicle</p>
+                <p class="mt-1 font-semibold text-slate-950">{{.Car.Brand}} {{.Car.Model}}</p>
+                <p class="mt-1 text-sm text-slate-600">{{.Car.Year}} · {{.Car.CategoryName}}</p>
+            </div>
+
+            <dl class="space-y-3">
+                <div class="booking-summary-row">
+                    <dt>Price per day</dt>
+                    <dd>{{formatMoney .Car.PricePerDay}}</dd>
+                </div>
+                <div class="booking-summary-row">
+                    <dt>Pickup</dt>
+                    <dd data-summary-pickup>Not selected</dd>
+                </div>
+                <div class="booking-summary-row">
+                    <dt>Return</dt>
+                    <dd data-summary-return>Not selected</dd>
+                </div>
+                <div class="booking-summary-row">
+                    <dt>Duration</dt>
+                    <dd data-summary-duration>--</dd>
+                </div>
+                <div class="booking-summary-row">
+                    <dt>Billing days</dt>
+                    <dd data-billing-days>--</dd>
+                </div>
+            </dl>
+
+            <div class="border-t border-slate-200 pt-4">
+                <p class="text-sm text-slate-500">Estimated total</p>
+                <p class="mt-1 text-3xl font-semibold tracking-tight text-slate-950" data-estimated-total>--</p>
+            </div>
+
+            <p class="text-sm leading-6 text-slate-600" data-booking-warning>
+                Select pickup and return times to see an estimate.
+            </p>
+            <p class="text-xs text-slate-500">
+                Rentals are billed in 24-hour periods. Partial periods round up to the next full day.
+            </p>
+        </aside>
     </div>
-</section>
+
+    {{if .BookingForm.SuggestedAvailabilityWindows}}
+    <section class="mt-8">
+        <div class="section-header">
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Available alternatives</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Try these rental windows</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+                Each option fits your requested rental duration and respects existing blocking bookings.
+            </p>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+            {{range .BookingForm.SuggestedAvailabilityWindows}}
+            <article class="suggested-window-card" data-suggested-window data-window-pickup="{{formatDateTimeInput .StartAt}}" data-window-return="{{formatDateTimeInput .EndAt}}">
+                <p class="text-sm font-semibold text-slate-950">
+                    {{formatDateTime .StartAt}} &rarr; {{formatDateTime .EndAt}}
+                </p>
+                <dl class="mt-4 grid gap-3 text-sm">
+                    <div class="booking-summary-row">
+                        <dt>Billing days</dt>
+                        <dd>{{.BillingDays}}</dd>
+                    </div>
+                    <div class="booking-summary-row">
+                        <dt>Estimated total</dt>
+                        <dd>{{formatMoney .EstimatedTotal}}</dd>
+                    </div>
+                </dl>
+                <button class="btn btn-secondary mt-4 w-full" type="button" data-use-window>
+                    Use this window
+                </button>
+            </article>
+            {{end}}
+        </div>
+    </section>
+    {{end}}
+
+    {{if .BookingForm.SuggestedVehicles}}
+    <section class="mt-8">
+        <div class="section-header">
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Similar cars available for your dates</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Alternative vehicles</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+                Booking one of these cars uses a secure prefill token to carry over your selected dates and contact details.
+            </p>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {{range .BookingForm.SuggestedVehicles}}
+            <article class="alternative-vehicle-card">
+                {{if .Car.ImageURL}}
+                <img class="car-card-image" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image>
+                {{else}}
+                <img class="car-card-image" src="/static/images/car-placeholder.svg" alt="Image coming soon">
+                {{end}}
+
+                <div class="car-card-body">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">{{.Car.CategoryName}}</p>
+                            <h3 class="mt-2 text-xl font-semibold tracking-tight text-slate-950">{{.Car.Brand}} {{.Car.Model}}</h3>
+                            <p class="mt-1 text-sm text-slate-500">{{.Car.Year}}</p>
+                        </div>
+                        <p class="shrink-0 text-sm font-semibold text-slate-950">{{formatMoney .Car.PricePerDay}}<span class="font-normal text-slate-500"> / day</span></p>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2 text-sm">
+                        <span class="car-feature-badge">{{.Car.Transmission}}</span>
+                        <span class="car-feature-badge">{{.Car.FuelType}}</span>
+                        <span class="car-feature-badge">{{.Car.Seats}} seats</span>
+                    </div>
+
+                    <dl class="mt-4 grid gap-3 border-t border-slate-200 pt-4 text-sm sm:grid-cols-2">
+                        <div>
+                            <dt class="text-slate-500">Billing days</dt>
+                            <dd class="mt-1 font-medium text-slate-950">{{.BillingDays}}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-slate-500">Estimated total</dt>
+                            <dd class="mt-1 font-medium text-slate-950">{{formatMoney .EstimatedTotal}}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-5 flex flex-col gap-2 sm:flex-row">
+                        <a class="btn btn-secondary flex-1" href="/cars/{{.Car.Slug}}">
+                            View car
+                        </a>
+                        <a class="btn btn-primary flex-1" href="{{with index $.SuggestedVehicleBookingURLs .Car.ID}}{{.}}{{else}}/cars/{{.Car.Slug}}/book{{end}}">
+                            Book this car
+                        </a>
+                    </div>
+                </div>
+            </article>
+            {{end}}
+        </div>
+    </section>
+    {{end}}
+</form>
 {{end}}

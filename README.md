@@ -35,7 +35,11 @@ Project layout:
 - `internal/repository` - database access
 - `internal/model` - shared data models and form models
 - `web/templates` - server-rendered HTML templates
-- `web/static` - CSS, JavaScript, images, and local uploads
+- `web/static/css` - Tailwind source and generated application CSS
+- `web/static/js/app.js` - browser JavaScript entry point
+- `web/static/js/modules` - small progressive-enhancement modules
+- `web/static/images` - static image assets
+- `web/static/uploads` - local uploaded car images
 - `migrations` - database schema and seed data
 
 ## Features
@@ -158,9 +162,36 @@ Email sending is best-effort. Booking creation and booking status updates contin
 - Custom 500 page
 - Flash messages for admin actions
 - Clearer validation and upload error messages
-- Responsive admin tables with horizontal overflow handling
+- Responsive public, auth, and admin layouts
+- Polished catalog, car detail, booking, dashboard, table, and admin form pages
 - Server-rendered forms that work without JavaScript
-- Progressive JavaScript enhancement for filters, image previews, and booking price preview
+- Progressive JavaScript enhancement for filters, dashboard controls, booking price preview, image previews, copy actions, and form helpers
+
+### Frontend
+
+The frontend remains server-rendered and progressively enhanced. Core navigation, forms, filtering, pagination, booking submission, and admin actions work without JavaScript.
+
+Frontend structure:
+
+- Tailwind CSS source lives in `web/static/css/input.css`
+- Generated CSS is served from `web/static/css/app.css`
+- `web/static/js/app.js` initializes browser behavior
+- feature modules live under `web/static/js/modules`
+
+Current JavaScript modules:
+
+- `catalog-filters.js` - public and admin filter form enhancements
+- `booking-preview.js` - live booking estimate, duration buttons, date warnings, and suggested window fill-in
+- `dashboard.js` - collapsible dashboard sections, recent activity filtering, and metric highlighting
+- `admin-tables.js` - visible-row filtering, copy buttons, row counts, and row highlighting
+- `admin-actions.js` - centralized confirmation prompts for sensitive admin actions
+- `image-preview.js` - image fallback handling, admin image previews, upload drop zone, slug preview, and price helper
+- `car-detail.js` - public car detail copy action, image lightbox, sticky booking CTA, and smooth scrolling
+- `form-helpers.js` - submit-once and unsaved-changes helpers
+- `flash.js` - flash message focus support
+- `utils.js` - shared DOM, debounce, formatting, and form helpers
+
+The visual direction is a light, modern SaaS-style interface with a premium automotive feel: spacious layouts, white cards, subtle borders, clear typography, and restrained blue accents.
 
 ### Security
 
@@ -289,8 +320,11 @@ Completed:
 - Booking CSV export
 - Security hardening
 - UX improvements
+- Frontend modernization
 
 The application is suitable as a portfolio-scale SSR Go project. Additional production work would still be needed before real-world deployment.
+
+Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, and Stage 22 frontend modernization.
 
 ## Implemented
 
@@ -313,6 +347,11 @@ The application is suitable as a portfolio-scale SSR Go project. Additional prod
 - Email notification infrastructure and booking notifications
 - Flash messages and polished form/admin feedback
 - Custom 404 and 500 pages
+- Modular ES module JavaScript architecture
+- Tailwind CSS component layer
+- Responsive public catalog, car detail, booking, auth, and admin pages
+- Interactive admin dashboard, admin tables, and admin car forms
+- Progressive frontend enhancements without SPA routing or AJAX requirements
 - CSRF protection
 - Basic login brute-force protection
 - Security headers and environment-aware session cookies
@@ -325,7 +364,6 @@ The application is suitable as a portfolio-scale SSR Go project. Additional prod
 - Roles and permissions
 - Payment integration
 - Calendar-style availability view
-- Improved responsive UI
 - More advanced reporting
 - Multiple image gallery
 - Cloud/object storage for media

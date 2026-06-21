@@ -1,186 +1,251 @@
 {{define "content"}}
 <section class="py-4 sm:py-8">
-    <div class="max-w-2xl">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">Admin</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Admin dashboard</h1>
-        <p class="mt-5 text-lg leading-8 text-slate-600">
-            Review rental operations, manage catalog vehicles, and handle incoming booking requests.
-        </p>
-    </div>
-</section>
-
-<section>
-    <h2 class="text-xl font-semibold tracking-tight text-slate-950">Booking statistics</h2>
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-semibold text-slate-500">Total bookings</p>
-            <p class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.BookingStats.Total}}</p>
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-3xl">
+            <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700">Admin</p>
+            <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Admin dashboard</h1>
+            <p class="mt-5 text-lg leading-8 text-slate-600">
+                Review rental operations, manage catalog vehicles, and handle incoming booking requests.
+            </p>
         </div>
-
-        <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-amber-800">Pending</p>
-            <p class="mt-3 text-3xl font-semibold tracking-tight text-amber-950">{{.BookingStats.Pending}}</p>
-        </div>
-
-        <div class="rounded-xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-blue-800">Confirmed</p>
-            <p class="mt-3 text-3xl font-semibold tracking-tight text-blue-950">{{.BookingStats.Confirmed}}</p>
-        </div>
-
-        <div class="rounded-xl border border-red-200 bg-red-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-red-800">Cancelled</p>
-            <p class="mt-3 text-3xl font-semibold tracking-tight text-red-950">{{.BookingStats.Cancelled}}</p>
-        </div>
-
-        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-emerald-800">Completed</p>
-            <p class="mt-3 text-3xl font-semibold tracking-tight text-emerald-950">{{.BookingStats.Completed}}</p>
+        <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <span class="font-semibold text-slate-950">Operations overview</span>
+            <span class="mx-2 text-slate-300">/</span>
+            <span>Bookings, revenue, recent activity</span>
         </div>
     </div>
 </section>
 
-<section>
-    <h2 class="text-xl font-semibold tracking-tight text-slate-950">Revenue statistics</h2>
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-semibold text-slate-500">Total potential revenue</p>
-            <p class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{{formatMoney .RevenueStats.TotalPotential}}</p>
-        </div>
-
-        <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-amber-800">Pending revenue</p>
-            <p class="mt-3 text-2xl font-semibold tracking-tight text-amber-950">{{formatMoney .RevenueStats.Pending}}</p>
-        </div>
-
-        <div class="rounded-xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-blue-800">Confirmed revenue</p>
-            <p class="mt-3 text-2xl font-semibold tracking-tight text-blue-950">{{formatMoney .RevenueStats.Confirmed}}</p>
-        </div>
-
-        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-emerald-800">Completed revenue</p>
-            <p class="mt-3 text-2xl font-semibold tracking-tight text-emerald-950">{{formatMoney .RevenueStats.Completed}}</p>
-        </div>
-
-        <div class="rounded-xl border border-red-200 bg-red-50 p-5 shadow-sm">
-            <p class="text-sm font-semibold text-red-800">Cancelled value</p>
-            <p class="mt-3 text-2xl font-semibold tracking-tight text-red-950">{{formatMoney .RevenueStats.Cancelled}}</p>
-        </div>
-    </div>
-</section>
-
-<section>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+<section class="dashboard-section">
+    <div class="dashboard-section-header">
         <div>
-            <h2 class="text-xl font-semibold tracking-tight text-slate-950">Recent booking activity</h2>
-            <p class="mt-2 text-sm leading-6 text-slate-600">Latest booking requests by creation date.</p>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Quick actions</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Common admin tasks</h2>
         </div>
+    </div>
 
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/bookings">
-            View all bookings
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <a class="quick-action-card" href="/admin/bookings">
+            <span class="text-sm font-semibold uppercase tracking-wide text-sky-700">Bookings</span>
+            <span class="mt-3 block text-xl font-semibold tracking-tight text-slate-950">View bookings</span>
+            <span class="mt-2 block text-sm leading-6 text-slate-600">Review requests and update customer booking status.</span>
         </a>
+
+        <a class="quick-action-card" href="/admin/cars">
+            <span class="text-sm font-semibold uppercase tracking-wide text-sky-700">Fleet</span>
+            <span class="mt-3 block text-xl font-semibold tracking-tight text-slate-950">Manage cars</span>
+            <span class="mt-2 block text-sm leading-6 text-slate-600">Create, edit, archive, and restore catalog vehicles.</span>
+        </a>
+
+        <a class="quick-action-card" href="/admin/bookings/export.csv">
+            <span class="text-sm font-semibold uppercase tracking-wide text-sky-700">Export</span>
+            <span class="mt-3 block text-xl font-semibold tracking-tight text-slate-950">Export bookings CSV</span>
+            <span class="mt-2 block text-sm leading-6 text-slate-600">Download booking data for offline review.</span>
+        </a>
+
+        <form class="quick-action-card" method="POST" action="/admin/cleanup/prefills">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <span class="text-sm font-semibold uppercase tracking-wide text-sky-700">Maintenance</span>
+            <span class="mt-3 block text-xl font-semibold tracking-tight text-slate-950">Clean expired prefills</span>
+            <span class="mt-2 block text-sm leading-6 text-slate-600">Remove expired temporary booking form state tokens.</span>
+            <button class="btn btn-secondary mt-4 w-full" type="submit">Run cleanup</button>
+        </form>
+    </div>
+</section>
+
+<section class="dashboard-section" data-dashboard-section="booking-stats">
+    <div class="dashboard-section-header">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Booking statistics</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Request status snapshot</h2>
+        </div>
+        <button class="btn btn-secondary dashboard-toggle" type="button" aria-expanded="true" aria-controls="booking-stats-panel" data-dashboard-toggle>
+            <span data-dashboard-toggle-label>Collapse</span>
+        </button>
     </div>
 
-    {{if .RecentBookings}}
-    <div class="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <tr>
-                        <th class="whitespace-nowrap px-3 py-2">ID</th>
-                        <th class="min-w-48 px-3 py-2">Customer</th>
-                        <th class="min-w-44 px-3 py-2">Vehicle</th>
-                        <th class="whitespace-nowrap px-3 py-2">Status</th>
-                        <th class="whitespace-nowrap px-3 py-2">Pickup</th>
-                        <th class="whitespace-nowrap px-3 py-2">Return</th>
-                        <th class="whitespace-nowrap px-3 py-2">Created</th>
-                        <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Details</span></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    {{range .RecentBookings}}
-                    <tr class="align-top transition hover:bg-slate-50">
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">#{{.ID}}</td>
-                        <td class="max-w-56 px-3 py-2.5">
-                            <p class="truncate font-medium text-slate-950">{{.CustomerName}}</p>
-                        </td>
-                        <td class="max-w-56 px-3 py-2.5 text-slate-700">
-                            <span class="block truncate">{{.CarName}}</span>
-                        </td>
-                        <td class="whitespace-nowrap px-3 py-2.5">
-                            {{if eq .Status "pending"}}
-                            <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{{.Status}}</span>
-                            {{else if eq .Status "confirmed"}}
-                            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{{.Status}}</span>
-                            {{else if eq .Status "cancelled"}}
-                            <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">{{.Status}}</span>
-                            {{else if eq .Status "completed"}}
-                            <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{{.Status}}</span>
-                            {{else}}
-                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{{.Status}}</span>
-                            {{end}}
-                        </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .PickupTime}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .ReturnTime}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .CreatedAt}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-right">
-                            <a class="font-semibold text-teal-700 transition hover:text-teal-800" href="/admin/bookings/{{.ID}}">
-                                Details
-                            </a>
-                        </td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
+    <div id="booking-stats-panel" data-dashboard-panel>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-slate-500">Total bookings</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.BookingStats.Total}}</p>
+            </div>
+
+            <div class="metric-card" data-metric-card="pending" data-metric-value="{{.BookingStats.Pending}}">
+                <p class="text-sm font-semibold text-amber-700">Pending</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.BookingStats.Pending}}</p>
+            </div>
+
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-sky-700">Confirmed</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.BookingStats.Confirmed}}</p>
+            </div>
+
+            <div class="metric-card" data-metric-card="cancelled" data-metric-value="{{.BookingStats.Cancelled}}">
+                <p class="text-sm font-semibold text-red-700">Cancelled</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.BookingStats.Cancelled}}</p>
+            </div>
+
+            <div class="metric-card" data-metric-card="completed" data-metric-value="{{.BookingStats.Completed}}">
+                <p class="text-sm font-semibold text-emerald-700">Completed</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.BookingStats.Completed}}</p>
+            </div>
         </div>
     </div>
-    {{else}}
-    <div class="mt-4 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-        <p class="text-sm font-medium text-slate-600">No recent bookings.</p>
-    </div>
-    {{end}}
 </section>
 
-<section class="grid gap-5 md:grid-cols-3">
-    <a class="block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-teal-700 hover:shadow-md" href="/admin/bookings">
-        <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Bookings</p>
-        <h2 class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Booking requests</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-600">
-            View submitted booking requests and update their status.
-        </p>
-    </a>
-
-    <a class="block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-teal-700 hover:shadow-md" href="/admin/cars">
-        <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Catalog</p>
-        <h2 class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Cars</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-600">
-            List catalog vehicles and add new cars for public booking requests.
-        </p>
-    </a>
-
-    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-6">
-        <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Security</p>
-        <h2 class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Protected admin area</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-600">
-            Admin pages require login. Roles and finer permissions are planned for later stages.
-        </p>
-    </div>
-</section>
-
-<section class="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-    <div class="max-w-2xl">
-        <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Maintenance</p>
-        <h2 class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Booking prefill tokens</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-600">
-            Removes expired temporary booking form state tokens.
-        </p>
-    </div>
-
-    <form class="mt-5" method="POST" action="/admin/cleanup/prefills">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" type="submit">
-            Clean expired prefill tokens
+<section class="dashboard-section" data-dashboard-section="revenue-stats">
+    <div class="dashboard-section-header">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Revenue statistics</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Revenue by booking status</h2>
+        </div>
+        <button class="btn btn-secondary dashboard-toggle" type="button" aria-expanded="true" aria-controls="revenue-stats-panel" data-dashboard-toggle>
+            <span data-dashboard-toggle-label>Collapse</span>
         </button>
-    </form>
+    </div>
+
+    <div id="revenue-stats-panel" data-dashboard-panel>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-slate-500">Total potential revenue</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{{formatMoney .RevenueStats.TotalPotential}}</p>
+            </div>
+
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-amber-700">Pending revenue</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{{formatMoney .RevenueStats.Pending}}</p>
+            </div>
+
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-sky-700">Confirmed revenue</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{{formatMoney .RevenueStats.Confirmed}}</p>
+            </div>
+
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-emerald-700">Completed revenue</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{{formatMoney .RevenueStats.Completed}}</p>
+            </div>
+
+            <div class="metric-card">
+                <p class="text-sm font-semibold text-red-700">Cancelled value</p>
+                <p class="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{{formatMoney .RevenueStats.Cancelled}}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section" data-dashboard-section="recent-activity">
+    <div class="dashboard-section-header">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Recent booking activity</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Latest requests</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Most recent booking requests by creation date.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a class="btn btn-secondary" href="/admin/bookings">View all bookings</a>
+            <button class="btn btn-secondary dashboard-toggle" type="button" aria-expanded="true" aria-controls="recent-activity-panel" data-dashboard-toggle>
+                <span data-dashboard-toggle-label>Collapse</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="recent-activity-panel" data-dashboard-panel>
+        {{if .RecentBookings}}
+        <div class="mb-4 flex flex-wrap gap-2" aria-label="Filter recent bookings by status">
+            <button class="dashboard-filter-chip dashboard-filter-chip-active" type="button" aria-pressed="true" data-dashboard-filter="all">All</button>
+            <button class="dashboard-filter-chip" type="button" aria-pressed="false" data-dashboard-filter="pending">Pending</button>
+            <button class="dashboard-filter-chip" type="button" aria-pressed="false" data-dashboard-filter="confirmed">Confirmed</button>
+            <button class="dashboard-filter-chip" type="button" aria-pressed="false" data-dashboard-filter="cancelled">Cancelled</button>
+            <button class="dashboard-filter-chip" type="button" aria-pressed="false" data-dashboard-filter="completed">Completed</button>
+        </div>
+
+        <div class="table-shell">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <tr>
+                            <th class="whitespace-nowrap px-3 py-2">ID</th>
+                            <th class="min-w-48 px-3 py-2">Customer</th>
+                            <th class="min-w-44 px-3 py-2">Vehicle</th>
+                            <th class="whitespace-nowrap px-3 py-2">Status</th>
+                            <th class="whitespace-nowrap px-3 py-2">Pickup</th>
+                            <th class="whitespace-nowrap px-3 py-2">Return</th>
+                            <th class="whitespace-nowrap px-3 py-2">Created</th>
+                            <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Details</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {{range .RecentBookings}}
+                        <tr class="align-top transition hover:bg-slate-50" data-booking-status="{{.Status}}">
+                            <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">#{{.ID}}</td>
+                            <td class="max-w-56 px-3 py-2.5">
+                                <p class="truncate font-medium text-slate-950">{{.CustomerName}}</p>
+                            </td>
+                            <td class="max-w-56 px-3 py-2.5 text-slate-700">
+                                <span class="block truncate">{{.CarName}}</span>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-2.5">
+                                {{if eq .Status "pending"}}
+                                <span class="badge badge-warning">{{.Status}}</span>
+                                {{else if eq .Status "confirmed"}}
+                                <span class="badge badge-info">{{.Status}}</span>
+                                {{else if eq .Status "cancelled"}}
+                                <span class="badge badge-danger">{{.Status}}</span>
+                                {{else if eq .Status "completed"}}
+                                <span class="badge badge-success">{{.Status}}</span>
+                                {{else}}
+                                <span class="badge bg-slate-100 text-slate-700">{{.Status}}</span>
+                                {{end}}
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .PickupTime}}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .ReturnTime}}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .CreatedAt}}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 text-right">
+                                <a class="font-semibold text-sky-700 transition hover:text-sky-800" href="/admin/bookings/{{.ID}}">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="empty-state mt-4 hidden py-8" data-dashboard-filter-empty>
+            <p class="text-sm font-medium text-slate-600">No recent bookings match this status.</p>
+        </div>
+        {{else}}
+        <div class="empty-state py-8">
+            <p class="text-sm font-medium text-slate-600">No recent bookings.</p>
+        </div>
+        {{end}}
+    </div>
+</section>
+
+<section class="dashboard-section" data-dashboard-section="maintenance">
+    <div class="dashboard-section-header">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Maintenance</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Booking prefill tokens</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+                Removes expired temporary booking form state tokens.
+            </p>
+        </div>
+        <button class="btn btn-secondary dashboard-toggle" type="button" aria-expanded="true" aria-controls="maintenance-panel" data-dashboard-toggle>
+            <span data-dashboard-toggle-label>Collapse</span>
+        </button>
+    </div>
+
+    <div id="maintenance-panel" data-dashboard-panel>
+        <form class="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between" method="POST" action="/admin/cleanup/prefills">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div>
+                <p class="font-semibold text-slate-950">Expired prefill cleanup</p>
+                <p class="mt-1 text-sm text-slate-600">Safe to run manually when temporary booking tokens have expired.</p>
+            </div>
+            <button class="btn btn-secondary" type="submit">Clean expired prefill tokens</button>
+        </form>
+    </div>
 </section>
 {{end}}

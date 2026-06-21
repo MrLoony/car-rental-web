@@ -1,113 +1,136 @@
 {{define "content"}}
-<section class="py-4 sm:py-8">
-    <div class="max-w-2xl">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">Catalog</p>
+<section class="catalog-hero">
+    <div class="max-w-3xl">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700">Catalog</p>
         <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Available cars</h1>
         <p class="mt-5 text-lg leading-8 text-slate-600">
-            Browse available rental vehicles. Filters and booking requests will be added in later stages.
+            Compare available rental vehicles and choose the right car for your trip.
         </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+        <span class="font-semibold text-slate-950">{{.Pagination.TotalItems}}</span>
+        <span>{{if eq .Pagination.TotalItems 1}}vehicle{{else}}vehicles{{end}} available</span>
     </div>
 </section>
 
-<form class="mb-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" method="GET" action="/cars" data-filter-form>
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <div class="lg:col-span-2">
-            <label class="block text-sm font-medium text-slate-700" for="search">Search</label>
-            <input class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="search" name="search" type="search" value="{{.Filter.Search}}" placeholder="Search by brand or model" data-filter-search>
-        </div>
-
+<section class="mb-8">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <label class="block text-sm font-medium text-slate-700" for="category">Category</label>
-            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="category" name="category" data-filter-select>
-                <option value="">All categories</option>
-                {{range .Categories}}
-                <option value="{{.Slug}}" {{if eq $.Filter.CategorySlug .Slug}}selected{{end}}>{{.Name}}</option>
-                {{end}}
-            </select>
+            <h2 class="text-xl font-semibold tracking-tight text-slate-950">Find your vehicle</h2>
+            <p class="mt-1 text-sm text-slate-600">
+                Search, filter, and sort the active fleet.
+            </p>
         </div>
-
-        <div>
-            <label class="block text-sm font-medium text-slate-700" for="fuel">Fuel</label>
-            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="fuel" name="fuel" data-filter-select>
-                <option value="">Any fuel</option>
-                {{range .FuelTypes}}
-                <option value="{{.}}" {{if eq $.Filter.FuelType .}}selected{{end}}>{{.}}</option>
-                {{end}}
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-slate-700" for="transmission">Transmission</label>
-            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="transmission" name="transmission" data-filter-select>
-                <option value="">Any type</option>
-                {{range .Transmissions}}
-                <option value="{{.}}" {{if eq $.Filter.Transmission .}}selected{{end}}>{{.}}</option>
-                {{end}}
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-slate-700" for="sort">Sort</label>
-            <select class="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20" id="sort" name="sort" data-filter-select>
-                <option value="newest" {{if eq .Filter.Sort "newest"}}selected{{end}}>Newest</option>
-                <option value="price_asc" {{if eq .Filter.Sort "price_asc"}}selected{{end}}>Price: low to high</option>
-                <option value="price_desc" {{if eq .Filter.Sort "price_desc"}}selected{{end}}>Price: high to low</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <button class="inline-flex items-center justify-center rounded-md bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-70" type="submit" data-filter-submit>
-            Apply filters
+        <button class="btn btn-secondary hidden md:hidden" type="button" aria-expanded="true" aria-controls="catalog-filter-panel" data-catalog-filter-toggle>
+            Filters
+            <span class="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs text-sky-700" data-catalog-active-filter-count>{{len .CatalogFilterChips}}</span>
         </button>
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars" data-filter-reset>
-            Reset
-        </a>
-        <p class="hidden text-sm text-slate-500" data-filter-status aria-live="polite">Updating results...</p>
     </div>
-</form>
 
-{{if .Cars}}
-<section class="grid gap-5 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars">
-    {{range .Cars}}
-    <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        {{if .ImageURL}}
-        <img class="aspect-[4/3] w-full object-cover" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}" data-fallback-image>
-        {{else}}
-        <img class="aspect-[4/3] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
-        {{end}}
-
-        <div class="p-5">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h2 class="text-xl font-semibold text-slate-950">{{.Brand}} {{.Model}}</h2>
-                    <p class="mt-1 text-sm text-slate-500">{{.Year}} · {{.CategoryName}}</p>
-                </div>
-                {{if .IsAvailable}}
-                <span class="shrink-0 rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">Available</span>
-                {{else}}
-                <span class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">Unavailable</span>
-                {{end}}
+    <form class="catalog-filter-panel" id="catalog-filter-panel" method="GET" action="/cars" data-filter-form data-catalog-filter-form data-catalog-filter-panel>
+        <div class="grid gap-4 lg:grid-cols-12">
+            <div class="lg:col-span-4">
+                <label class="form-label" for="search">Search</label>
+                <input class="form-input mt-2" id="search" name="search" type="search" value="{{.Filter.Search}}" placeholder="Search by brand or model" data-filter-search data-debounce-search>
             </div>
 
-            <p class="mt-5 text-2xl font-semibold text-slate-950">${{printf "%.2f" .PricePerDay}}<span class="text-sm font-normal text-slate-500"> / day</span></p>
+            <div class="sm:grid sm:grid-cols-2 sm:gap-4 lg:col-span-8 lg:grid-cols-5">
+                <div>
+                    <label class="form-label" for="category">Category</label>
+                    <select class="form-input mt-2" id="category" name="category" data-filter-select data-auto-submit>
+                        <option value="">All categories</option>
+                        {{range .Categories}}
+                        <option value="{{.Slug}}" {{if eq $.Filter.CategorySlug .Slug}}selected{{end}}>{{.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
 
-            <dl class="mt-5 grid grid-cols-3 gap-3 text-sm">
-                <div class="rounded-lg bg-slate-50 p-3">
-                    <dt class="text-slate-500">Transmission</dt>
-                    <dd class="mt-1 font-medium text-slate-800">{{.Transmission}}</dd>
+                <div class="mt-4 sm:mt-0">
+                    <label class="form-label" for="fuel">Fuel</label>
+                    <select class="form-input mt-2" id="fuel" name="fuel" data-filter-select data-auto-submit>
+                        <option value="">Any fuel</option>
+                        {{range .FuelTypes}}
+                        <option value="{{.}}" {{if eq $.Filter.FuelType .}}selected{{end}}>{{.}}</option>
+                        {{end}}
+                    </select>
                 </div>
-                <div class="rounded-lg bg-slate-50 p-3">
-                    <dt class="text-slate-500">Fuel</dt>
-                    <dd class="mt-1 font-medium text-slate-800">{{.FuelType}}</dd>
-                </div>
-                <div class="rounded-lg bg-slate-50 p-3">
-                    <dt class="text-slate-500">Seats</dt>
-                    <dd class="mt-1 font-medium text-slate-800">{{.Seats}}</dd>
-                </div>
-            </dl>
 
-            <a class="mt-6 inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars/{{.Slug}}">
+                <div class="mt-4 sm:mt-4 lg:mt-0">
+                    <label class="form-label" for="transmission">Transmission</label>
+                    <select class="form-input mt-2" id="transmission" name="transmission" data-filter-select data-auto-submit>
+                        <option value="">Any type</option>
+                        {{range .Transmissions}}
+                        <option value="{{.}}" {{if eq $.Filter.Transmission .}}selected{{end}}>{{.}}</option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <div class="mt-4 sm:mt-4 lg:col-span-2 lg:mt-0">
+                    <label class="form-label" for="sort">Sort</label>
+                    <select class="form-input mt-2" id="sort" name="sort" data-filter-select data-auto-submit>
+                        <option value="newest" {{if eq .Filter.Sort "newest"}}selected{{end}}>Newest</option>
+                        <option value="price_asc" {{if eq .Filter.Sort "price_asc"}}selected{{end}}>Price: low to high</option>
+                        <option value="price_desc" {{if eq .Filter.Sort "price_desc"}}selected{{end}}>Price: high to low</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button class="btn btn-primary" type="submit" data-filter-submit>
+                Apply filters
+            </button>
+            <a class="btn btn-secondary" href="/cars" data-filter-reset data-catalog-reset>
+                Reset
+            </a>
+            <p class="hidden text-sm font-medium text-slate-500" data-filter-status aria-live="polite">Updating results...</p>
+        </div>
+    </form>
+
+    {{if .HasActiveFilters}}
+    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap gap-2" aria-label="Active filters">
+            {{range .CatalogFilterChips}}
+            <a class="filter-chip" href="{{.RemoveURL}}" aria-label="Remove {{.Label}}">
+                <span>{{.Label}}</span>
+                <span class="filter-chip-remove" aria-hidden="true">x</span>
+            </a>
+            {{end}}
+        </div>
+        <a class="text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/cars">Clear all</a>
+    </div>
+    {{end}}
+</section>
+
+{{if .Cars}}
+<section class="grid gap-6 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars">
+    {{range .Cars}}
+    <article class="car-card">
+        {{if .ImageURL}}
+        <img class="car-card-image" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}" data-fallback-image>
+        {{else}}
+        <img class="car-card-image" src="/static/images/car-placeholder.svg" alt="Image coming soon">
+        {{end}}
+
+        <div class="car-card-body">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">{{.CategoryName}}</p>
+                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{{.Brand}} {{.Model}}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{.Year}}</p>
+                </div>
+                <span class="badge badge-success shrink-0">Available</span>
+            </div>
+
+            <p class="mt-5 text-3xl font-semibold text-slate-950">{{formatMoney .PricePerDay}}<span class="text-sm font-normal text-slate-500"> / day</span></p>
+
+            <div class="mt-5 flex flex-wrap gap-2 text-sm">
+                <span class="car-feature-badge">{{.Transmission}}</span>
+                <span class="car-feature-badge">{{.FuelType}}</span>
+                <span class="car-feature-badge">{{.Seats}} seats</span>
+            </div>
+
+            <a class="btn btn-primary mt-6 w-full" href="/cars/{{.Slug}}">
                 View details
             </a>
         </div>
@@ -119,7 +142,7 @@
 <nav class="flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Catalog pagination">
     <div>
         {{if .Pagination.HasPrevious}}
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="{{.PaginationPreviousURL}}">
+        <a class="btn btn-secondary" href="{{.PaginationPreviousURL}}">
             Previous
         </a>
         {{else}}
@@ -135,7 +158,7 @@
 
     <div class="sm:text-right">
         {{if .Pagination.HasNext}}
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="{{.PaginationNextURL}}">
+        <a class="btn btn-secondary" href="{{.PaginationNextURL}}">
             Next
         </a>
         {{else}}
@@ -147,14 +170,14 @@
 </nav>
 {{end}}
 {{else}}
-<section class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+<section class="catalog-empty-state">
     {{if .HasActiveFilters}}
     <h2 class="text-xl font-semibold text-slate-950">No cars match your filters</h2>
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
-        Try adjusting your search or clearing filters.
+        Try changing your search, removing a filter, or clearing all filters.
     </p>
-    <a class="mt-6 inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/cars">
-        Reset filters
+    <a class="btn btn-secondary mt-6" href="/cars">
+        Clear filters
     </a>
     {{else}}
     <h2 class="text-xl font-semibold text-slate-950">No cars available yet</h2>

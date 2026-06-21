@@ -1,12 +1,12 @@
 {{define "content"}}
-<a class="inline-flex text-sm font-medium text-teal-700 transition hover:text-teal-800" href="/admin/cars">
+<a class="inline-flex text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/admin/cars">
     Back to cars
 </a>
 
 <section class="mt-6 grid gap-8 lg:grid-cols-[1fr_0.65fr]">
     <div class="space-y-6">
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">Car #{{.AdminCar.ID}}</p>
+        <div class="card p-6">
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Car #{{.AdminCar.ID}}</p>
             <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{{.AdminCar.Brand}} {{.AdminCar.Model}}</h1>
             <p class="mt-3 text-sm leading-6 text-slate-600">
                 Catalog record for a {{.AdminCar.Year}} {{.AdminCar.CategoryName}} vehicle.
@@ -15,7 +15,7 @@
                 {{if .AdminCar.ArchivedAt}}
                 <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Archived</span>
                 {{else}}
-                <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">Active</span>
+                <span class="badge badge-info">Active</span>
                 {{end}}
 
                 {{if .AdminCar.ArchivedAt}}
@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             {{if .AdminCar.ImageURL}}
             <img class="aspect-[16/9] w-full object-cover" src="{{.AdminCar.ImageURL}}" alt="{{.AdminCar.Brand}} {{.AdminCar.Model}}" data-fallback-image>
             {{else}}
@@ -36,7 +36,7 @@
             {{end}}
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="card p-6">
             <h2 class="text-xl font-semibold tracking-tight text-slate-950">Vehicle details</h2>
             <dl class="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
@@ -81,7 +81,7 @@
                         {{if .AdminCar.ArchivedAt}}
                         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">archived</span>
                         {{else}}
-                        <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">active</span>
+                        <span class="badge badge-info">active</span>
                         {{end}}
                     </dd>
                 </div>
@@ -112,19 +112,19 @@
     </div>
 
     <aside class="h-fit space-y-6">
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="card p-6">
             <h2 class="text-xl font-semibold tracking-tight text-slate-950">Actions</h2>
             <div class="mt-5 grid gap-3">
-                <a class="inline-flex items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="/admin/cars/{{.AdminCar.ID}}/edit">
+                <a class="btn btn-primary" href="/admin/cars/{{.AdminCar.ID}}/edit">
                     Edit car
                 </a>
-                <a class="inline-flex items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="/cars/{{.AdminCar.Slug}}">
+                <a class="btn btn-primary" href="/cars/{{.AdminCar.Slug}}">
                     Public page
                 </a>
                 {{if .AdminCar.ArchivedAt}}
-                <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/unarchive">
+                <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/unarchive" data-confirm-action data-confirm-message="Restore this car? It will remain unavailable until you enable availability.">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                    <button class="inline-flex w-full items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" type="submit">
+                    <button class="btn btn-primary w-full" type="submit">
                         Restore car
                     </button>
                 </form>
@@ -132,20 +132,20 @@
                     Restore this car before changing public availability.
                 </p>
                 {{else}}
-                <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/availability">
+                <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/availability" data-confirm-action data-confirm-message="{{if .AdminCar.IsAvailable}}Mark this car unavailable?{{else}}Mark this car available publicly?{{end}}">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     {{if .AdminCar.IsAvailable}}
-                    <button class="inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" type="submit">
+                    <button class="btn btn-secondary w-full" type="submit">
                         Mark unavailable
                     </button>
                     {{else}}
                     <input type="hidden" name="is_available" value="true">
-                    <button class="inline-flex w-full items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" type="submit">
+                    <button class="btn btn-secondary w-full" type="submit">
                         Mark available
                     </button>
                     {{end}}
                 </form>
-                <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/archive">
+                <form method="POST" action="/admin/cars/{{.AdminCar.ID}}/archive" data-confirm-action data-confirm-message="Archive this car? It will be removed from public catalog and booking.">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <button class="inline-flex w-full items-center justify-center rounded-md border border-amber-300 bg-white px-5 py-3 text-sm font-semibold text-amber-800 transition hover:border-amber-400 hover:bg-amber-50" type="submit">
                         Archive car
@@ -155,7 +155,7 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="card p-6">
             <h2 class="text-xl font-semibold tracking-tight text-slate-950">Timestamps</h2>
             <dl class="mt-5 space-y-4">
                 <div>

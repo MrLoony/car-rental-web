@@ -1,44 +1,44 @@
 {{define "content"}}
-<section class="flex flex-col gap-4 py-4 sm:py-8 md:flex-row md:items-end md:justify-between">
+<section class="admin-page-header">
     <div>
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">Admin</p>
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700">Admin</p>
         <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Cars</h1>
         <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-            Manage the vehicles shown in the public catalog.
+            Manage active, unavailable, and archived vehicles shown in the rental fleet.
         </p>
     </div>
 
     <div class="flex flex-wrap gap-3">
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin">
+        <a class="btn btn-secondary" href="/admin">
             Admin dashboard
         </a>
-        <a class="inline-flex items-center justify-center rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="/admin/cars/new">
+        <a class="btn btn-primary" href="/admin/cars/new">
             Add car
         </a>
     </div>
 </section>
 
-<section class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+<section class="admin-filter-panel">
     <form class="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto_auto] md:items-end" method="GET" action="/admin/cars" data-admin-filter-form>
         <div>
-            <label class="block text-sm font-medium text-slate-700" for="admin-car-search">Search</label>
-            <input class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100" id="admin-car-search" type="search" name="search" value="{{.AdminCarFilter.Search}}" placeholder="Search cars..." data-admin-filter-search>
+            <label class="form-label" for="admin-car-search">Search</label>
+            <input class="form-input mt-1" id="admin-car-search" type="search" name="search" value="{{.AdminCarFilter.Search}}" placeholder="Search cars..." data-admin-filter-search>
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-slate-700" for="admin-car-availability">Availability</label>
-            <select class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 shadow-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100" id="admin-car-availability" name="availability" data-admin-filter-select>
+            <label class="form-label" for="admin-car-availability">Availability</label>
+            <select class="form-input mt-1" id="admin-car-availability" name="availability" data-admin-filter-select>
                 <option value="all" {{if eq .AdminCarFilter.Availability "all"}}selected{{end}}>All cars</option>
                 <option value="available" {{if eq .AdminCarFilter.Availability "available"}}selected{{end}}>Available</option>
                 <option value="unavailable" {{if eq .AdminCarFilter.Availability "unavailable"}}selected{{end}}>Unavailable</option>
             </select>
         </div>
 
-        <button class="inline-flex items-center justify-center rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-400" type="submit" data-admin-filter-submit>
+        <button class="btn btn-primary" type="submit" data-admin-filter-submit>
             Apply filters
         </button>
 
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/cars">
+        <a class="btn btn-secondary" href="/admin/cars">
             Reset
         </a>
 
@@ -49,98 +49,117 @@
 </section>
 
 {{if .AdminCars}}
-<section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
-            <thead class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                    <th class="whitespace-nowrap px-3 py-2">ID</th>
-                    <th class="min-w-56 px-3 py-2">Car</th>
-                    <th class="whitespace-nowrap px-3 py-2">Category</th>
-                    <th class="whitespace-nowrap px-3 py-2">Year</th>
-                    <th class="whitespace-nowrap px-3 py-2">Price</th>
-                    <th class="whitespace-nowrap px-3 py-2">Fleet status</th>
-                    <th class="whitespace-nowrap px-3 py-2">Availability</th>
-                    <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Actions</span></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200">
-                {{range .AdminCars}}
-                <tr class="align-top transition hover:bg-slate-50">
-                    <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">#{{.ID}}</td>
-                    <td class="max-w-72 px-3 py-2.5">
-                        <p class="truncate font-medium text-slate-950">{{.Brand}} {{.Model}}</p>
-                        <p class="mt-0.5 truncate text-xs text-slate-500">{{.Slug}}</p>
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.CategoryName}}</td>
-                    <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.Year}}</td>
-                    <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">{{formatMoney .PricePerDay}}/day</td>
-                    <td class="whitespace-nowrap px-3 py-2.5">
-                        {{if .ArchivedAt}}
-                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Archived</span>
-                        {{else}}
-                        <span class="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700">Active</span>
-                        {{end}}
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-2.5">
-                        {{if .ArchivedAt}}
-                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Locked</span>
-                        {{else}}
-                        {{if .IsAvailable}}
-                        <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Available</span>
-                        {{else}}
-                        <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">Unavailable</span>
-                        {{end}}
-                        {{end}}
-                    </td>
-                    <td class="whitespace-nowrap px-3 py-2.5 text-right">
-                        <div class="flex flex-nowrap items-center justify-end gap-3">
-                            <a class="font-semibold text-teal-700 transition hover:text-teal-800" href="/admin/cars/{{.ID}}">
-                                View
-                            </a>
-                            <a class="font-semibold text-teal-700 transition hover:text-teal-800" href="/admin/cars/{{.ID}}/edit">
-                                Edit
-                            </a>
-                            <a class="font-semibold text-slate-600 transition hover:text-slate-950" href="/cars/{{.Slug}}">
-                                Public page
-                            </a>
+<section class="space-y-4" data-admin-table>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <label class="form-label" for="visible-car-filter">Filter visible rows</label>
+            <input class="visible-row-filter mt-1" id="visible-car-filter" type="search" placeholder="Filter rows on this page..." data-admin-table-filter>
+        </div>
+        <p class="text-sm font-medium text-slate-500" data-admin-row-count aria-live="polite"></p>
+    </div>
+
+    <div class="admin-table-shell">
+        <div class="overflow-x-auto">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="whitespace-nowrap px-3 py-2">ID</th>
+                        <th class="min-w-64 px-3 py-2">Car</th>
+                        <th class="whitespace-nowrap px-3 py-2">Category</th>
+                        <th class="whitespace-nowrap px-3 py-2">Year</th>
+                        <th class="whitespace-nowrap px-3 py-2">Price</th>
+                        <th class="whitespace-nowrap px-3 py-2">Fleet status</th>
+                        <th class="whitespace-nowrap px-3 py-2">Availability</th>
+                        <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .AdminCars}}
+                    <tr class="admin-table-row" tabindex="0" data-admin-table-row>
+                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">#{{.ID}}</td>
+                        <td class="max-w-80 px-3 py-2.5">
+                            <p class="truncate font-medium text-slate-950">{{.Brand}} {{.Model}}</p>
+                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                <span class="truncate">{{.Slug}}</span>
+                                <button class="copy-button" type="button" data-copy-value="{{.Slug}}" data-copy-label="slug" aria-label="Copy car slug">
+                                    Copy slug
+                                </button>
+                            </div>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.CategoryName}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.Year}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">{{formatMoney .PricePerDay}}/day</td>
+                        <td class="whitespace-nowrap px-3 py-2.5">
                             {{if .ArchivedAt}}
-                            <form method="POST" action="/admin/cars/{{.ID}}/unarchive">
-                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                <button class="font-semibold text-teal-700 transition hover:text-teal-800" type="submit">
-                                    Restore
-                                </button>
-                            </form>
+                            <span class="badge bg-slate-100 text-slate-600">Archived</span>
                             {{else}}
-                            <form method="POST" action="/admin/cars/{{.ID}}/availability">
-                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                {{if .IsAvailable}}
-                                <button class="font-semibold text-slate-600 transition hover:text-slate-950" type="submit">
-                                    Mark unavailable
-                                </button>
-                                {{else}}
-                                <input type="hidden" name="is_available" value="true">
-                                <button class="font-semibold text-slate-600 transition hover:text-slate-950" type="submit">
-                                    Mark available
-                                </button>
-                                {{end}}
-                            </form>
-                            <form method="POST" action="/admin/cars/{{.ID}}/archive">
-                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                <button class="font-semibold text-amber-700 transition hover:text-amber-800" type="submit">
-                                    Archive
-                                </button>
-                            </form>
+                            <span class="badge badge-info">Active</span>
                             {{end}}
-                        </div>
-                        {{if .ArchivedAt}}
-                        <p class="mt-2 text-xs text-slate-500">Restore before changing public availability.</p>
-                        {{end}}
-                    </td>
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-2.5">
+                            {{if .ArchivedAt}}
+                            <span class="badge bg-slate-100 text-slate-600">Locked</span>
+                            {{else}}
+                            {{if .IsAvailable}}
+                            <span class="badge badge-success">Available</span>
+                            {{else}}
+                            <span class="badge badge-warning">Unavailable</span>
+                            {{end}}
+                            {{end}}
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-right">
+                            <div class="flex flex-nowrap items-center justify-end gap-3">
+                                <a class="admin-table-action" href="/admin/cars/{{.ID}}">
+                                    View
+                                </a>
+                                <a class="admin-table-action" href="/admin/cars/{{.ID}}/edit">
+                                    Edit
+                                </a>
+                                <a class="font-semibold text-slate-600 transition hover:text-slate-950" href="/cars/{{.Slug}}">
+                                    Public page
+                                </a>
+                                {{if .ArchivedAt}}
+                                <form method="POST" action="/admin/cars/{{.ID}}/unarchive" data-confirm-action data-confirm-message="Restore this car? It will remain unavailable until you enable availability.">
+                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                    <button class="font-semibold text-sky-700 transition hover:text-sky-800" type="submit">
+                                        Restore
+                                    </button>
+                                </form>
+                                {{else}}
+                                <form method="POST" action="/admin/cars/{{.ID}}/availability" data-confirm-action data-confirm-message="{{if .IsAvailable}}Mark this car unavailable?{{else}}Mark this car available publicly?{{end}}">
+                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                    {{if .IsAvailable}}
+                                    <button class="font-semibold text-slate-600 transition hover:text-slate-950" type="submit">
+                                        Mark unavailable
+                                    </button>
+                                    {{else}}
+                                    <input type="hidden" name="is_available" value="true">
+                                    <button class="font-semibold text-slate-600 transition hover:text-slate-950" type="submit">
+                                        Mark available
+                                    </button>
+                                    {{end}}
+                                </form>
+                                <form method="POST" action="/admin/cars/{{.ID}}/archive" data-confirm-action data-confirm-message="Archive this car? It will be removed from public catalog and booking.">
+                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                    <button class="font-semibold text-amber-700 transition hover:text-amber-800" type="submit">
+                                        Archive
+                                    </button>
+                                </form>
+                                {{end}}
+                            </div>
+                            {{if .ArchivedAt}}
+                            <p class="mt-2 text-xs text-slate-500">Restore before changing public availability.</p>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-empty-state hidden" data-admin-table-empty>
+        <p class="text-sm font-medium text-slate-600">No visible rows match this page filter.</p>
     </div>
 </section>
 
@@ -148,7 +167,7 @@
 <nav class="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Admin cars pagination">
     <div>
         {{if .Pagination.HasPrevious}}
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="{{.PaginationPreviousURL}}">
+        <a class="btn btn-secondary" href="{{.PaginationPreviousURL}}">
             Previous
         </a>
         {{else}}
@@ -164,7 +183,7 @@
 
     <div class="sm:text-right">
         {{if .Pagination.HasNext}}
-        <a class="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="{{.PaginationNextURL}}">
+        <a class="btn btn-secondary" href="{{.PaginationNextURL}}">
             Next
         </a>
         {{else}}
@@ -176,13 +195,13 @@
 </nav>
 {{end}}
 {{else}}
-<section class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
+<section class="table-empty-state">
     {{if .HasActiveAdminCarFilters}}
     <h2 class="text-xl font-semibold text-slate-950">No cars match your filters.</h2>
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
         Try changing the search text or availability filter.
     </p>
-    <a class="mt-6 inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100" href="/admin/cars">
+    <a class="btn btn-secondary mt-6" href="/admin/cars">
         Reset filters
     </a>
     {{else}}
@@ -190,7 +209,7 @@
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
         Add the first car to start building the public catalog.
     </p>
-    <a class="mt-6 inline-flex items-center justify-center rounded-md bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800" href="/admin/cars/new">
+    <a class="btn btn-primary mt-6" href="/admin/cars/new">
         Add car
     </a>
     {{end}}

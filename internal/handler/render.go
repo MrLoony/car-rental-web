@@ -16,6 +16,7 @@ type TemplateData struct {
 	Cars                         []model.Car
 	Car                          model.Car
 	Filter                       model.CarFilter
+	CatalogFilterChips           []CatalogFilterChip
 	Categories                   []model.Category
 	FuelTypes                    []string
 	Transmissions                []string
@@ -46,6 +47,11 @@ type TemplateData struct {
 	Flash                        *model.FlashMessage
 }
 
+type CatalogFilterChip struct {
+	Label     string
+	RemoveURL string
+}
+
 func (h *Handler) render(w http.ResponseWriter, r *http.Request, page string, data TemplateData) error {
 	return h.renderWithStatus(w, r, page, data, http.StatusOK)
 }
@@ -74,8 +80,9 @@ func render(w http.ResponseWriter, page string, data TemplateData) error {
 
 func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, status int) error {
 	tmpl, err := template.New("").Funcs(template.FuncMap{
-		"formatDateTime": formatDateTime,
-		"formatMoney":    formatMoney,
+		"formatDateTime":      formatDateTime,
+		"formatDateTimeInput": formatDateTimeInput,
+		"formatMoney":         formatMoney,
 	}).ParseFiles(
 		"web/templates/layouts/base.html",
 		"web/templates/pages/"+page,
@@ -96,24 +103,38 @@ func renderWithStatus(w http.ResponseWriter, page string, data TemplateData, sta
 }
 
 func formatDateTime(value any) string {
+	t, ok := timeFromTemplateValue(value)
+	if !ok || t.IsZero() {
+		return ""
+	}
+
+	return t.Format("Jan 02, 2006 15:04")
+}
+
+func formatDateTimeInput(value any) string {
+	t, ok := timeFromTemplateValue(value)
+	if !ok || t.IsZero() {
+		return ""
+	}
+
+	return t.Format("2006-01-02T15:04")
+}
+
+func timeFromTemplateValue(value any) (time.Time, bool) {
 	var t time.Time
 	switch typed := value.(type) {
 	case time.Time:
 		t = typed
 	case *time.Time:
 		if typed == nil {
-			return ""
+			return time.Time{}, false
 		}
 		t = *typed
 	default:
-		return ""
+		return time.Time{}, false
 	}
 
-	if t.IsZero() {
-		return ""
-	}
-
-	return t.Format("Jan 02, 2006 15:04")
+	return t, true
 }
 
 func formatMoney(value float64) string {

@@ -1,54 +1,126 @@
 {{define "content"}}
-<a class="inline-flex text-sm font-medium text-teal-700 transition hover:text-teal-800" href="/cars">
-    Back to cars
-</a>
+<div data-car-detail>
+    <a class="inline-flex items-center text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/cars">
+        Back to cars
+    </a>
 
-<section class="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        {{if .Car.ImageURL}}
-        <img class="aspect-[16/10] w-full object-cover" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image>
-        {{else}}
-        <img class="aspect-[16/10] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
-        {{end}}
-    </div>
+    <section class="mt-6 grid gap-8 lg:grid-cols-3 lg:items-start">
+        <div class="space-y-8 lg:col-span-2">
+            <div class="car-detail-image-card">
+                <button class="block w-full text-left" type="button" data-lightbox-trigger aria-label="Open larger image of {{.Car.Brand}} {{.Car.Model}}">
+                    {{if .Car.ImageURL}}
+                    <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image data-lightbox-image-source>
+                    {{else}}
+                    <img class="h-64 w-full bg-slate-100 object-contain p-8 sm:h-72 lg:h-80" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image-source>
+                    {{end}}
+                </button>
+                <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
+                    <span>Click the image to view it larger.</span>
+                    <span class="hidden text-xs font-semibold uppercase tracking-wide text-slate-400 sm:inline">Single vehicle image</span>
+                </div>
+            </div>
 
-    <div>
-        <div class="flex flex-wrap items-center gap-3">
-            <p class="text-sm font-semibold uppercase tracking-wide text-teal-700">{{.Car.CategoryName}}</p>
-            {{if .Car.IsAvailable}}
-            <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">Available</span>
-            {{else}}
-            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">Unavailable</span>
-            {{end}}
+            <section id="vehicle-specifications">
+                <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Vehicle specifications</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Key details for comparing this vehicle before you submit a booking request.
+                </p>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Transmission</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.Transmission}}</strong>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fuel type</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.FuelType}}</strong>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Seats</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.Seats}}</strong>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Year</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.Year}}</strong>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.CategoryName}}</strong>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <h1 class="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-            {{.Car.Brand}} {{.Car.Model}}
-        </h1>
-        <p class="mt-4 text-lg text-slate-600">{{.Car.Year}} · {{.Car.CategoryName}}</p>
-
-        <p class="mt-8 text-3xl font-semibold text-slate-950">
-            ${{printf "%.2f" .Car.PricePerDay}}<span class="text-base font-normal text-slate-500"> / day</span>
-        </p>
-
-        <dl class="mt-8 grid gap-4 sm:grid-cols-3">
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <dt class="text-sm text-slate-500">Transmission</dt>
-                <dd class="mt-1 font-semibold text-slate-900">{{.Car.Transmission}}</dd>
+        <aside class="space-y-5 lg:col-span-1 lg:sticky lg:top-24">
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="badge badge-info">{{.Car.CategoryName}}</span>
+                <span class="badge badge-success">Available</span>
             </div>
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <dt class="text-sm text-slate-500">Fuel type</dt>
-                <dd class="mt-1 font-semibold text-slate-900">{{.Car.FuelType}}</dd>
-            </div>
-            <div class="rounded-lg border border-slate-200 bg-white p-4">
-                <dt class="text-sm text-slate-500">Seats</dt>
-                <dd class="mt-1 font-semibold text-slate-900">{{.Car.Seats}}</dd>
-            </div>
-        </dl>
 
-        <a class="mt-8 inline-flex w-full items-center justify-center rounded-md bg-teal-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 sm:w-auto" href="/cars/{{.Car.Slug}}/book">
-            Request booking
-        </a>
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+                    {{.Car.Brand}} {{.Car.Model}}
+                </h1>
+                <p class="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                    {{.Car.Year}} {{.Car.CategoryName}} with straightforward booking and clear rental pricing.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Transmission</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-950">{{.Car.Transmission}}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Fuel</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-950">{{.Car.FuelType}}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Seats</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-950">{{.Car.Seats}}</p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-sky-100 bg-sky-50/60 p-5 shadow-sm">
+                <p class="text-sm font-medium text-slate-500">Rental price</p>
+                <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                    {{formatMoney .Car.PricePerDay}}<span class="text-base font-normal text-slate-500"> / day</span>
+                </p>
+                <p class="mt-3 text-sm leading-6 text-slate-600">
+                    Submit your pickup and return times with contact details. The request is reviewed before confirmation.
+                </p>
+                <a class="btn btn-primary mt-5 w-full" href="/cars/{{.Car.Slug}}/book">
+                    Book this car
+                </a>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <p class="font-semibold text-slate-950">Share this vehicle</p>
+                <p class="mt-1 text-sm text-slate-500">Copy this listing or keep browsing the fleet.</p>
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                    <button class="share-action" type="button" data-copy-page-url>
+                        Copy link
+                    </button>
+                    <a class="share-action" href="/cars">
+                        Browse cars
+                    </a>
+                </div>
+                <p class="mt-3 hidden text-sm font-medium text-emerald-700" data-copy-feedback aria-live="polite"></p>
+            </div>
+        </aside>
+    </section>
+
+    <div class="image-lightbox" data-image-lightbox hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="{{.Car.Brand}} {{.Car.Model}} image preview">
+        <div class="relative mx-auto max-w-5xl p-4">
+            <button class="absolute right-6 top-6 rounded-full bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm" type="button" data-lightbox-close>
+                Close
+            </button>
+            {{if .Car.ImageURL}}
+            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}">
+            {{else}}
+            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="/static/images/car-placeholder.svg" alt="Image coming soon">
+            {{end}}
+        </div>
     </div>
-</section>
+</div>
 {{end}}
