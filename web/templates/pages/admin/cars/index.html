@@ -1,9 +1,9 @@
 {{define "content"}}
 <section class="admin-page-header">
     <div>
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700">Admin</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Cars</h1>
-        <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Admin</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-5xl">Cars</h1>
+        <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
             Manage active, unavailable, and archived vehicles shown in the rental fleet.
         </p>
     </div>
@@ -42,7 +42,7 @@
             Reset
         </a>
 
-        <p class="hidden text-sm font-medium text-slate-500 md:col-span-4" data-admin-filter-status>
+        <p class="hidden text-sm font-medium text-slate-500 dark:text-slate-400 md:col-span-4" data-admin-filter-status>
             Applying filters...
         </p>
     </form>
@@ -55,7 +55,7 @@
             <label class="form-label" for="visible-car-filter">Filter visible rows</label>
             <input class="visible-row-filter mt-1" id="visible-car-filter" type="search" placeholder="Filter rows on this page..." data-admin-table-filter>
         </div>
-        <p class="text-sm font-medium text-slate-500" data-admin-row-count aria-live="polite"></p>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400" data-admin-row-count aria-live="polite"></p>
     </div>
 
     <div class="admin-table-shell">
@@ -76,29 +76,29 @@
                 <tbody>
                     {{range .AdminCars}}
                     <tr class="admin-table-row" tabindex="0" data-admin-table-row>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">#{{.ID}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">#{{.ID}}</td>
                         <td class="max-w-80 px-3 py-2.5">
-                            <p class="truncate font-medium text-slate-950">{{.Brand}} {{.Model}}</p>
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <p class="truncate font-medium text-slate-950 dark:text-slate-100">{{.Brand}} {{.Model}}</p>
+                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                                 <span class="truncate">{{.Slug}}</span>
                                 <button class="copy-button" type="button" data-copy-value="{{.Slug}}" data-copy-label="slug" aria-label="Copy car slug">
                                     Copy slug
                                 </button>
                             </div>
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.CategoryName}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.Year}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">{{formatMoney .PricePerDay}}/day</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{.CategoryName}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{.Year}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .PricePerDay}}/day</td>
                         <td class="whitespace-nowrap px-3 py-2.5">
                             {{if .ArchivedAt}}
-                            <span class="badge bg-slate-100 text-slate-600">Archived</span>
+                            <span class="badge bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Archived</span>
                             {{else}}
                             <span class="badge badge-info">Active</span>
                             {{end}}
                         </td>
                         <td class="whitespace-nowrap px-3 py-2.5">
                             {{if .ArchivedAt}}
-                            <span class="badge bg-slate-100 text-slate-600">Locked</span>
+                            <span class="badge bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Locked</span>
                             {{else}}
                             {{if .IsAvailable}}
                             <span class="badge badge-success">Available</span>
@@ -115,13 +115,13 @@
                                 <a class="admin-table-action" href="/admin/cars/{{.ID}}/edit">
                                     Edit
                                 </a>
-                                <a class="font-semibold text-slate-600 transition hover:text-slate-950" href="/cars/{{.Slug}}">
+                                <a class="font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-950 dark:hover:text-slate-100" href="/cars/{{.Slug}}">
                                     Public page
                                 </a>
                                 {{if .ArchivedAt}}
                                 <form method="POST" action="/admin/cars/{{.ID}}/unarchive" data-confirm-action data-confirm-message="Restore this car? It will remain unavailable until you enable availability.">
                                     <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                    <button class="font-semibold text-sky-700 transition hover:text-sky-800" type="submit">
+                                    <button class="font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" type="submit">
                                         Restore
                                     </button>
                                 </form>
@@ -129,26 +129,26 @@
                                 <form method="POST" action="/admin/cars/{{.ID}}/availability" data-confirm-action data-confirm-message="{{if .IsAvailable}}Mark this car unavailable?{{else}}Mark this car available publicly?{{end}}">
                                     <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                     {{if .IsAvailable}}
-                                    <button class="font-semibold text-slate-600 transition hover:text-slate-950" type="submit">
+                                    <button class="font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-950 dark:hover:text-slate-100" type="submit">
                                         Mark unavailable
                                     </button>
                                     {{else}}
                                     <input type="hidden" name="is_available" value="true">
-                                    <button class="font-semibold text-slate-600 transition hover:text-slate-950" type="submit">
+                                    <button class="font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-950 dark:hover:text-slate-100" type="submit">
                                         Mark available
                                     </button>
                                     {{end}}
                                 </form>
                                 <form method="POST" action="/admin/cars/{{.ID}}/archive" data-confirm-action data-confirm-message="Archive this car? It will be removed from public catalog and booking.">
                                     <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                    <button class="font-semibold text-amber-700 transition hover:text-amber-800" type="submit">
+                                    <button class="font-semibold text-amber-700 dark:text-amber-300 transition hover:text-amber-800 dark:hover:text-amber-200" type="submit">
                                         Archive
                                     </button>
                                 </form>
                                 {{end}}
                             </div>
                             {{if .ArchivedAt}}
-                            <p class="mt-2 text-xs text-slate-500">Restore before changing public availability.</p>
+                            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Restore before changing public availability.</p>
                             {{end}}
                         </td>
                     </tr>
@@ -159,25 +159,25 @@
     </div>
 
     <div class="table-empty-state hidden" data-admin-table-empty>
-        <p class="text-sm font-medium text-slate-600">No visible rows match this page filter.</p>
+        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">No visible rows match this page filter.</p>
     </div>
 </section>
 
 {{if gt .Pagination.TotalItems 0}}
-<nav class="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Admin cars pagination">
+<nav class="mt-6 flex flex-col gap-3 border-t border-slate-200 dark:border-slate-700 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Admin cars pagination">
     <div>
         {{if .Pagination.HasPrevious}}
         <a class="btn btn-secondary" href="{{.PaginationPreviousURL}}">
             Previous
         </a>
         {{else}}
-        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400">
+        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-400">
             Previous
         </span>
         {{end}}
     </div>
 
-    <p class="text-sm font-medium text-slate-600">
+    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
         Page {{.Pagination.Page}} of {{.Pagination.TotalPages}}
     </p>
 
@@ -187,7 +187,7 @@
             Next
         </a>
         {{else}}
-        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400">
+        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-400">
             Next
         </span>
         {{end}}
@@ -197,16 +197,16 @@
 {{else}}
 <section class="table-empty-state">
     {{if .HasActiveAdminCarFilters}}
-    <h2 class="text-xl font-semibold text-slate-950">No cars match your filters.</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No cars match your filters.</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         Try changing the search text or availability filter.
     </p>
     <a class="btn btn-secondary mt-6" href="/admin/cars">
         Reset filters
     </a>
     {{else}}
-    <h2 class="text-xl font-semibold text-slate-950">No cars yet</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No cars yet</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         Add the first car to start building the public catalog.
     </p>
     <a class="btn btn-primary mt-6" href="/admin/cars/new">

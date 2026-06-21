@@ -1,84 +1,84 @@
 {{define "content"}}
-<a class="inline-flex text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/admin/bookings">
+<a class="inline-flex text-sm font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/admin/bookings">
     Back to booking requests
 </a>
 
 <section class="mt-6 grid gap-8 lg:grid-cols-[1fr_0.8fr]">
     <div class="space-y-6">
         <div class="card p-6">
-            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">Booking #{{.AdminBooking.ID}}</p>
-            <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Booking request details</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-600">
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Booking #{{.AdminBooking.ID}}</p>
+            <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Booking request details</h1>
+            <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 Current status:
-                <span class="font-semibold text-slate-950">{{.AdminBooking.Status}}</span>
+                <span class="font-semibold text-slate-950 dark:text-slate-100">{{.AdminBooking.Status}}</span>
             </p>
         </div>
 
         <div class="card p-6">
-            <h2 class="text-xl font-semibold tracking-tight text-slate-950">Customer</h2>
+            <h2 class="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Customer</h2>
             <dl class="mt-5 grid gap-4 sm:grid-cols-3">
                 <div>
-                    <dt class="text-sm text-slate-500">Name</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{.AdminBooking.CustomerName}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Name</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{.AdminBooking.CustomerName}}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Email</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{.AdminBooking.CustomerEmail}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Email</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{.AdminBooking.CustomerEmail}}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Phone</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{.AdminBooking.CustomerPhone}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Phone</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{.AdminBooking.CustomerPhone}}</dd>
                 </div>
             </dl>
         </div>
 
         <div class="card p-6">
-            <h2 class="text-xl font-semibold tracking-tight text-slate-950">Rental</h2>
+            <h2 class="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Rental</h2>
             <dl class="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
-                    <dt class="text-sm text-slate-500">Car</dt>
-                    <dd class="mt-1 font-medium text-slate-950">
-                        <a class="text-sky-700 transition hover:text-sky-800" href="/cars/{{.AdminBooking.CarSlug}}">
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Car</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">
+                        <a class="text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/cars/{{.AdminBooking.CarSlug}}">
                             {{.AdminBooking.CarBrand}} {{.AdminBooking.CarModel}}
                         </a>
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Created</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{formatDateTime .AdminBooking.CreatedAt}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Created</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{formatDateTime .AdminBooking.CreatedAt}}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Pickup</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{formatDateTime .AdminBooking.PickupAt}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Pickup</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{formatDateTime .AdminBooking.PickupAt}}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Return</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{formatDateTime .AdminBooking.ReturnAt}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Return</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{formatDateTime .AdminBooking.ReturnAt}}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Billing days</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{.AdminBooking.BillingDays}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Billing days</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{.AdminBooking.BillingDays}}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm text-slate-500">Estimated total</dt>
-                    <dd class="mt-1 font-medium text-slate-950">{{formatMoney .AdminBooking.EstimatedTotal}}</dd>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Estimated total</dt>
+                    <dd class="mt-1 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .AdminBooking.EstimatedTotal}}</dd>
                 </div>
             </dl>
         </div>
 
         <div class="card p-6">
-            <h2 class="text-xl font-semibold tracking-tight text-slate-950">Message</h2>
+            <h2 class="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Message</h2>
             {{if .AdminBooking.Message}}
-            <p class="mt-4 text-sm leading-6 text-slate-700">{{.AdminBooking.Message}}</p>
+            <p class="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-300">{{.AdminBooking.Message}}</p>
             {{else}}
-            <p class="mt-4 text-sm leading-6 text-slate-500">No message was included.</p>
+            <p class="mt-4 text-sm leading-6 text-slate-500 dark:text-slate-400">No message was included.</p>
             {{end}}
         </div>
     </div>
 
     <aside class="card h-fit p-6 lg:sticky lg:top-6">
-        <h2 class="text-xl font-semibold tracking-tight text-slate-950">Update status</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600">
+        <h2 class="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Update status</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
             Change the booking request status for internal tracking.
         </p>
 

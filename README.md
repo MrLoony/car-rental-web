@@ -165,7 +165,7 @@ Email sending is best-effort. Booking creation and booking status updates contin
 - Responsive public, auth, and admin layouts
 - Polished catalog, car detail, booking, dashboard, table, and admin form pages
 - Server-rendered forms that work without JavaScript
-- Progressive JavaScript enhancement for filters, dashboard controls, booking price preview, image previews, copy actions, and form helpers
+- Progressive JavaScript enhancement for filters, dashboard controls, booking price preview, image previews, copy actions, toasts, themes, favorites, and form helpers
 
 ### Frontend
 
@@ -175,6 +175,7 @@ Frontend structure:
 
 - Tailwind CSS source lives in `web/static/css/input.css`
 - Generated CSS is served from `web/static/css/app.css`
+- `web/static/js/theme-init.js` applies the saved color theme before the main stylesheet loads
 - `web/static/js/app.js` initializes browser behavior
 - feature modules live under `web/static/js/modules`
 
@@ -182,16 +183,29 @@ Current JavaScript modules:
 
 - `catalog-filters.js` - public and admin filter form enhancements
 - `booking-preview.js` - live booking estimate, duration buttons, date warnings, and suggested window fill-in
+- `booking-wizard.js` - progressive multi-step booking form, review summary, and session draft restore
 - `dashboard.js` - collapsible dashboard sections, recent activity filtering, and metric highlighting
+- `favorites.js` - frontend-only favorite vehicles, catalog filtering, nav counter, and cross-tab synchronization
 - `admin-tables.js` - visible-row filtering, copy buttons, row counts, and row highlighting
 - `admin-actions.js` - centralized confirmation prompts for sensitive admin actions
 - `image-preview.js` - image fallback handling, admin image previews, upload drop zone, slug preview, and price helper
-- `car-detail.js` - public car detail copy action, image lightbox, sticky booking CTA, and smooth scrolling
+- `car-detail.js` - public car detail copy action and single-image lightbox
+- `theme.js` - Light, Dark, and System theme switching
+- `toast.js` - reusable toast notifications with dismiss controls and progress indicators
 - `form-helpers.js` - submit-once and unsaved-changes helpers
 - `flash.js` - flash message focus support
 - `utils.js` - shared DOM, debounce, formatting, and form helpers
 
 The visual direction is a light, modern SaaS-style interface with a premium automotive feel: spacious layouts, white cards, subtle borders, clear typography, and restrained blue accents.
+
+Frontend state storage is intentionally browser-local:
+
+- `localStorage.carRentalTheme` stores the selected theme mode: `light`, `dark`, or `system`
+- `localStorage.carRentalFavorites` stores frontend-only favorite car slugs
+- `localStorage.carRentalFavoritesOnly` stores the catalog's client-side favorites filter preference
+- `sessionStorage.carRentalBookingDraft:<car-slug>` stores temporary booking form draft values for the current browser session
+
+These features are convenience enhancements. They do not replace server-side booking validation, authentication, persistence, or authorization.
 
 ### Security
 
@@ -321,10 +335,11 @@ Completed:
 - Security hardening
 - UX improvements
 - Frontend modernization
+- JavaScript-heavy frontend enhancements
 
 The application is suitable as a portfolio-scale SSR Go project. Additional production work would still be needed before real-world deployment.
 
-Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, and Stage 22 frontend modernization.
+Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, Stage 22 frontend modernization, and Stage 23 JavaScript-heavy frontend features.
 
 ## Implemented
 
@@ -351,6 +366,10 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Tailwind CSS component layer
 - Responsive public catalog, car detail, booking, auth, and admin pages
 - Interactive admin dashboard, admin tables, and admin car forms
+- Toast notification system
+- Light, Dark, and System theme switcher
+- Frontend-only favorites with localStorage persistence
+- Progressive booking form wizard with sessionStorage draft restore
 - Progressive frontend enhancements without SPA routing or AJAX requirements
 - CSRF protection
 - Basic login brute-force protection

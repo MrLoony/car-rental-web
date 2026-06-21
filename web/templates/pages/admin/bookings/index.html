@@ -1,9 +1,9 @@
 {{define "content"}}
 <section class="admin-page-header">
     <div>
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700">Admin</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Booking requests</h1>
-        <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Admin</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-5xl">Booking requests</h1>
+        <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
             Review submitted rental requests, export booking data, and open details before updating status.
         </p>
     </div>
@@ -45,7 +45,7 @@
             Reset
         </a>
 
-        <p class="hidden text-sm font-medium text-slate-500 md:col-span-4" data-admin-filter-status>
+        <p class="hidden text-sm font-medium text-slate-500 dark:text-slate-400 md:col-span-4" data-admin-filter-status>
             Applying filters...
         </p>
     </form>
@@ -58,7 +58,7 @@
             <label class="form-label" for="visible-booking-filter">Filter visible rows</label>
             <input class="visible-row-filter mt-1" id="visible-booking-filter" type="search" placeholder="Filter rows on this page..." data-admin-table-filter>
         </div>
-        <p class="text-sm font-medium text-slate-500" data-admin-row-count aria-live="polite"></p>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400" data-admin-row-count aria-live="polite"></p>
     </div>
 
     <div class="admin-table-shell">
@@ -81,17 +81,17 @@
                 <tbody>
                     {{range .AdminBookings}}
                     <tr class="admin-table-row" tabindex="0" data-admin-table-row>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">#{{.ID}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">#{{.ID}}</td>
                         <td class="max-w-80 px-3 py-2.5">
-                            <p class="truncate font-medium text-slate-950">{{.CustomerName}}</p>
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <p class="truncate font-medium text-slate-950 dark:text-slate-100">{{.CustomerName}}</p>
+                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                                 <span class="truncate">{{.CustomerEmail}}</span>
                                 <button class="copy-button" type="button" data-copy-value="{{.CustomerEmail}}" data-copy-label="email" aria-label="Copy customer email">
                                     Copy email
                                 </button>
                             </div>
                             {{if .CustomerPhone}}
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                                 <span class="truncate">{{.CustomerPhone}}</span>
                                 <button class="copy-button" type="button" data-copy-value="{{.CustomerPhone}}" data-copy-label="phone" aria-label="Copy customer phone">
                                     Copy phone
@@ -99,13 +99,13 @@
                             </div>
                             {{end}}
                         </td>
-                        <td class="max-w-56 px-3 py-2.5 text-slate-700">
+                        <td class="max-w-56 px-3 py-2.5 text-slate-700 dark:text-slate-300">
                             <span class="block truncate">{{.CarBrand}} {{.CarModel}}</span>
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .PickupAt}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .ReturnAt}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{.BillingDays}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950">{{formatMoney .EstimatedTotal}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .PickupAt}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .ReturnAt}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{.BillingDays}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .EstimatedTotal}}</td>
                         <td class="whitespace-nowrap px-3 py-2.5">
                             {{if eq .Status "pending"}}
                             <span class="badge badge-warning">{{.Status}}</span>
@@ -116,10 +116,10 @@
                             {{else if eq .Status "completed"}}
                             <span class="badge badge-success">{{.Status}}</span>
                             {{else}}
-                            <span class="badge bg-slate-100 text-slate-700">{{.Status}}</span>
+                            <span class="badge bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{.Status}}</span>
                             {{end}}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700">{{formatDateTime .CreatedAt}}</td>
+                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .CreatedAt}}</td>
                         <td class="whitespace-nowrap px-3 py-2.5 text-right">
                             <a class="admin-table-action" href="/admin/bookings/{{.ID}}">
                                 Details
@@ -133,25 +133,25 @@
     </div>
 
     <div class="table-empty-state hidden" data-admin-table-empty>
-        <p class="text-sm font-medium text-slate-600">No visible rows match this page filter.</p>
+        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">No visible rows match this page filter.</p>
     </div>
 </section>
 
 {{if gt .Pagination.TotalItems 0}}
-<nav class="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Admin bookings pagination">
+<nav class="mt-6 flex flex-col gap-3 border-t border-slate-200 dark:border-slate-700 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Admin bookings pagination">
     <div>
         {{if .Pagination.HasPrevious}}
         <a class="btn btn-secondary" href="{{.PaginationPreviousURL}}">
             Previous
         </a>
         {{else}}
-        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400">
+        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-400">
             Previous
         </span>
         {{end}}
     </div>
 
-    <p class="text-sm font-medium text-slate-600">
+    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
         Page {{.Pagination.Page}} of {{.Pagination.TotalPages}}
     </p>
 
@@ -161,7 +161,7 @@
             Next
         </a>
         {{else}}
-        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400">
+        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-400">
             Next
         </span>
         {{end}}
@@ -171,16 +171,16 @@
 {{else}}
 <section class="table-empty-state">
     {{if .HasActiveAdminBookingFilters}}
-    <h2 class="text-xl font-semibold text-slate-950">No booking requests match your filters.</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No booking requests match your filters.</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         Try changing the search text or status filter.
     </p>
     <a class="btn btn-secondary mt-6" href="/admin/bookings">
         Reset filters
     </a>
     {{else}}
-    <h2 class="text-xl font-semibold text-slate-950">No booking requests yet</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No booking requests yet</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         New customer booking requests will appear here after they are submitted.
     </p>
     {{end}}

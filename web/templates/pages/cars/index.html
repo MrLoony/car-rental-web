@@ -1,14 +1,14 @@
 {{define "content"}}
 <section class="catalog-hero">
     <div class="max-w-3xl">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700">Catalog</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Available cars</h1>
-        <p class="mt-5 text-lg leading-8 text-slate-600">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Catalog</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-5xl">Available cars</h1>
+        <p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">
             Compare available rental vehicles and choose the right car for your trip.
         </p>
     </div>
-    <div class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
-        <span class="font-semibold text-slate-950">{{.Pagination.TotalItems}}</span>
+    <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-600 dark:text-slate-300 shadow-sm">
+        <span class="font-semibold text-slate-950 dark:text-slate-100">{{.Pagination.TotalItems}}</span>
         <span>{{if eq .Pagination.TotalItems 1}}vehicle{{else}}vehicles{{end}} available</span>
     </div>
 </section>
@@ -16,14 +16,14 @@
 <section class="mb-8">
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-xl font-semibold tracking-tight text-slate-950">Find your vehicle</h2>
-            <p class="mt-1 text-sm text-slate-600">
+            <h2 class="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Find your vehicle</h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
                 Search, filter, and sort the active fleet.
             </p>
         </div>
         <button class="btn btn-secondary hidden md:hidden" type="button" aria-expanded="true" aria-controls="catalog-filter-panel" data-catalog-filter-toggle>
             Filters
-            <span class="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-xs text-sky-700" data-catalog-active-filter-count>{{len .CatalogFilterChips}}</span>
+            <span class="ml-2 rounded-full bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 text-xs text-sky-700 dark:text-sky-300" data-catalog-active-filter-count>{{len .CatalogFilterChips}}</span>
         </button>
     </div>
 
@@ -83,7 +83,11 @@
             <a class="btn btn-secondary" href="/cars" data-filter-reset data-catalog-reset>
                 Reset
             </a>
-            <p class="hidden text-sm font-medium text-slate-500" data-filter-status aria-live="polite">Updating results...</p>
+            <label class="favorites-filter">
+                <input class="h-4 w-4 rounded border-slate-300 text-sky-700 dark:text-sky-300 focus:ring-sky-600" type="checkbox" data-favorites-only-toggle>
+                <span>Show favorites only</span>
+            </label>
+            <p class="hidden text-sm font-medium text-slate-500 dark:text-slate-400" data-filter-status aria-live="polite">Updating results...</p>
         </div>
     </form>
 
@@ -97,15 +101,15 @@
             </a>
             {{end}}
         </div>
-        <a class="text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/cars">Clear all</a>
+        <a class="text-sm font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/cars">Clear all</a>
     </div>
     {{end}}
 </section>
 
 {{if .Cars}}
-<section class="grid gap-6 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars">
+<section class="grid gap-6 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars" data-favorites-list>
     {{range .Cars}}
-    <article class="car-card">
+    <article class="car-card" data-favorite-card data-car-slug="{{.Slug}}" data-car-name="{{.Brand}} {{.Model}}">
         {{if .ImageURL}}
         <img class="car-card-image" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}" data-fallback-image>
         {{else}}
@@ -115,14 +119,20 @@
         <div class="car-card-body">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-semibold uppercase tracking-wide text-sky-700">{{.CategoryName}}</p>
-                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{{.Brand}} {{.Model}}</h2>
-                    <p class="mt-1 text-sm text-slate-500">{{.Year}}</p>
+                    <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">{{.CategoryName}}</p>
+                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">{{.Brand}} {{.Model}}</h2>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{.Year}}</p>
                 </div>
-                <span class="badge badge-success shrink-0">Available</span>
+                <div class="flex shrink-0 flex-col items-end gap-2">
+                    <span class="badge badge-success">Available</span>
+                    <button class="favorite-button" type="button" data-favorite-toggle data-car-slug="{{.Slug}}" data-car-name="{{.Brand}} {{.Model}}" aria-pressed="false" aria-label="Add {{.Brand}} {{.Model}} to favorites">
+                        <span data-favorite-icon aria-hidden="true">♡</span>
+                        <span data-favorite-label>Save</span>
+                    </button>
+                </div>
             </div>
 
-            <p class="mt-5 text-3xl font-semibold text-slate-950">{{formatMoney .PricePerDay}}<span class="text-sm font-normal text-slate-500"> / day</span></p>
+            <p class="mt-5 text-3xl font-semibold text-slate-950 dark:text-slate-100">{{formatMoney .PricePerDay}}<span class="text-sm font-normal text-slate-500 dark:text-slate-400"> / day</span></p>
 
             <div class="mt-5 flex flex-wrap gap-2 text-sm">
                 <span class="car-feature-badge">{{.Transmission}}</span>
@@ -138,21 +148,28 @@
     {{end}}
 </section>
 
+<section class="favorites-empty-state hidden" data-favorites-empty-state>
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No favorite vehicles yet</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
+        Browse the catalog and save vehicles for later.
+    </p>
+</section>
+
 {{if gt .Pagination.TotalItems 0}}
-<nav class="flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Catalog pagination">
+<nav class="flex flex-col gap-3 border-t border-slate-200 dark:border-slate-700 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Catalog pagination">
     <div>
         {{if .Pagination.HasPrevious}}
         <a class="btn btn-secondary" href="{{.PaginationPreviousURL}}">
             Previous
         </a>
         {{else}}
-        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400">
+        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-400">
             Previous
         </span>
         {{end}}
     </div>
 
-    <p class="text-sm font-medium text-slate-600">
+    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
         Page {{.Pagination.Page}} of {{.Pagination.TotalPages}}
     </p>
 
@@ -162,7 +179,7 @@
             Next
         </a>
         {{else}}
-        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400">
+        <span class="inline-flex cursor-not-allowed items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-400">
             Next
         </span>
         {{end}}
@@ -172,16 +189,16 @@
 {{else}}
 <section class="catalog-empty-state">
     {{if .HasActiveFilters}}
-    <h2 class="text-xl font-semibold text-slate-950">No cars match your filters</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No cars match your filters</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         Try changing your search, removing a filter, or clearing all filters.
     </p>
     <a class="btn btn-secondary mt-6" href="/cars">
         Clear filters
     </a>
     {{else}}
-    <h2 class="text-xl font-semibold text-slate-950">No cars available yet</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No cars available yet</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         The catalog is connected to the database, but seed data has not been added yet.
     </p>
     {{end}}

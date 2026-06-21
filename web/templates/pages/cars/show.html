@@ -1,6 +1,6 @@
 {{define "content"}}
-<div data-car-detail>
-    <a class="inline-flex items-center text-sm font-semibold text-sky-700 transition hover:text-sky-800" href="/cars">
+<div data-car-detail data-car-slug="{{.Car.Slug}}" data-car-name="{{.Car.Brand}} {{.Car.Model}}">
+    <a class="inline-flex items-center text-sm font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/cars">
         Back to cars
     </a>
 
@@ -11,41 +11,41 @@
                     {{if .Car.ImageURL}}
                     <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image data-lightbox-image-source>
                     {{else}}
-                    <img class="h-64 w-full bg-slate-100 object-contain p-8 sm:h-72 lg:h-80" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image-source>
+                    <img class="h-64 w-full bg-slate-100 dark:bg-slate-700 object-contain p-8 sm:h-72 lg:h-80" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image-source>
                     {{end}}
                 </button>
-                <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-sm text-slate-500">
+                <div class="flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 px-5 py-3 text-sm text-slate-500 dark:text-slate-400">
                     <span>Click the image to view it larger.</span>
                     <span class="hidden text-xs font-semibold uppercase tracking-wide text-slate-400 sm:inline">Single vehicle image</span>
                 </div>
             </div>
 
             <section id="vehicle-specifications">
-                <h2 class="text-2xl font-semibold tracking-tight text-slate-950">Vehicle specifications</h2>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                <h2 class="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Vehicle specifications</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
                     Key details for comparing this vehicle before you submit a booking request.
                 </p>
 
                 <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Transmission</span>
-                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.Transmission}}</strong>
+                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Transmission</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950 dark:text-slate-100">{{.Car.Transmission}}</strong>
                     </div>
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fuel type</span>
-                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.FuelType}}</strong>
+                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Fuel type</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950 dark:text-slate-100">{{.Car.FuelType}}</strong>
                     </div>
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Seats</span>
-                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.Seats}}</strong>
+                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Seats</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950 dark:text-slate-100">{{.Car.Seats}}</strong>
                     </div>
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Year</span>
-                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.Year}}</strong>
+                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Year</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950 dark:text-slate-100">{{.Car.Year}}</strong>
                     </div>
-                    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Category</span>
-                        <strong class="mt-2 block text-lg font-semibold text-slate-950">{{.Car.CategoryName}}</strong>
+                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Category</span>
+                        <strong class="mt-2 block text-lg font-semibold text-slate-950 dark:text-slate-100">{{.Car.CategoryName}}</strong>
                     </div>
                 </div>
             </section>
@@ -58,45 +58,49 @@
             </div>
 
             <div>
-                <h1 class="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-4xl lg:text-5xl">
                     {{.Car.Brand}} {{.Car.Model}}
                 </h1>
-                <p class="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                <p class="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
                     {{.Car.Year}} {{.Car.CategoryName}} with straightforward booking and clear rental pricing.
                 </p>
             </div>
 
-            <div class="grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div class="grid grid-cols-3 gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-4">
                 <div>
-                    <p class="text-xs font-medium text-slate-500">Transmission</p>
-                    <p class="mt-1 text-sm font-semibold text-slate-950">{{.Car.Transmission}}</p>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Transmission</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-950 dark:text-slate-100">{{.Car.Transmission}}</p>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-slate-500">Fuel</p>
-                    <p class="mt-1 text-sm font-semibold text-slate-950">{{.Car.FuelType}}</p>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Fuel</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-950 dark:text-slate-100">{{.Car.FuelType}}</p>
                 </div>
                 <div>
-                    <p class="text-xs font-medium text-slate-500">Seats</p>
-                    <p class="mt-1 text-sm font-semibold text-slate-950">{{.Car.Seats}}</p>
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Seats</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-950 dark:text-slate-100">{{.Car.Seats}}</p>
                 </div>
             </div>
 
-            <div class="rounded-2xl border border-sky-100 bg-sky-50/60 p-5 shadow-sm">
-                <p class="text-sm font-medium text-slate-500">Rental price</p>
-                <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                    {{formatMoney .Car.PricePerDay}}<span class="text-base font-normal text-slate-500"> / day</span>
+            <div class="rounded-2xl border border-sky-100 bg-sky-50/60 p-5 shadow-sm dark:border-sky-800/70 dark:bg-sky-950/40">
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Rental price</p>
+                <p class="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-4xl">
+                    {{formatMoney .Car.PricePerDay}}<span class="text-base font-normal text-slate-500 dark:text-slate-400"> / day</span>
                 </p>
-                <p class="mt-3 text-sm leading-6 text-slate-600">
+                <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                     Submit your pickup and return times with contact details. The request is reviewed before confirmation.
                 </p>
                 <a class="btn btn-primary mt-5 w-full" href="/cars/{{.Car.Slug}}/book">
                     Book this car
                 </a>
+                <button class="favorite-button mt-3 w-full" type="button" data-favorite-toggle data-car-slug="{{.Car.Slug}}" data-car-name="{{.Car.Brand}} {{.Car.Model}}" aria-pressed="false" aria-label="Add {{.Car.Brand}} {{.Car.Model}} to favorites">
+                    <span data-favorite-icon aria-hidden="true">♡</span>
+                    <span data-favorite-label>Save vehicle</span>
+                </button>
             </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                <p class="font-semibold text-slate-950">Share this vehicle</p>
-                <p class="mt-1 text-sm text-slate-500">Copy this listing or keep browsing the fleet.</p>
+            <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+                <p class="font-semibold text-slate-950 dark:text-slate-100">Share this vehicle</p>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Copy this listing or keep browsing the fleet.</p>
                 <div class="mt-4 grid gap-2 sm:grid-cols-2">
                     <button class="share-action" type="button" data-copy-page-url>
                         Copy link
@@ -105,14 +109,13 @@
                         Browse cars
                     </a>
                 </div>
-                <p class="mt-3 hidden text-sm font-medium text-emerald-700" data-copy-feedback aria-live="polite"></p>
             </div>
         </aside>
     </section>
 
     <div class="image-lightbox" data-image-lightbox hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="{{.Car.Brand}} {{.Car.Model}} image preview">
         <div class="relative mx-auto max-w-5xl p-4">
-            <button class="absolute right-6 top-6 rounded-full bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm" type="button" data-lightbox-close>
+            <button class="absolute right-6 top-6 rounded-full bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm" type="button" data-lightbox-close>
                 Close
             </button>
             {{if .Car.ImageURL}}

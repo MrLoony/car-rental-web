@@ -16,22 +16,20 @@ function initCopyPageLink(root) {
     qsa("[data-copy-page-url]", root).forEach((button) => {
         on(button, "click", async () => {
             const copied = await copyText(window.location.href);
-            const feedback = qs("[data-copy-feedback]", root);
             const originalText = button.dataset.originalText || button.textContent;
 
             button.dataset.originalText = originalText;
             button.textContent = copied ? "Copied" : "Copy failed";
 
-            if (feedback) {
-                feedback.textContent = copied ? "Link copied to clipboard." : "Copy failed. Use the address bar to copy this link.";
-                feedback.classList.remove("hidden");
-            }
+            document.dispatchEvent(new CustomEvent("app:toast", {
+                detail: {
+                    type: copied ? "success" : "warning",
+                    message: copied ? "Link copied to clipboard." : "Copy failed. Use the address bar to copy this link.",
+                },
+            }));
 
             window.setTimeout(() => {
                 button.textContent = originalText;
-                if (feedback) {
-                    feedback.classList.add("hidden");
-                }
             }, copiedResetMs);
         });
     });
