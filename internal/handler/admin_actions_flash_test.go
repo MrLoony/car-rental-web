@@ -288,15 +288,15 @@ func (r *fakeHandlerBookingRepository) ListBookingsForExport(ctx context.Context
 	return r.exportRows, nil
 }
 
-func (r *fakeHandlerBookingRepository) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
+func (r *fakeHandlerBookingRepository) GetBookingStats(ctx context.Context, dashboardRange model.DashboardRange) (model.BookingStats, error) {
 	return model.BookingStats{}, nil
 }
 
-func (r *fakeHandlerBookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
+func (r *fakeHandlerBookingRepository) GetRevenueStats(ctx context.Context, dashboardRange model.DashboardRange) (model.RevenueStats, error) {
 	return model.RevenueStats{}, nil
 }
 
-func (r *fakeHandlerBookingRepository) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
+func (r *fakeHandlerBookingRepository) GetRecentBookings(ctx context.Context, limit int, dashboardRange model.DashboardRange) ([]model.RecentBookingActivity, error) {
 	return nil, nil
 }
 

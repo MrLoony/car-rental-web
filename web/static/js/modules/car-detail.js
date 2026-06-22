@@ -44,7 +44,10 @@ function initCarImageLightbox(root) {
         return;
     }
 
+    let previousFocus = null;
+
     function openLightbox() {
+        previousFocus = document.activeElement;
         lightbox.hidden = false;
         lightbox.classList.add("image-lightbox-open");
         lightbox.setAttribute("aria-hidden", "false");
@@ -57,7 +60,11 @@ function initCarImageLightbox(root) {
         lightbox.classList.remove("image-lightbox-open");
         lightbox.setAttribute("aria-hidden", "true");
         document.body.classList.remove("overflow-hidden");
-        trigger.focus();
+        if (previousFocus && typeof previousFocus.focus === "function") {
+            previousFocus.focus();
+        } else {
+            trigger.focus();
+        }
     }
 
     on(trigger, "click", openLightbox);

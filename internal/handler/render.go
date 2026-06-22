@@ -35,6 +35,8 @@ type TemplateData struct {
 	BookingStats                 model.BookingStats
 	RevenueStats                 model.RevenueStats
 	RecentBookings               []model.RecentBookingActivity
+	SelectedDashboardRange       model.DashboardRange
+	DashboardRangeOptions        []model.DashboardRangeOption
 	AdminCars                    []model.Car
 	AdminCar                     model.Car
 	AdminCarFilter               model.AdminCarFilter

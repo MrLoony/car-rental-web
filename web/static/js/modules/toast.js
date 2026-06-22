@@ -95,6 +95,8 @@ function buildToast(type, message) {
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
     toast.dataset.toast = "";
+    toast.setAttribute("role", type === "error" || type === "warning" ? "alert" : "status");
+    toast.setAttribute("aria-atomic", "true");
 
     const body = document.createElement("div");
     body.className = "min-w-0 flex-1";
@@ -117,6 +119,7 @@ function buildToast(type, message) {
     const progress = document.createElement("div");
     progress.className = "toast-progress";
     progress.dataset.toastProgress = "";
+    progress.setAttribute("aria-hidden", "true");
 
     body.append(label, text);
     toast.append(body, closeButton, progress);

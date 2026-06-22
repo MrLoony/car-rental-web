@@ -63,50 +63,50 @@
 
     <div class="admin-table-shell">
         <div class="overflow-x-auto">
-            <table class="admin-table">
+            <table class="admin-table admin-table-compact">
                 <thead>
                     <tr>
-                        <th class="whitespace-nowrap px-3 py-2">ID</th>
-                        <th class="min-w-72 px-3 py-2">Customer</th>
-                        <th class="min-w-44 px-3 py-2">Car</th>
-                        <th class="whitespace-nowrap px-3 py-2">Pickup</th>
-                        <th class="whitespace-nowrap px-3 py-2">Return</th>
-                        <th class="whitespace-nowrap px-3 py-2">Days</th>
-                        <th class="whitespace-nowrap px-3 py-2">Total</th>
-                        <th class="whitespace-nowrap px-3 py-2">Status</th>
-                        <th class="whitespace-nowrap px-3 py-2">Created</th>
-                        <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Details</span></th>
+                        <th class="w-16 whitespace-nowrap px-2 py-2" scope="col">ID</th>
+                        <th class="min-w-60 px-2 py-2" scope="col">Customer</th>
+                        <th class="min-w-36 px-2 py-2" scope="col">Car</th>
+                        <th class="min-w-48 px-2 py-2" scope="col">Rental period</th>
+                        <th class="w-14 whitespace-nowrap px-2 py-2" scope="col">Days</th>
+                        <th class="w-24 whitespace-nowrap px-2 py-2" scope="col">Total</th>
+                        <th class="w-28 whitespace-nowrap px-2 py-2" scope="col">Status</th>
+                        <th class="w-20 whitespace-nowrap px-2 py-2" scope="col"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     {{range .AdminBookings}}
                     <tr class="admin-table-row" tabindex="0" data-admin-table-row>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">#{{.ID}}</td>
-                        <td class="max-w-80 px-3 py-2.5">
+                        <td class="whitespace-nowrap px-2 py-2 font-medium text-slate-950 dark:text-slate-100">#{{.ID}}</td>
+                        <td class="max-w-64 px-2 py-2">
                             <p class="truncate font-medium text-slate-950 dark:text-slate-100">{{.CustomerName}}</p>
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                 <span class="truncate">{{.CustomerEmail}}</span>
-                                <button class="copy-button" type="button" data-copy-value="{{.CustomerEmail}}" data-copy-label="email" aria-label="Copy customer email">
-                                    Copy email
+                                <button class="copy-button" type="button" data-copy-value="{{.CustomerEmail}}" data-copy-label="email" aria-label="Copy customer email" title="Copy customer email">
+                                    Email
                                 </button>
                             </div>
                             {{if .CustomerPhone}}
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                 <span class="truncate">{{.CustomerPhone}}</span>
-                                <button class="copy-button" type="button" data-copy-value="{{.CustomerPhone}}" data-copy-label="phone" aria-label="Copy customer phone">
-                                    Copy phone
+                                <button class="copy-button" type="button" data-copy-value="{{.CustomerPhone}}" data-copy-label="phone" aria-label="Copy customer phone" title="Copy customer phone">
+                                    Phone
                                 </button>
                             </div>
                             {{end}}
                         </td>
-                        <td class="max-w-56 px-3 py-2.5 text-slate-700 dark:text-slate-300">
+                        <td class="max-w-44 px-2 py-2 text-slate-700 dark:text-slate-300">
                             <span class="block truncate">{{.CarBrand}} {{.CarModel}}</span>
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .PickupAt}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .ReturnAt}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{.BillingDays}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .EstimatedTotal}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5">
+                        <td class="px-2 py-2 text-xs leading-5 text-slate-700 dark:text-slate-300">
+                            <span class="block whitespace-nowrap"><span class="font-semibold text-slate-500 dark:text-slate-400">Pickup:</span> {{formatDateTime .PickupAt}}</span>
+                            <span class="block whitespace-nowrap"><span class="font-semibold text-slate-500 dark:text-slate-400">Return:</span> {{formatDateTime .ReturnAt}}</span>
+                        </td>
+                        <td class="whitespace-nowrap px-2 py-2 text-slate-700 dark:text-slate-300">{{.BillingDays}}</td>
+                        <td class="whitespace-nowrap px-2 py-2 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .EstimatedTotal}}</td>
+                        <td class="whitespace-nowrap px-2 py-2">
                             {{if eq .Status "pending"}}
                             <span class="badge badge-warning">{{.Status}}</span>
                             {{else if eq .Status "confirmed"}}
@@ -119,10 +119,9 @@
                             <span class="badge bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{.Status}}</span>
                             {{end}}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .CreatedAt}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-right">
-                            <a class="admin-table-action" href="/admin/bookings/{{.ID}}">
-                                Details
+                        <td class="whitespace-nowrap px-2 py-2 text-right">
+                            <a class="admin-table-action-compact" href="/admin/bookings/{{.ID}}" aria-label="View booking #{{.ID}} details" title="View booking details">
+                                View
                             </a>
                         </td>
                     </tr>

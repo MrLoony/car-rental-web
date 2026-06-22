@@ -16,6 +16,24 @@
     </div>
 </section>
 
+<section class="mt-6">
+    <div class="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Reporting range</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Dashboard statistics, revenue, and recent activity use this booking creation date range.
+            </p>
+        </div>
+        <nav class="flex flex-wrap gap-2" aria-label="Dashboard reporting range">
+            {{range .DashboardRangeOptions}}
+            <a class="dashboard-filter-chip {{if .Active}}dashboard-filter-chip-active{{end}}" href="{{.URL}}" {{if .Active}}aria-current="page"{{end}}>
+                {{.Label}}
+            </a>
+            {{end}}
+        </nav>
+    </div>
+</section>
+
 <section class="dashboard-section">
     <div class="dashboard-section-header">
         <div>
@@ -165,14 +183,14 @@
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-left text-sm">
                     <thead class="bg-slate-50 dark:bg-slate-800/70 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                         <tr>
-                            <th class="whitespace-nowrap px-3 py-2">ID</th>
-                            <th class="min-w-48 px-3 py-2">Customer</th>
-                            <th class="min-w-44 px-3 py-2">Vehicle</th>
-                            <th class="whitespace-nowrap px-3 py-2">Status</th>
-                            <th class="whitespace-nowrap px-3 py-2">Pickup</th>
-                            <th class="whitespace-nowrap px-3 py-2">Return</th>
-                            <th class="whitespace-nowrap px-3 py-2">Created</th>
-                            <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Details</span></th>
+                            <th class="whitespace-nowrap px-3 py-2" scope="col">ID</th>
+                            <th class="min-w-48 px-3 py-2" scope="col">Customer</th>
+                            <th class="min-w-44 px-3 py-2" scope="col">Vehicle</th>
+                            <th class="whitespace-nowrap px-3 py-2" scope="col">Status</th>
+                            <th class="whitespace-nowrap px-3 py-2" scope="col">Pickup</th>
+                            <th class="whitespace-nowrap px-3 py-2" scope="col">Return</th>
+                            <th class="whitespace-nowrap px-3 py-2" scope="col">Created</th>
+                            <th class="whitespace-nowrap px-3 py-2" scope="col"><span class="sr-only">Details</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
@@ -202,7 +220,7 @@
                             <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .ReturnTime}}</td>
                             <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{formatDateTime .CreatedAt}}</td>
                             <td class="whitespace-nowrap px-3 py-2.5 text-right">
-                                <a class="font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/admin/bookings/{{.ID}}">
+                                <a class="font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:focus-visible:outline-sky-400" href="/admin/bookings/{{.ID}}" aria-label="View booking #{{.ID}} details">
                                     Details
                                 </a>
                             </td>

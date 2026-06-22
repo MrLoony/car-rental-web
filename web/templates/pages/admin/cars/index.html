@@ -60,43 +60,43 @@
 
     <div class="admin-table-shell">
         <div class="overflow-x-auto">
-            <table class="admin-table">
+            <table class="admin-table admin-table-compact">
                 <thead>
                     <tr>
-                        <th class="whitespace-nowrap px-3 py-2">ID</th>
-                        <th class="min-w-64 px-3 py-2">Car</th>
-                        <th class="whitespace-nowrap px-3 py-2">Category</th>
-                        <th class="whitespace-nowrap px-3 py-2">Year</th>
-                        <th class="whitespace-nowrap px-3 py-2">Price</th>
-                        <th class="whitespace-nowrap px-3 py-2">Fleet status</th>
-                        <th class="whitespace-nowrap px-3 py-2">Availability</th>
-                        <th class="whitespace-nowrap px-3 py-2"><span class="sr-only">Actions</span></th>
+                        <th class="w-16 whitespace-nowrap px-2 py-2" scope="col">ID</th>
+                        <th class="min-w-56 px-2 py-2" scope="col">Car</th>
+                        <th class="w-28 whitespace-nowrap px-2 py-2" scope="col">Category</th>
+                        <th class="w-16 whitespace-nowrap px-2 py-2" scope="col">Year</th>
+                        <th class="w-24 whitespace-nowrap px-2 py-2" scope="col">Price</th>
+                        <th class="w-24 whitespace-nowrap px-2 py-2" scope="col">Fleet</th>
+                        <th class="w-28 whitespace-nowrap px-2 py-2" scope="col">Availability</th>
+                        <th class="w-36 whitespace-nowrap px-2 py-2" scope="col"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     {{range .AdminCars}}
                     <tr class="admin-table-row" tabindex="0" data-admin-table-row>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">#{{.ID}}</td>
-                        <td class="max-w-80 px-3 py-2.5">
+                        <td class="whitespace-nowrap px-2 py-2 font-medium text-slate-950 dark:text-slate-100">#{{.ID}}</td>
+                        <td class="max-w-64 px-2 py-2">
                             <p class="truncate font-medium text-slate-950 dark:text-slate-100">{{.Brand}} {{.Model}}</p>
-                            <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                 <span class="truncate">{{.Slug}}</span>
-                                <button class="copy-button" type="button" data-copy-value="{{.Slug}}" data-copy-label="slug" aria-label="Copy car slug">
-                                    Copy slug
+                                <button class="copy-button" type="button" data-copy-value="{{.Slug}}" data-copy-label="slug" aria-label="Copy car slug" title="Copy car slug">
+                                    Slug
                                 </button>
                             </div>
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{.CategoryName}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-slate-700 dark:text-slate-300">{{.Year}}</td>
-                        <td class="whitespace-nowrap px-3 py-2.5 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .PricePerDay}}/day</td>
-                        <td class="whitespace-nowrap px-3 py-2.5">
+                        <td class="whitespace-nowrap px-2 py-2 text-slate-700 dark:text-slate-300">{{.CategoryName}}</td>
+                        <td class="whitespace-nowrap px-2 py-2 text-slate-700 dark:text-slate-300">{{.Year}}</td>
+                        <td class="whitespace-nowrap px-2 py-2 font-medium text-slate-950 dark:text-slate-100">{{formatMoney .PricePerDay}}/day</td>
+                        <td class="whitespace-nowrap px-2 py-2">
                             {{if .ArchivedAt}}
                             <span class="badge bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Archived</span>
                             {{else}}
                             <span class="badge badge-info">Active</span>
                             {{end}}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5">
+                        <td class="whitespace-nowrap px-2 py-2">
                             {{if .ArchivedAt}}
                             <span class="badge bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Locked</span>
                             {{else}}
@@ -107,45 +107,14 @@
                             {{end}}
                             {{end}}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-2.5 text-right">
-                            <div class="flex flex-nowrap items-center justify-end gap-3">
-                                <a class="admin-table-action" href="/admin/cars/{{.ID}}">
+                        <td class="px-2 py-2 text-right">
+                            <div class="admin-table-actions">
+                                <a class="admin-table-action-compact" href="/admin/cars/{{.ID}}" aria-label="View {{.Brand}} {{.Model}} admin details" title="View admin details">
                                     View
                                 </a>
-                                <a class="admin-table-action" href="/admin/cars/{{.ID}}/edit">
+                                <a class="admin-table-action-compact" href="/admin/cars/{{.ID}}/edit" aria-label="Edit {{.Brand}} {{.Model}}" title="Edit car">
                                     Edit
                                 </a>
-                                <a class="font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-950 dark:hover:text-slate-100" href="/cars/{{.Slug}}">
-                                    Public page
-                                </a>
-                                {{if .ArchivedAt}}
-                                <form method="POST" action="/admin/cars/{{.ID}}/unarchive" data-confirm-action data-confirm-message="Restore this car? It will remain unavailable until you enable availability.">
-                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                    <button class="font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" type="submit">
-                                        Restore
-                                    </button>
-                                </form>
-                                {{else}}
-                                <form method="POST" action="/admin/cars/{{.ID}}/availability" data-confirm-action data-confirm-message="{{if .IsAvailable}}Mark this car unavailable?{{else}}Mark this car available publicly?{{end}}">
-                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                    {{if .IsAvailable}}
-                                    <button class="font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-950 dark:hover:text-slate-100" type="submit">
-                                        Mark unavailable
-                                    </button>
-                                    {{else}}
-                                    <input type="hidden" name="is_available" value="true">
-                                    <button class="font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-950 dark:hover:text-slate-100" type="submit">
-                                        Mark available
-                                    </button>
-                                    {{end}}
-                                </form>
-                                <form method="POST" action="/admin/cars/{{.ID}}/archive" data-confirm-action data-confirm-message="Archive this car? It will be removed from public catalog and booking.">
-                                    <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                                    <button class="font-semibold text-amber-700 dark:text-amber-300 transition hover:text-amber-800 dark:hover:text-amber-200" type="submit">
-                                        Archive
-                                    </button>
-                                </form>
-                                {{end}}
                             </div>
                             {{if .ArchivedAt}}
                             <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Restore before changing public availability.</p>

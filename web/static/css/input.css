@@ -1,9 +1,20 @@
 @import "tailwindcss";
 @config "../../../tailwind.config.cjs";
 
+@layer base {
+  a:focus-visible,
+  button:focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-sky-600 dark:outline-sky-400;
+  }
+}
+
 @layer components {
   .app-shell {
     @apply min-h-screen bg-slate-50 text-slate-950 antialiased dark:bg-slate-900 dark:text-slate-100;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[90] focus:rounded-md focus:bg-sky-700 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-sky-200 dark:focus:bg-sky-400 dark:focus:text-slate-950 dark:focus:outline-sky-800;
   }
 
   .page-container {
@@ -23,7 +34,7 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:focus-visible:outline-sky-400 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
@@ -39,7 +50,7 @@
   }
 
   .theme-toggle {
-    @apply inline-flex min-w-20 items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm shadow-slate-950/[0.03] transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600/90 dark:bg-slate-800 dark:text-slate-100 dark:shadow-black/10 dark:hover:border-sky-500 dark:hover:bg-slate-700 dark:hover:text-sky-300;
+    @apply inline-flex min-w-20 items-center justify-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm shadow-slate-950/[0.03] transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600/90 dark:bg-slate-800 dark:text-slate-100 dark:shadow-black/10 dark:hover:border-sky-500 dark:hover:bg-slate-700 dark:hover:text-sky-300 dark:focus-visible:outline-sky-400;
   }
 
   .favorites-counter {
@@ -51,7 +62,7 @@
   }
 
   .favorite-button {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-rose-700 dark:hover:bg-rose-950/50 dark:hover:text-rose-300;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-rose-700 dark:hover:bg-rose-950/50 dark:hover:text-rose-300 dark:focus-visible:outline-rose-300;
   }
 
   .favorite-button-active {
@@ -148,7 +159,7 @@
   }
 
   .toast-close {
-    @apply shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-slate-600 transition hover:bg-white/70 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white;
+    @apply shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-slate-600 transition hover:bg-white/70 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white dark:focus-visible:outline-sky-400;
   }
 
   .toast-progress {
@@ -180,11 +191,11 @@
   }
 
   .quick-action-card {
-    @apply block rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-md dark:border-slate-700/90 dark:bg-slate-800/95 dark:shadow-black/10 dark:hover:border-sky-600 dark:hover:bg-slate-700/70;
+    @apply block rounded-xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700/90 dark:bg-slate-800/95 dark:shadow-black/10 dark:hover:border-sky-600 dark:hover:bg-slate-700/70 dark:focus-visible:outline-sky-400;
   }
 
   .dashboard-filter-chip {
-    @apply rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-sky-300 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-600 dark:hover:text-sky-300;
+    @apply rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-sky-300 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-600 dark:hover:text-sky-300 dark:focus-visible:outline-sky-400;
   }
 
   .dashboard-filter-chip-active {
@@ -216,7 +227,7 @@
   }
 
   .filter-chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-800 transition hover:border-sky-300 hover:bg-sky-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-200 dark:hover:border-sky-600 dark:hover:bg-sky-950;
+    @apply inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sm font-semibold text-sky-800 transition hover:border-sky-300 hover:bg-sky-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-sky-800 dark:bg-sky-950/60 dark:text-sky-200 dark:hover:border-sky-600 dark:hover:bg-sky-950 dark:focus-visible:outline-sky-400;
   }
 
   .filter-chip-remove {
@@ -316,7 +327,7 @@
   }
 
   .duration-button {
-    @apply rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-sky-600 dark:hover:bg-slate-700 dark:hover:text-sky-300;
+    @apply rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-sky-600 dark:hover:bg-slate-700 dark:hover:text-sky-300 dark:focus-visible:outline-sky-400;
   }
 
   .duration-button-active {
@@ -375,6 +386,14 @@
     @apply min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-700;
   }
 
+  .admin-table-compact {
+    @apply text-[13px];
+  }
+
+  .admin-table-compact .badge {
+    @apply px-2 py-0.5 text-[11px];
+  }
+
   .admin-table thead {
     @apply sticky top-0 z-10 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-300;
   }
@@ -392,11 +411,19 @@
   }
 
   .admin-table-action {
-    @apply font-semibold text-sky-700 transition hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200;
+    @apply rounded-sm font-semibold text-sky-700 transition hover:text-sky-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-300 dark:hover:text-sky-200 dark:focus-visible:outline-sky-400;
+  }
+
+  .admin-table-actions {
+    @apply flex flex-nowrap items-center justify-end gap-1.5;
+  }
+
+  .admin-table-action-compact {
+    @apply inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-sky-300 dark:hover:border-sky-500 dark:hover:bg-slate-700 dark:hover:text-sky-200 dark:focus-visible:outline-sky-400;
   }
 
   .copy-button {
-    @apply rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 transition hover:border-sky-300 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-600 dark:hover:text-sky-300;
+    @apply rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-600 transition hover:border-sky-300 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-sky-600 dark:hover:text-sky-300 dark:focus-visible:outline-sky-400;
   }
 
   .copy-button-copied {
@@ -464,7 +491,7 @@
   }
 
   .share-action {
-    @apply inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-sky-600 dark:hover:bg-slate-700 dark:hover:text-sky-300;
+    @apply inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-sky-600 dark:hover:bg-slate-700 dark:hover:text-sky-300 dark:focus-visible:outline-sky-400;
   }
 
   .image-lightbox {
@@ -502,5 +529,123 @@
   .toast,
   .toast-dismissing {
     animation: none;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 0.6in;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  body {
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+
+  [data-print-hidden],
+  .toast-region,
+  header,
+  footer,
+  button,
+  form {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  main,
+  .page-container,
+  [data-print-layout],
+  [data-print-area="booking-summary"] {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  [data-print-layout] {
+    display: block !important;
+  }
+
+  [data-print-area="booking-summary"] {
+    display: block !important;
+  }
+
+  [data-print-area="booking-summary"] * {
+    background: transparent !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  [data-print-area="booking-summary"] a {
+    color: #0f172a !important;
+    text-decoration: none !important;
+  }
+
+  [data-print-area="booking-summary"] .card {
+    break-inside: avoid;
+    margin: 0 0 0.22in !important;
+    padding: 0.18in !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+  }
+
+  [data-print-area="booking-summary"] .card h1,
+  [data-print-area="booking-summary"] .card h2 {
+    margin-top: 0 !important;
+  }
+
+  [data-print-area="booking-summary"] dl {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.12in 0.2in !important;
+    margin-top: 0.14in !important;
+  }
+
+  [data-print-area="booking-summary"] dt {
+    color: #475569 !important;
+    font-size: 9pt !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  [data-print-area="booking-summary"] dd {
+    margin: 0.02in 0 0 !important;
+    font-weight: 700 !important;
+  }
+
+  .print-document-brand {
+    margin: 0 0 0.08in !important;
+    color: #475569 !important;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .print-only h1 {
+    margin: 0 !important;
+    font-size: 22pt !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .print-only p {
+    margin: 0.06in 0 0.22in !important;
+    color: #475569 !important;
   }
 }

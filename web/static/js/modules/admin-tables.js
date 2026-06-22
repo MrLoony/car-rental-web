@@ -109,9 +109,17 @@ function fallbackCopyText(value) {
 
 function setCopyButtonState(button, copied) {
     const originalText = button.dataset.originalText || button.textContent;
+    const label = button.dataset.copyLabel || "value";
     button.dataset.originalText = originalText;
     button.textContent = copied ? "Copied" : "Copy failed";
     button.classList.toggle(copiedClass, copied);
+
+    document.dispatchEvent(new CustomEvent("app:toast", {
+        detail: {
+            type: copied ? "success" : "warning",
+            message: copied ? `Copied ${label}.` : `Could not copy ${label}.`,
+        },
+    }));
 
     window.setTimeout(() => {
         button.textContent = originalText;

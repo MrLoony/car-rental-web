@@ -73,6 +73,7 @@ Project layout:
 - Protected admin routes
 - Admin dashboard at `/admin`
 - Booking list, detail view, and status updates
+- Printable booking summaries from the admin booking detail page
 - Car list, create, detail, edit, availability toggle, archive, and restore
 - Admin search and filtering for cars and bookings
 - Server-side pagination for admin cars and bookings
@@ -83,6 +84,7 @@ Project layout:
 
 The admin dashboard includes operational reporting cards and recent activity:
 
+- Reporting ranges: All Time, Last 30 Days, and This Month
 - Total bookings
 - Pending bookings
 - Confirmed bookings
@@ -94,6 +96,14 @@ The admin dashboard includes operational reporting cards and recent activity:
 - Completed revenue
 - Cancelled value
 - Recent booking activity with booking detail links
+
+Dashboard range filtering is SSR-based through the `/admin?range=` query parameter. It filters booking statistics, revenue statistics, and recent activity by booking creation date without AJAX or chart libraries.
+
+### Printable Booking Summary
+
+Admins can print a clean booking summary from the admin booking detail page. The feature uses browser printing and print-specific CSS rather than PDF generation or external libraries.
+
+The print layout focuses on the booking document and hides unrelated interface chrome such as navigation, action buttons, forms, flash messages, and toast regions.
 
 ### Booking CSV Export
 
@@ -162,6 +172,9 @@ Email sending is best-effort. Booking creation and booking status updates contin
 - Custom 500 page
 - Flash messages for admin actions
 - Clearer validation and upload error messages
+- Skip link for keyboard users
+- Improved focus-visible states across navigation, forms, tables, and interactive controls
+- Improved ARIA labels for theme, favorites, table actions, toasts, booking wizard controls, and image lightbox interactions
 - Responsive public, auth, and admin layouts
 - Polished catalog, car detail, booking, dashboard, table, and admin form pages
 - Server-rendered forms that work without JavaScript
@@ -192,6 +205,7 @@ Current JavaScript modules:
 - `car-detail.js` - public car detail copy action and single-image lightbox
 - `theme.js` - Light, Dark, and System theme switching
 - `toast.js` - reusable toast notifications with dismiss controls and progress indicators
+- `print-summary.js` - progressive browser printing for admin booking summaries
 - `form-helpers.js` - submit-once and unsaved-changes helpers
 - `flash.js` - flash message focus support
 - `utils.js` - shared DOM, debounce, formatting, and form helpers
@@ -332,14 +346,17 @@ Completed:
 - Email notifications
 - Dashboard reporting
 - Booking CSV export
+- Printable booking summaries
+- Dashboard date range filtering
 - Security hardening
 - UX improvements
 - Frontend modernization
 - JavaScript-heavy frontend enhancements
+- Accessibility improvements
 
 The application is suitable as a portfolio-scale SSR Go project. Additional production work would still be needed before real-world deployment.
 
-Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, Stage 22 frontend modernization, and Stage 23 JavaScript-heavy frontend features.
+Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, Stage 22 frontend modernization, Stage 23 JavaScript-heavy frontend features, and Stage 24 printing, dashboard range filters, and accessibility polish.
 
 ## Implemented
 
@@ -358,7 +375,9 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Car archive/restore workflow
 - Local car image uploads and image URL support
 - Admin dashboard with booking, revenue, and recent activity reporting
+- Dashboard reporting range filters for All Time, Last 30 Days, and This Month
 - Admin booking CSV export
+- Printable admin booking summaries using browser print CSS
 - Email notification infrastructure and booking notifications
 - Flash messages and polished form/admin feedback
 - Custom 404 and 500 pages
@@ -370,6 +389,7 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Light, Dark, and System theme switcher
 - Frontend-only favorites with localStorage persistence
 - Progressive booking form wizard with sessionStorage draft restore
+- Practical accessibility improvements for keyboard navigation, focus states, ARIA labels, toasts, tables, wizard steps, and lightbox focus restoration
 - Progressive frontend enhancements without SPA routing or AJAX requirements
 - CSRF protection
 - Basic login brute-force protection

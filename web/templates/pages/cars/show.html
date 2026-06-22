@@ -115,7 +115,7 @@
 
     <div class="image-lightbox" data-image-lightbox hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="{{.Car.Brand}} {{.Car.Model}} image preview">
         <div class="relative mx-auto max-w-5xl p-4">
-            <button class="absolute right-6 top-6 rounded-full bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm" type="button" data-lightbox-close>
+            <button class="absolute right-6 top-6 rounded-full bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm" type="button" data-lightbox-close aria-label="Close image preview">
                 Close
             </button>
             {{if .Car.ImageURL}}

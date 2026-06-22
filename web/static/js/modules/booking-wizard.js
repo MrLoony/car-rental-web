@@ -120,6 +120,7 @@ function goToStep(context, index) {
         const active = stepIndex === nextIndex;
         step.classList.toggle("booking-wizard-step-active", active);
         step.hidden = !active;
+        step.setAttribute("aria-hidden", active ? "false" : "true");
     });
 
     updateProgress(context);
@@ -156,6 +157,8 @@ function updateProgress(context) {
         item.classList.toggle("booking-wizard-progress-item-active", active);
         item.classList.toggle("booking-wizard-progress-item-complete", complete);
         item.setAttribute("aria-current", active ? "step" : "false");
+        const label = item.textContent.trim().replace(/\s+/g, " ");
+        item.setAttribute("aria-label", `${label}${active ? ", current step" : complete ? ", completed" : ""}`);
     });
 }
 

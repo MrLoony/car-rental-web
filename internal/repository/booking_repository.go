@@ -355,21 +355,24 @@ func (r *BookingRepository) ListBookingsForExport(ctx context.Context, filter mo
 	return bookings, nil
 }
 
-func (r *BookingRepository) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
-	const query = `
+func (r *BookingRepository) GetBookingStats(ctx context.Context, dashboardRange model.DashboardRange) (model.BookingStats, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT
 			COUNT(*) AS total,
 			COUNT(*) FILTER (WHERE status = $1) AS pending,
 			COUNT(*) FILTER (WHERE status = $2) AS confirmed,
 			COUNT(*) FILTER (WHERE status = $3) AS cancelled,
 			COUNT(*) FILTER (WHERE status = $4) AS completed
-		FROM bookings
-	`
+		FROM bookings b
+		WHERE TRUE
+	`)
+	appendDashboardRangeFilter(&query, "b.created_at", dashboardRange)
 
 	var stats model.BookingStats
 	if err := r.db.QueryRow(
 		ctx,
-		query,
+		query.String(),
 		model.BookingStatusPending,
 		model.BookingStatusConfirmed,
 		model.BookingStatusCancelled,
@@ -387,21 +390,24 @@ func (r *BookingRepository) GetBookingStats(ctx context.Context) (model.BookingS
 	return stats, nil
 }
 
-func (r *BookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
-	const query = `
+func (r *BookingRepository) GetRevenueStats(ctx context.Context, dashboardRange model.DashboardRange) (model.RevenueStats, error) {
+	var query strings.Builder
+	query.WriteString(`
 		SELECT
 			COALESCE(SUM(estimated_total), 0)::double precision AS total_potential,
 			COALESCE(SUM(estimated_total) FILTER (WHERE status = $1), 0)::double precision AS pending,
 			COALESCE(SUM(estimated_total) FILTER (WHERE status = $2), 0)::double precision AS confirmed,
 			COALESCE(SUM(estimated_total) FILTER (WHERE status = $3), 0)::double precision AS completed,
 			COALESCE(SUM(estimated_total) FILTER (WHERE status = $4), 0)::double precision AS cancelled
-		FROM bookings
-	`
+		FROM bookings b
+		WHERE TRUE
+	`)
+	appendDashboardRangeFilter(&query, "b.created_at", dashboardRange)
 
 	var stats model.RevenueStats
 	if err := r.db.QueryRow(
 		ctx,
-		query,
+		query.String(),
 		model.BookingStatusPending,
 		model.BookingStatusConfirmed,
 		model.BookingStatusCompleted,
@@ -419,12 +425,13 @@ func (r *BookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueS
 	return stats, nil
 }
 
-func (r *BookingRepository) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
+func (r *BookingRepository) GetRecentBookings(ctx context.Context, limit int, dashboardRange model.DashboardRange) ([]model.RecentBookingActivity, error) {
 	if limit <= 0 {
 		limit = 10
 	}
 
-	const query = `
+	var query strings.Builder
+	query.WriteString(`
 		SELECT
 			b.id,
 			b.customer_name,
@@ -435,11 +442,12 @@ func (r *BookingRepository) GetRecentBookings(ctx context.Context, limit int) ([
 			b.created_at
 		FROM bookings b
 		JOIN cars c ON c.id = b.car_id
-		ORDER BY b.created_at DESC, b.id DESC
-		LIMIT $1
-	`
+		WHERE TRUE
+	`)
+	appendDashboardRangeFilter(&query, "b.created_at", dashboardRange)
+	query.WriteString(" ORDER BY b.created_at DESC, b.id DESC LIMIT $1")
 
-	rows, err := r.db.Query(ctx, query, limit)
+	rows, err := r.db.Query(ctx, query.String(), limit)
 	if err != nil {
 		return nil, fmt.Errorf("get recent bookings: %w", err)
 	}
@@ -573,5 +581,14 @@ func appendAdminBookingFilters(query *strings.Builder, args *[]any, filter model
 		*args = append(*args, status)
 		query.WriteString(" AND ")
 		query.WriteString(fmt.Sprintf("b.status = $%d", len(*args)))
+	}
+}
+
+func appendDashboardRangeFilter(query *strings.Builder, createdAtColumn string, dashboardRange model.DashboardRange) {
+	switch model.NormalizeDashboardRange(string(dashboardRange)) {
+	case model.DashboardRangeLast30Days:
+		query.WriteString(fmt.Sprintf(" AND %s >= NOW() - interval '30 days'", createdAtColumn))
+	case model.DashboardRangeThisMonth:
+		query.WriteString(fmt.Sprintf(" AND %s >= date_trunc('month', NOW()) AND %s < date_trunc('month', NOW()) + interval '1 month'", createdAtColumn, createdAtColumn))
 	}
 }

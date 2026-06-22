@@ -1,10 +1,16 @@
 {{define "content"}}
-<a class="inline-flex text-sm font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/admin/bookings">
+<a class="inline-flex text-sm font-semibold text-sky-700 dark:text-sky-300 transition hover:text-sky-800 dark:hover:text-sky-200" href="/admin/bookings" data-print-hidden>
     Back to booking requests
 </a>
 
-<section class="mt-6 grid gap-8 lg:grid-cols-[1fr_0.8fr]">
-    <div class="space-y-6">
+<section class="mt-6 grid gap-8 lg:grid-cols-[1fr_0.8fr]" data-print-layout>
+    <div class="space-y-6" data-print-area="booking-summary">
+        <div class="print-only">
+            <p class="print-document-brand">{{.AppName}}</p>
+            <h1>Booking summary #{{.AdminBooking.ID}}</h1>
+            <p>Generated from the admin booking detail page.</p>
+        </div>
+
         <div class="card p-6">
             <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Booking #{{.AdminBooking.ID}}</p>
             <h1 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Booking request details</h1>
@@ -76,7 +82,11 @@
         </div>
     </div>
 
-    <aside class="card h-fit p-6 lg:sticky lg:top-6">
+    <aside class="card h-fit p-6 lg:sticky lg:top-6" data-print-hidden>
+        <button class="btn btn-secondary mb-5 hidden w-full" type="button" data-print-booking-summary aria-label="Print booking summary">
+            Print summary
+        </button>
+
         <h2 class="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Update status</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
             Change the booking request status for internal tracking.

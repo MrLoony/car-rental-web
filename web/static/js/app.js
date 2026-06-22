@@ -9,6 +9,7 @@ import { initFavorites } from "./modules/favorites.js";
 import { initFlash } from "./modules/flash.js";
 import { initFormHelpers } from "./modules/form-helpers.js";
 import { initImagePreview } from "./modules/image-preview.js";
+import { initPrintSummary } from "./modules/print-summary.js";
 import { initTheme } from "./modules/theme.js";
 import { initToasts } from "./modules/toast.js";
 
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initImagePreview();
     initAdminActions();
     initAdminTables();
+    initPrintSummary();
     initFlash();
     initFormHelpers();
 });

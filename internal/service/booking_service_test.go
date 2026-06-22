@@ -363,7 +363,7 @@ func TestGetBookingStatsReturnsRepositoryStats(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{stats: want}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	got, err := service.GetBookingStats(context.Background())
+	got, err := service.GetBookingStats(context.Background(), model.DashboardRangeThisMonth)
 	if err != nil {
 		t.Fatalf("GetBookingStats() error = %v, want nil", err)
 	}
@@ -371,8 +371,25 @@ func TestGetBookingStatsReturnsRepositoryStats(t *testing.T) {
 	if !bookingRepo.statsCalled {
 		t.Fatal("GetBookingStats() did not call repository")
 	}
+	if bookingRepo.statsRange != model.DashboardRangeThisMonth {
+		t.Fatalf("statsRange = %q, want %q", bookingRepo.statsRange, model.DashboardRangeThisMonth)
+	}
 	if got != want {
 		t.Fatalf("GetBookingStats() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetBookingStatsNormalizesInvalidRange(t *testing.T) {
+	bookingRepo := &fakeBookingRepository{}
+	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
+
+	_, err := service.GetBookingStats(context.Background(), model.DashboardRange("bad"))
+	if err != nil {
+		t.Fatalf("GetBookingStats() error = %v, want nil", err)
+	}
+
+	if bookingRepo.statsRange != model.DashboardRangeAll {
+		t.Fatalf("statsRange = %q, want %q", bookingRepo.statsRange, model.DashboardRangeAll)
 	}
 }
 
@@ -380,7 +397,7 @@ func TestGetBookingStatsWrapsRepositoryError(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{statsErr: errors.New("database unavailable")}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	_, err := service.GetBookingStats(context.Background())
+	_, err := service.GetBookingStats(context.Background(), model.DashboardRangeThisMonth)
 	if err == nil {
 		t.Fatal("GetBookingStats() error = nil, want error")
 	}
@@ -397,13 +414,16 @@ func TestGetRevenueStatsReturnsRepositoryStats(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{revenueStats: want}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	got, err := service.GetRevenueStats(context.Background())
+	got, err := service.GetRevenueStats(context.Background(), model.DashboardRangeLast30Days)
 	if err != nil {
 		t.Fatalf("GetRevenueStats() error = %v, want nil", err)
 	}
 
 	if !bookingRepo.revenueStatsCalled {
 		t.Fatal("GetRevenueStats() did not call repository")
+	}
+	if bookingRepo.revenueStatsRange != model.DashboardRangeLast30Days {
+		t.Fatalf("revenueStatsRange = %q, want %q", bookingRepo.revenueStatsRange, model.DashboardRangeLast30Days)
 	}
 	if got != want {
 		t.Fatalf("GetRevenueStats() = %#v, want %#v", got, want)
@@ -414,7 +434,7 @@ func TestGetRevenueStatsWrapsRepositoryError(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{revenueStatsErr: errors.New("database unavailable")}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	_, err := service.GetRevenueStats(context.Background())
+	_, err := service.GetRevenueStats(context.Background(), model.DashboardRangeLast30Days)
 	if err == nil {
 		t.Fatal("GetRevenueStats() error = nil, want error")
 	}
@@ -435,7 +455,7 @@ func TestGetRecentBookingsReturnsRepositoryRows(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{recentBookings: want}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	got, err := service.GetRecentBookings(context.Background(), 5)
+	got, err := service.GetRecentBookings(context.Background(), 5, model.DashboardRangeThisMonth)
 	if err != nil {
 		t.Fatalf("GetRecentBookings() error = %v, want nil", err)
 	}
@@ -446,6 +466,9 @@ func TestGetRecentBookingsReturnsRepositoryRows(t *testing.T) {
 	if bookingRepo.recentBookingsLimit != 5 {
 		t.Fatalf("recentBookingsLimit = %d, want 5", bookingRepo.recentBookingsLimit)
 	}
+	if bookingRepo.recentBookingsRange != model.DashboardRangeThisMonth {
+		t.Fatalf("recentBookingsRange = %q, want %q", bookingRepo.recentBookingsRange, model.DashboardRangeThisMonth)
+	}
 	if len(got) != len(want) || got[0] != want[0] {
 		t.Fatalf("GetRecentBookings() = %#v, want %#v", got, want)
 	}
@@ -455,7 +478,7 @@ func TestGetRecentBookingsDefaultsInvalidLimit(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	_, err := service.GetRecentBookings(context.Background(), 0)
+	_, err := service.GetRecentBookings(context.Background(), 0, model.DashboardRangeLast30Days)
 	if err != nil {
 		t.Fatalf("GetRecentBookings() error = %v, want nil", err)
 	}
@@ -469,7 +492,7 @@ func TestGetRecentBookingsWrapsRepositoryError(t *testing.T) {
 	bookingRepo := &fakeBookingRepository{recentBookingsErr: errors.New("database unavailable")}
 	service := NewBookingService(bookingRepo, &fakeBookingCarRepository{}, nil)
 
-	_, err := service.GetRecentBookings(context.Background(), 10)
+	_, err := service.GetRecentBookings(context.Background(), 10, model.DashboardRangeThisMonth)
 	if err == nil {
 		t.Fatal("GetRecentBookings() error = nil, want error")
 	}
@@ -808,13 +831,16 @@ type fakeBookingRepository struct {
 	getBooking           model.BookingAdminView
 	getErr               error
 	statsCalled          bool
+	statsRange           model.DashboardRange
 	stats                model.BookingStats
 	statsErr             error
 	revenueStatsCalled   bool
+	revenueStatsRange    model.DashboardRange
 	revenueStats         model.RevenueStats
 	revenueStatsErr      error
 	recentBookingsCalled bool
 	recentBookingsLimit  int
+	recentBookingsRange  model.DashboardRange
 	recentBookings       []model.RecentBookingActivity
 	recentBookingsErr    error
 	exportCalled         bool
@@ -857,8 +883,9 @@ func (r *fakeBookingRepository) ListBookingsPage(ctx context.Context, filter mod
 	return nil, nil
 }
 
-func (r *fakeBookingRepository) GetBookingStats(ctx context.Context) (model.BookingStats, error) {
+func (r *fakeBookingRepository) GetBookingStats(ctx context.Context, dashboardRange model.DashboardRange) (model.BookingStats, error) {
 	r.statsCalled = true
+	r.statsRange = dashboardRange
 	if r.statsErr != nil {
 		return model.BookingStats{}, r.statsErr
 	}
@@ -866,8 +893,9 @@ func (r *fakeBookingRepository) GetBookingStats(ctx context.Context) (model.Book
 	return r.stats, nil
 }
 
-func (r *fakeBookingRepository) GetRevenueStats(ctx context.Context) (model.RevenueStats, error) {
+func (r *fakeBookingRepository) GetRevenueStats(ctx context.Context, dashboardRange model.DashboardRange) (model.RevenueStats, error) {
 	r.revenueStatsCalled = true
+	r.revenueStatsRange = dashboardRange
 	if r.revenueStatsErr != nil {
 		return model.RevenueStats{}, r.revenueStatsErr
 	}
@@ -875,9 +903,10 @@ func (r *fakeBookingRepository) GetRevenueStats(ctx context.Context) (model.Reve
 	return r.revenueStats, nil
 }
 
-func (r *fakeBookingRepository) GetRecentBookings(ctx context.Context, limit int) ([]model.RecentBookingActivity, error) {
+func (r *fakeBookingRepository) GetRecentBookings(ctx context.Context, limit int, dashboardRange model.DashboardRange) ([]model.RecentBookingActivity, error) {
 	r.recentBookingsCalled = true
 	r.recentBookingsLimit = limit
+	r.recentBookingsRange = dashboardRange
 	if r.recentBookingsErr != nil {
 		return nil, r.recentBookingsErr
 	}

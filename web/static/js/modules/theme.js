@@ -81,11 +81,12 @@ export function cycleTheme() {
 function updateThemeControls() {
     const label = themeLabel(currentMode);
     const resolvedTheme = getResolvedTheme();
+    const nextLabel = themeLabel(nextThemeMode(currentMode));
 
     qsa("[data-theme-toggle]").forEach((button) => {
         button.dataset.themeMode = currentMode;
         button.dataset.themeResolved = resolvedTheme;
-        button.setAttribute("aria-label", `Color theme: ${label}. Activate to change theme.`);
+        button.setAttribute("aria-label", `Color theme: ${label}. Activate to switch to ${nextLabel}.`);
         button.title = `Color theme: ${label}`;
     });
 
@@ -112,4 +113,9 @@ function themeLabel(mode) {
     }
 
     return "System";
+}
+
+function nextThemeMode(mode) {
+    const index = validModes.indexOf(mode);
+    return validModes[(index + 1) % validModes.length] || "system";
 }
