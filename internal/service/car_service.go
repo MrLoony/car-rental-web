@@ -62,9 +62,6 @@ func (s *CarService) ListCars(ctx context.Context, filter model.CarFilter) ([]mo
 	if err != nil {
 		return nil, fmt.Errorf("list cars: %w", err)
 	}
-	if err := s.applyCatalogImageURLs(ctx, cars); err != nil {
-		return nil, err
-	}
 
 	return cars, nil
 }
@@ -82,14 +79,11 @@ func (s *CarService) ListCarsPage(ctx context.Context, filter model.CarFilter) (
 	if err != nil {
 		return nil, model.Pagination{}, fmt.Errorf("list cars page: %w", err)
 	}
-	if err := s.applyCatalogImageURLs(ctx, cars); err != nil {
-		return nil, model.Pagination{}, err
-	}
 
 	return cars, pagination, nil
 }
 
-func (s *CarService) applyCatalogImageURLs(ctx context.Context, cars []model.Car) error {
+func (s *CarService) GetCatalogImageURLs(ctx context.Context, cars []model.Car) (map[int64]string, error) {
 	carIDs := make([]int64, 0, len(cars))
 	for _, car := range cars {
 		if car.ID > 0 {
@@ -97,21 +91,15 @@ func (s *CarService) applyCatalogImageURLs(ctx context.Context, cars []model.Car
 		}
 	}
 	if len(carIDs) == 0 {
-		return nil
+		return map[int64]string{}, nil
 	}
 
 	imageURLs, err := s.repo.GetCatalogImageURLsByCarIDs(ctx, carIDs)
 	if err != nil {
-		return fmt.Errorf("get catalog image urls: %w", err)
+		return nil, fmt.Errorf("get catalog image urls: %w", err)
 	}
 
-	for i := range cars {
-		if imageURL := imageURLs[cars[i].ID]; imageURL != "" {
-			cars[i].ImageURL = imageURL
-		}
-	}
-
-	return nil
+	return imageURLs, nil
 }
 
 func (s *CarService) GetCarBySlug(ctx context.Context, slug string) (model.Car, error) {
@@ -307,7 +295,6 @@ func normalizeCarForm(form model.CarForm) model.CarForm {
 	form.Transmission = strings.TrimSpace(form.Transmission)
 	form.FuelType = strings.TrimSpace(form.FuelType)
 	form.Seats = strings.TrimSpace(form.Seats)
-	form.ImageURL = strings.TrimSpace(form.ImageURL)
 
 	return form
 }
@@ -350,10 +337,6 @@ func validateCarForm(form *model.CarForm) model.Car {
 		form.Errors["fuel_type"] = "Fuel type is required."
 	}
 
-	if form.ImageURL != "" && !isValidCarImageURL(form.ImageURL) {
-		form.Errors["image_url"] = "Image URL must start with http://, https://, or /static/."
-	}
-
 	seats := parseRequiredInt(form.Seats, "seats", "Seats are required.", form.Errors)
 	if seats <= 0 && form.Errors["seats"] == "" {
 		form.Errors["seats"] = "Seats must be at least 1."
@@ -369,7 +352,6 @@ func validateCarForm(form *model.CarForm) model.Car {
 		Transmission: form.Transmission,
 		FuelType:     form.FuelType,
 		Seats:        seats,
-		ImageURL:     form.ImageURL,
 		IsAvailable:  form.IsAvailable,
 	}
 }
@@ -435,10 +417,4 @@ func isValidCarSlug(slug string) bool {
 	}
 
 	return true
-}
-
-func isValidCarImageURL(imageURL string) bool {
-	return strings.HasPrefix(imageURL, "http://") ||
-		strings.HasPrefix(imageURL, "https://") ||
-		strings.HasPrefix(imageURL, "/static/")
 }

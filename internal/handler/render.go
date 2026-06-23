@@ -14,6 +14,7 @@ type TemplateData struct {
 	Title                        string
 	AppName                      string
 	Cars                         []model.Car
+	CatalogImageURLs             map[int64]string
 	Car                          model.Car
 	CarImages                    []model.CarImage
 	Filter                       model.CarFilter
@@ -28,6 +29,7 @@ type TemplateData struct {
 	BookingForm                  model.BookingForm
 	BookingID                    int64
 	SuggestedVehicleBookingURLs  map[int64]string
+	SuggestedVehicleImageURLs    map[int64]string
 	AdminBookings                []model.BookingAdminView
 	AdminBooking                 model.BookingAdminView
 	AdminBookingFilter           model.AdminBookingFilter

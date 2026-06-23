@@ -31,6 +31,12 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 			return
 		}
 
+		catalogImageURLs, err := h.carService.GetCatalogImageURLs(r.Context(), cars)
+		if err != nil {
+			h.renderServerError(w, r, err)
+			return
+		}
+
 		categories, err := h.categoryService.ListCategories(r.Context())
 		if err != nil {
 			h.renderServerError(w, r, err)
@@ -38,10 +44,11 @@ func (h *Handler) CarsIndex() http.HandlerFunc {
 		}
 
 		data := TemplateData{
-			Title:   "Cars",
-			AppName: h.appName,
-			Cars:    cars,
-			Filter:  filter,
+			Title:            "Cars",
+			AppName:          h.appName,
+			Cars:             cars,
+			CatalogImageURLs: catalogImageURLs,
+			Filter:           filter,
 			CatalogFilterChips: catalogFilterChips(
 				filter,
 				categories,

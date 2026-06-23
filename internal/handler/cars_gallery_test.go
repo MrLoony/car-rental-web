@@ -54,3 +54,39 @@ func TestCarsShowLoadsGalleryImages(t *testing.T) {
 		t.Fatalf("body does not contain gallery image URL:\n%s", body)
 	}
 }
+
+func TestCarsShowUsesPlaceholderWhenNoGalleryImages(t *testing.T) {
+	chdirProjectRoot(t)
+	handler := testFlashHandler()
+	handler.appName = "Test App"
+	carRepo := &fakeHandlerCarRepository{
+		getBySlugCar: model.Car{
+			ID:           42,
+			CategoryName: "SUV",
+			Brand:        "Nissan",
+			Model:        "Patrol",
+			Slug:         "nissan-patrol",
+			Year:         2024,
+			PricePerDay:  140,
+			Transmission: "Automatic",
+			FuelType:     "Gasoline",
+			Seats:        7,
+			IsAvailable:  true,
+		},
+	}
+	handler.carService = service.NewCarService(carRepo)
+
+	request := requestWithParam(http.MethodGet, "/cars/nissan-patrol", "slug", "nissan-patrol")
+	response := httptest.NewRecorder()
+
+	handler.CarsShow().ServeHTTP(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+
+	body := response.Body.String()
+	if !strings.Contains(body, `/static/images/car-placeholder.svg`) {
+		t.Fatalf("body does not contain placeholder image:\n%s", body)
+	}
+}

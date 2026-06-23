@@ -29,8 +29,12 @@
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
-            {{if .AdminCar.ImageURL}}
-            <img class="aspect-[16/9] w-full object-cover" src="{{.AdminCar.ImageURL}}" alt="{{.AdminCar.Brand}} {{.AdminCar.Model}}" data-fallback-image>
+            {{if .CarImages}}
+            {{range $index, $image := .CarImages}}
+            {{if eq $index 0}}
+            <img class="aspect-[16/9] w-full object-cover" src="{{$image.ImageURL}}" alt="{{if $image.AltText}}{{$image.AltText}}{{else}}{{$.AdminCar.Brand}} {{$.AdminCar.Model}}{{end}}" data-fallback-image>
+            {{end}}
+            {{end}}
             {{else}}
             <img class="aspect-[16/9] w-full object-cover" src="/static/images/car-placeholder.svg" alt="Image coming soon">
             {{end}}
@@ -98,14 +102,6 @@
                         {{end}}
                         {{end}}
                     </dd>
-                </div>
-                <div class="sm:col-span-2">
-                    <dt class="text-sm text-slate-500 dark:text-slate-400">Image URL</dt>
-                    {{if .AdminCar.ImageURL}}
-                    <dd class="mt-1 break-all font-medium text-slate-950 dark:text-slate-100">{{.AdminCar.ImageURL}}</dd>
-                    {{else}}
-                    <dd class="mt-1 text-slate-500 dark:text-slate-400">No image URL set.</dd>
-                    {{end}}
                 </div>
             </dl>
         </div>

@@ -69,6 +69,11 @@ func (h *Handler) BookingCreate() http.HandlerFunc {
 				h.renderServerError(w, r, err)
 				return
 			}
+			suggestedVehicleImageURLs, err := h.suggestedVehicleImageURLs(r, form)
+			if err != nil {
+				h.renderServerError(w, r, err)
+				return
+			}
 
 			data := TemplateData{
 				Title:                       "Book " + car.Brand + " " + car.Model,
@@ -76,6 +81,7 @@ func (h *Handler) BookingCreate() http.HandlerFunc {
 				Car:                         car,
 				BookingForm:                 form,
 				SuggestedVehicleBookingURLs: suggestedVehicleBookingURLs,
+				SuggestedVehicleImageURLs:   suggestedVehicleImageURLs,
 			}
 
 			if err := h.renderWithStatus(w, r, "bookings/new.html", data, http.StatusUnprocessableEntity); err != nil {
@@ -176,6 +182,19 @@ func (h *Handler) suggestedVehicleBookingURLs(r *http.Request, form model.Bookin
 	}
 
 	return urls, nil
+}
+
+func (h *Handler) suggestedVehicleImageURLs(r *http.Request, form model.BookingForm) (map[int64]string, error) {
+	if len(form.SuggestedVehicles) == 0 {
+		return nil, nil
+	}
+
+	cars := make([]model.Car, 0, len(form.SuggestedVehicles))
+	for _, suggestion := range form.SuggestedVehicles {
+		cars = append(cars, suggestion.Car)
+	}
+
+	return h.carService.GetCatalogImageURLs(r.Context(), cars)
 }
 
 func bookingPrefillTokenURL(slug string, token string) string {

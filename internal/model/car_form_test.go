@@ -9,8 +9,8 @@ func TestNewCarForm(t *testing.T) {
 		t.Fatal("NewCarForm() did not initialize Errors")
 	}
 
-	if !form.IsAvailable {
-		t.Fatal("NewCarForm().IsAvailable = false, want true")
+	if form.IsAvailable {
+		t.Fatal("NewCarForm().IsAvailable = true, want false")
 	}
 
 	if form.HasErrors() {

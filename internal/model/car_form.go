@@ -12,7 +12,6 @@ type CarForm struct {
 	Transmission string
 	FuelType     string
 	Seats        string
-	ImageURL     string
 
 	IsAvailable bool
 	Errors      map[string]string
@@ -20,8 +19,7 @@ type CarForm struct {
 
 func NewCarForm() CarForm {
 	return CarForm{
-		IsAvailable: true,
-		Errors:      make(map[string]string),
+		Errors: make(map[string]string),
 	}
 }
 

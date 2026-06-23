@@ -108,6 +108,35 @@ func TestAdminBookingStatusUpdateSetsSuccessFlash(t *testing.T) {
 	assertResponseFlash(t, handler, response, model.FlashSuccess, "Booking status updated to confirmed.")
 }
 
+func TestAdminCarsCreateRedirectsToGalleryAndCreatesUnavailableCar(t *testing.T) {
+	carRepo := &fakeHandlerCarRepository{createCarID: 42}
+	handler := testFlashHandler()
+	handler.carService = service.NewCarService(carRepo)
+
+	form := url.Values{
+		"category_id":   {"1"},
+		"brand":         {"Toyota"},
+		"model":         {"Corolla"},
+		"slug":          {"toyota-corolla"},
+		"year":          {"2024"},
+		"price_per_day": {"75.50"},
+		"transmission":  {"Automatic"},
+		"fuel_type":     {"Gasoline"},
+		"seats":         {"5"},
+	}
+	request := httptest.NewRequest(http.MethodPost, "/admin/cars", strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response := httptest.NewRecorder()
+
+	handler.AdminCarsCreate().ServeHTTP(response, request)
+
+	assertRedirect(t, response, "/admin/cars/42/edit#vehicle-gallery")
+	assertResponseFlash(t, handler, response, model.FlashSuccess, "Car created as unavailable. Add gallery images, then enable it in the public catalog.")
+	if carRepo.createdCar.IsAvailable {
+		t.Fatal("created car IsAvailable = true, want false")
+	}
+}
+
 func TestAdminCarArchiveSetsSuccessFlash(t *testing.T) {
 	carRepo := &fakeHandlerCarRepository{}
 	handler := testFlashHandler()
@@ -512,6 +541,8 @@ type fakeHandlerCarRepository struct {
 	deletedCarImageID int64
 	primaryCarID      int64
 	primaryImageID    int64
+	createCarID       int64
+	createdCar        model.Car
 	countErr          error
 	getBySlugErr      error
 	getCarImagesErr   error
@@ -604,7 +635,8 @@ func (r *fakeHandlerCarRepository) GetCarByID(ctx context.Context, id int64) (mo
 }
 
 func (r *fakeHandlerCarRepository) CreateCar(ctx context.Context, car model.Car) (int64, error) {
-	return 0, nil
+	r.createdCar = car
+	return r.createCarID, nil
 }
 
 func (r *fakeHandlerCarRepository) UpdateCar(ctx context.Context, car model.Car) error {

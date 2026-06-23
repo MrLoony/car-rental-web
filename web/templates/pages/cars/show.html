@@ -15,8 +15,6 @@
                         <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{$image.ImageURL}}" alt="{{if $image.AltText}}{{$image.AltText}}{{else}}{{$.Car.Brand}} {{$.Car.Model}}{{end}}" data-fallback-image data-gallery-main-image data-lightbox-image-source>
                         {{end}}
                         {{end}}
-                        {{else if .Car.ImageURL}}
-                        <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image data-lightbox-image-source>
                         {{else}}
                         <img class="h-64 w-full bg-slate-100 object-contain p-8 dark:bg-slate-700 sm:h-72 lg:h-80" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image-source>
                         {{end}}
@@ -153,8 +151,6 @@
             <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="{{$image.ImageURL}}" alt="{{if $image.AltText}}{{$image.AltText}}{{else}}{{$.Car.Brand}} {{$.Car.Model}}{{end}}" data-lightbox-image>
             {{end}}
             {{end}}
-            {{else if .Car.ImageURL}}
-            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-lightbox-image>
             {{else}}
             <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image>
             {{end}}

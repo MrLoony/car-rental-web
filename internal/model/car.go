@@ -15,7 +15,6 @@ type Car struct {
 	Transmission string
 	FuelType     string
 	Seats        int
-	ImageURL     string
 	IsAvailable  bool
 	ArchivedAt   *time.Time
 	CreatedAt    time.Time

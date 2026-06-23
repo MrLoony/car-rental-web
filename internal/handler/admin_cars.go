@@ -78,21 +78,7 @@ func (h *Handler) AdminCarsNew() http.HandlerFunc {
 
 func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := parseOptionalCarMultipartForm(r); err != nil {
-			form := parseCarForm(r)
-			form = addCarFormError(form, "image_url", "The uploaded image could not be processed.")
-			h.renderAdminCarForm(w, r, "admin/cars/new.html", "New car", model.Car{}, form, http.StatusUnprocessableEntity)
-			return
-		}
-
 		form := parseCarForm(r)
-		if imageURL, uploaded, err := saveOptionalCarImageUpload(r, form.Slug); err != nil {
-			form = addCarFormError(form, "image_url", err.Error())
-			h.renderAdminCarForm(w, r, "admin/cars/new.html", "New car", model.Car{}, form, http.StatusUnprocessableEntity)
-			return
-		} else if uploaded {
-			form.ImageURL = imageURL
-		}
 
 		id, form, err := h.carService.CreateCar(r.Context(), form)
 		if err != nil {
@@ -105,9 +91,9 @@ func (h *Handler) AdminCarsCreate() http.HandlerFunc {
 			return
 		}
 
-		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
+		h.redirectWithFlash(w, r, adminCarEditURL(id)+"#vehicle-gallery", model.FlashMessage{
 			Type:    model.FlashSuccess,
-			Message: "Car created successfully.",
+			Message: "Car created as unavailable. Add gallery images, then enable it in the public catalog.",
 		})
 	}
 }
@@ -175,23 +161,7 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 			return
 		}
 
-		if err := parseOptionalCarMultipartForm(r); err != nil {
-			form := parseCarForm(r)
-			form = addCarFormError(form, "image_url", "The uploaded image could not be processed.")
-			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
-			return
-		}
-
 		form := parseCarForm(r)
-		imageUploaded := false
-		if imageURL, uploaded, err := saveOptionalCarImageUpload(r, form.Slug); err != nil {
-			form = addCarFormError(form, "image_url", err.Error())
-			h.renderAdminCarForm(w, r, "admin/cars/edit.html", "Edit "+car.Brand+" "+car.Model, car, form, http.StatusUnprocessableEntity)
-			return
-		} else if uploaded {
-			form.ImageURL = imageURL
-			imageUploaded = true
-		}
 
 		form, err = h.carService.UpdateCar(r.Context(), id, form)
 		if err != nil {
@@ -209,14 +179,9 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 			return
 		}
 
-		message := "Car updated successfully."
-		if imageUploaded {
-			message = "Car image updated successfully."
-		}
-
 		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
 			Type:    model.FlashSuccess,
-			Message: message,
+			Message: "Car updated successfully.",
 		})
 	}
 }
@@ -452,10 +417,17 @@ func (h *Handler) AdminCarsShow() http.HandlerFunc {
 			return
 		}
 
+		carImages, err := h.carService.GetCarImages(r.Context(), car.ID)
+		if err != nil {
+			h.renderServerError(w, r, err)
+			return
+		}
+
 		data := TemplateData{
-			Title:    car.Brand + " " + car.Model,
-			AppName:  h.appName,
-			AdminCar: car,
+			Title:     car.Brand + " " + car.Model,
+			AppName:   h.appName,
+			AdminCar:  car,
+			CarImages: carImages,
 		}
 
 		if err := h.render(w, r, "admin/cars/show.html", data); err != nil {
@@ -499,7 +471,6 @@ func parseCarForm(r *http.Request) model.CarForm {
 		Transmission: r.FormValue("transmission"),
 		FuelType:     r.FormValue("fuel_type"),
 		Seats:        r.FormValue("seats"),
-		ImageURL:     r.FormValue("image_url"),
 		IsAvailable:  r.FormValue("is_available") != "",
 	}
 }
@@ -511,10 +482,6 @@ func parseOptionalCarMultipartForm(r *http.Request) error {
 	}
 
 	return nil
-}
-
-func saveOptionalCarImageUpload(r *http.Request, carSlug string) (string, bool, error) {
-	return saveOptionalCarImageUploadField(r, "image_file", carSlug)
 }
 
 func saveOptionalGalleryImageUpload(r *http.Request, carSlug string) (string, bool, error) {
@@ -589,7 +556,6 @@ func carToForm(car model.Car) model.CarForm {
 	form.Transmission = car.Transmission
 	form.FuelType = car.FuelType
 	form.Seats = strconv.Itoa(car.Seats)
-	form.ImageURL = car.ImageURL
 	form.IsAvailable = car.IsAvailable
 
 	return form

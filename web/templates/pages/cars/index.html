@@ -109,9 +109,10 @@
 {{if .Cars}}
 <section class="grid gap-6 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars" data-favorites-list>
     {{range .Cars}}
+    {{$car := .}}
     <article class="car-card" data-favorite-card data-car-slug="{{.Slug}}" data-car-name="{{.Brand}} {{.Model}}">
-        {{if .ImageURL}}
-        <img class="car-card-image" src="{{.ImageURL}}" alt="{{.Brand}} {{.Model}}" data-fallback-image>
+        {{with index $.CatalogImageURLs .ID}}
+        <img class="car-card-image" src="{{.}}" alt="{{$car.Brand}} {{$car.Model}}" data-fallback-image>
         {{else}}
         <img class="car-card-image" src="/static/images/car-placeholder.svg" alt="Image coming soon">
         {{end}}

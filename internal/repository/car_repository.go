@@ -67,7 +67,6 @@ func (r *CarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -141,7 +140,6 @@ func (r *CarRepository) ListCarsPage(ctx context.Context, filter model.CarFilter
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -198,7 +196,6 @@ func (r *CarRepository) GetCarBySlug(ctx context.Context, slug string) (model.Ca
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -435,7 +432,6 @@ func (r *CarRepository) ListAvailableAlternativeCars(
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -512,7 +508,6 @@ func (r *CarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, erro
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -580,7 +575,6 @@ func (r *CarRepository) ListCarsForAdminPage(ctx context.Context, filter model.A
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -636,7 +630,6 @@ func (r *CarRepository) GetCarByID(ctx context.Context, id int64) (model.Car, er
 			c.transmission,
 			c.fuel_type,
 			c.seats,
-			COALESCE(c.image_url, '') AS image_url,
 			c.is_available,
 			c.archived_at,
 			c.created_at,
@@ -671,10 +664,9 @@ func (r *CarRepository) CreateCar(ctx context.Context, car model.Car) (int64, er
 			transmission,
 			fuel_type,
 			seats,
-			image_url,
 			is_available
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NULLIF($10, ''), $11)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id
 	`
 
@@ -691,7 +683,6 @@ func (r *CarRepository) CreateCar(ctx context.Context, car model.Car) (int64, er
 		car.Transmission,
 		car.FuelType,
 		car.Seats,
-		car.ImageURL,
 		car.IsAvailable,
 	).Scan(&id)
 	if err != nil {
@@ -714,10 +705,9 @@ func (r *CarRepository) UpdateCar(ctx context.Context, car model.Car) error {
 			transmission = $7,
 			fuel_type = $8,
 			seats = $9,
-			image_url = NULLIF($10, ''),
-			is_available = $11,
+			is_available = $10,
 			updated_at = NOW()
-		WHERE id = $12
+		WHERE id = $11
 	`
 
 	tag, err := r.db.Exec(
@@ -732,7 +722,6 @@ func (r *CarRepository) UpdateCar(ctx context.Context, car model.Car) error {
 		car.Transmission,
 		car.FuelType,
 		car.Seats,
-		car.ImageURL,
 		car.IsAvailable,
 		car.ID,
 	)
@@ -843,7 +832,6 @@ func scanCar(scanner carScanner, car *model.Car) error {
 		&car.Transmission,
 		&car.FuelType,
 		&car.Seats,
-		&car.ImageURL,
 		&car.IsAvailable,
 		&car.ArchivedAt,
 		&car.CreatedAt,

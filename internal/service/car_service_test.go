@@ -78,54 +78,6 @@ func TestValidateCarFormAcceptsValidInput(t *testing.T) {
 	}
 }
 
-func TestValidateCarFormImageURL(t *testing.T) {
-	tests := []struct {
-		name     string
-		imageURL string
-		wantErr  bool
-	}{
-		{
-			name:     "empty image url",
-			imageURL: "",
-			wantErr:  false,
-		},
-		{
-			name:     "https image url",
-			imageURL: "https://example.com/car.jpg",
-			wantErr:  false,
-		},
-		{
-			name:     "http image url",
-			imageURL: "http://example.com/car.jpg",
-			wantErr:  false,
-		},
-		{
-			name:     "static image url",
-			imageURL: "/static/uploads/cars/car.jpg",
-			wantErr:  false,
-		},
-		{
-			name:     "invalid image url",
-			imageURL: "example.com/car.jpg",
-			wantErr:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			form := normalizeCarForm(validCarForm())
-			form.ImageURL = tt.imageURL
-
-			validateCarForm(&form)
-
-			gotErr := form.Errors["image_url"] != ""
-			if gotErr != tt.wantErr {
-				t.Fatalf("validateCarForm() image_url error = %v, want %v", gotErr, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestCarServiceArchiveCarDelegatesToRepository(t *testing.T) {
 	repo := &fakeCarRepository{}
 	service := NewCarService(repo)
@@ -204,85 +156,67 @@ func TestCarServiceGetCarImagesWrapsRepositoryError(t *testing.T) {
 
 func TestCarServiceListCarsPageUsesPrimaryGalleryImageForCatalog(t *testing.T) {
 	repo := &fakeCarRepository{
-		countCars: 1,
-		listCarsPageCars: []model.Car{
-			{ID: 42, ImageURL: "/static/uploads/cars/legacy.webp"},
-		},
 		catalogImageURLs: map[int64]string{
 			42: "/static/uploads/cars/primary-gallery.webp",
 		},
 	}
 	service := NewCarService(repo)
 
-	cars, _, err := service.ListCarsPage(context.Background(), model.CarFilter{Page: 1, PerPage: 6})
+	imageURLs, err := service.GetCatalogImageURLs(context.Background(), []model.Car{{ID: 42}})
 	if err != nil {
-		t.Fatalf("ListCarsPage() error = %v, want nil", err)
+		t.Fatalf("GetCatalogImageURLs() error = %v, want nil", err)
 	}
 
-	if got := cars[0].ImageURL; got != "/static/uploads/cars/primary-gallery.webp" {
+	if got := imageURLs[42]; got != "/static/uploads/cars/primary-gallery.webp" {
 		t.Fatalf("catalog image URL = %q, want primary gallery image", got)
 	}
 }
 
 func TestCarServiceListCarsPageUsesFirstGalleryImageFallback(t *testing.T) {
 	repo := &fakeCarRepository{
-		countCars: 1,
-		listCarsPageCars: []model.Car{
-			{ID: 42, ImageURL: "/static/uploads/cars/legacy.webp"},
-		},
 		catalogImageURLs: map[int64]string{
 			42: "/static/uploads/cars/first-gallery.webp",
 		},
 	}
 	service := NewCarService(repo)
 
-	cars, _, err := service.ListCarsPage(context.Background(), model.CarFilter{Page: 1, PerPage: 6})
+	imageURLs, err := service.GetCatalogImageURLs(context.Background(), []model.Car{{ID: 42}})
 	if err != nil {
-		t.Fatalf("ListCarsPage() error = %v, want nil", err)
+		t.Fatalf("GetCatalogImageURLs() error = %v, want nil", err)
 	}
 
-	if got := cars[0].ImageURL; got != "/static/uploads/cars/first-gallery.webp" {
+	if got := imageURLs[42]; got != "/static/uploads/cars/first-gallery.webp" {
 		t.Fatalf("catalog image URL = %q, want first gallery image", got)
 	}
 }
 
-func TestCarServiceListCarsPageKeepsLegacyImageFallback(t *testing.T) {
+func TestCarServiceGetCatalogImageURLsReturnsEmptyForPlaceholderFallback(t *testing.T) {
 	repo := &fakeCarRepository{
-		countCars: 1,
-		listCarsPageCars: []model.Car{
-			{ID: 42, ImageURL: "/static/uploads/cars/legacy.webp"},
-		},
 		catalogImageURLs: map[int64]string{},
 	}
 	service := NewCarService(repo)
 
-	cars, _, err := service.ListCarsPage(context.Background(), model.CarFilter{Page: 1, PerPage: 6})
+	imageURLs, err := service.GetCatalogImageURLs(context.Background(), []model.Car{{ID: 42}})
 	if err != nil {
-		t.Fatalf("ListCarsPage() error = %v, want nil", err)
+		t.Fatalf("GetCatalogImageURLs() error = %v, want nil", err)
 	}
 
-	if got := cars[0].ImageURL; got != "/static/uploads/cars/legacy.webp" {
-		t.Fatalf("catalog image URL = %q, want legacy image", got)
+	if got := imageURLs[42]; got != "" {
+		t.Fatalf("catalog image URL = %q, want empty", got)
 	}
 }
 
-func TestCarServiceListCarsPageKeepsEmptyImageForPlaceholderFallback(t *testing.T) {
-	repo := &fakeCarRepository{
-		countCars: 1,
-		listCarsPageCars: []model.Car{
-			{ID: 42},
-		},
-		catalogImageURLs: map[int64]string{},
-	}
+func TestCarServiceGetCatalogImageURLsHandlesNoCars(t *testing.T) {
+	repo := &fakeCarRepository{}
 	service := NewCarService(repo)
 
-	cars, _, err := service.ListCarsPage(context.Background(), model.CarFilter{Page: 1, PerPage: 6})
+	imageURLs, err := service.GetCatalogImageURLs(context.Background(), nil)
 	if err != nil {
-		t.Fatalf("ListCarsPage() error = %v, want nil", err)
+		t.Fatalf("GetCatalogImageURLs() error = %v, want nil", err)
 	}
 
-	if got := cars[0].ImageURL; got != "" {
-		t.Fatalf("catalog image URL = %q, want empty for placeholder fallback", got)
+	if len(imageURLs) != 0 {
+		t.Fatalf("catalog image URLs length = %d, want 0", len(imageURLs))
 	}
 }
 
@@ -429,6 +363,7 @@ type fakeCarRepository struct {
 	deleteCarImageID     int64
 	primaryCarID         int64
 	primaryImageID       int64
+	updatedCar           model.Car
 }
 
 func (r *fakeCarRepository) ListCars(ctx context.Context, filter model.CarFilter) ([]model.Car, error) {
@@ -511,6 +446,7 @@ func (r *fakeCarRepository) CreateCar(ctx context.Context, car model.Car) (int64
 }
 
 func (r *fakeCarRepository) UpdateCar(ctx context.Context, car model.Car) error {
+	r.updatedCar = car
 	return nil
 }
 
