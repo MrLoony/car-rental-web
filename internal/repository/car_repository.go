@@ -12,7 +12,33 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var ErrCarNotFound = errors.New("car not found")
+var (
+	ErrCarNotFound      = errors.New("car not found")
+	ErrCarImageNotFound = errors.New("car image not found")
+)
+
+const getCarImagesByCarIDQuery = `
+	SELECT
+		id,
+		car_id,
+		image_url,
+		COALESCE(alt_text, '') AS alt_text,
+		sort_order,
+		is_primary,
+		created_at
+	FROM car_images
+	WHERE car_id = $1
+	ORDER BY is_primary DESC, sort_order ASC, id ASC
+`
+
+const getCatalogImageURLsByCarIDsQuery = `
+	SELECT DISTINCT ON (car_id)
+		car_id,
+		image_url
+	FROM car_images
+	WHERE car_id = ANY($1)
+	ORDER BY car_id, is_primary DESC, sort_order ASC, id ASC
+`
 
 type CarRepository struct {
 	db *pgxpool.Pool
@@ -195,6 +221,190 @@ func (r *CarRepository) GetCarBySlug(ctx context.Context, slug string) (model.Ca
 	}
 
 	return car, nil
+}
+
+func (r *CarRepository) GetCarImagesByCarID(ctx context.Context, carID int64) ([]model.CarImage, error) {
+	rows, err := r.db.Query(ctx, getCarImagesByCarIDQuery, carID)
+	if err != nil {
+		return nil, fmt.Errorf("get car images by car id %d: %w", carID, err)
+	}
+	defer rows.Close()
+
+	images := make([]model.CarImage, 0)
+	for rows.Next() {
+		var image model.CarImage
+		if err := rows.Scan(
+			&image.ID,
+			&image.CarID,
+			&image.ImageURL,
+			&image.AltText,
+			&image.SortOrder,
+			&image.IsPrimary,
+			&image.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan car image for car %d: %w", carID, err)
+		}
+
+		images = append(images, image)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate car images for car %d: %w", carID, err)
+	}
+
+	return images, nil
+}
+
+func (r *CarRepository) GetCatalogImageURLsByCarIDs(ctx context.Context, carIDs []int64) (map[int64]string, error) {
+	if len(carIDs) == 0 {
+		return map[int64]string{}, nil
+	}
+
+	rows, err := r.db.Query(ctx, getCatalogImageURLsByCarIDsQuery, carIDs)
+	if err != nil {
+		return nil, fmt.Errorf("get catalog image urls: %w", err)
+	}
+	defer rows.Close()
+
+	imageURLs := make(map[int64]string)
+	for rows.Next() {
+		var carID int64
+		var imageURL string
+		if err := rows.Scan(&carID, &imageURL); err != nil {
+			return nil, fmt.Errorf("scan catalog image url: %w", err)
+		}
+
+		imageURLs[carID] = imageURL
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate catalog image urls: %w", err)
+	}
+
+	return imageURLs, nil
+}
+
+func (r *CarRepository) GetCarImageByID(ctx context.Context, imageID int64) (model.CarImage, error) {
+	const query = `
+		SELECT
+			id,
+			car_id,
+			image_url,
+			COALESCE(alt_text, '') AS alt_text,
+			sort_order,
+			is_primary,
+			created_at
+		FROM car_images
+		WHERE id = $1
+	`
+
+	var image model.CarImage
+	err := r.db.QueryRow(ctx, query, imageID).Scan(
+		&image.ID,
+		&image.CarID,
+		&image.ImageURL,
+		&image.AltText,
+		&image.SortOrder,
+		&image.IsPrimary,
+		&image.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.CarImage{}, fmt.Errorf("get car image %d: %w", imageID, ErrCarImageNotFound)
+		}
+
+		return model.CarImage{}, fmt.Errorf("get car image %d: %w", imageID, err)
+	}
+
+	return image, nil
+}
+
+func (r *CarRepository) CreateCarImage(ctx context.Context, image model.CarImage) (int64, error) {
+	const query = `
+		INSERT INTO car_images (
+			car_id,
+			image_url,
+			alt_text,
+			sort_order,
+			is_primary
+		)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
+	`
+
+	var id int64
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		image.CarID,
+		image.ImageURL,
+		image.AltText,
+		image.SortOrder,
+		image.IsPrimary,
+	).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("create car image for car %d: %w", image.CarID, err)
+	}
+
+	return id, nil
+}
+
+func (r *CarRepository) DeleteCarImage(ctx context.Context, imageID int64) error {
+	const query = `DELETE FROM car_images WHERE id = $1`
+
+	tag, err := r.db.Exec(ctx, query, imageID)
+	if err != nil {
+		return fmt.Errorf("delete car image %d: %w", imageID, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("delete car image %d: %w", imageID, ErrCarImageNotFound)
+	}
+
+	return nil
+}
+
+func (r *CarRepository) SetPrimaryCarImage(ctx context.Context, carID, imageID int64) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin set primary car image transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	const existsQuery = `
+		SELECT EXISTS (
+			SELECT 1
+			FROM car_images
+			WHERE id = $1
+				AND car_id = $2
+		)
+	`
+
+	var exists bool
+	if err := tx.QueryRow(ctx, existsQuery, imageID, carID).Scan(&exists); err != nil {
+		return fmt.Errorf("check primary car image %d for car %d: %w", imageID, carID, err)
+	}
+	if !exists {
+		return fmt.Errorf("set primary car image %d for car %d: %w", imageID, carID, ErrCarImageNotFound)
+	}
+
+	if _, err := tx.Exec(ctx, `UPDATE car_images SET is_primary = FALSE WHERE car_id = $1`, carID); err != nil {
+		return fmt.Errorf("clear primary car images for car %d: %w", carID, err)
+	}
+
+	tag, err := tx.Exec(ctx, `UPDATE car_images SET is_primary = TRUE WHERE car_id = $1 AND id = $2`, carID, imageID)
+	if err != nil {
+		return fmt.Errorf("set primary car image %d for car %d: %w", imageID, carID, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("set primary car image %d for car %d: %w", imageID, carID, ErrCarImageNotFound)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit set primary car image transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (r *CarRepository) ListAvailableAlternativeCars(

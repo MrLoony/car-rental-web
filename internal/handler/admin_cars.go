@@ -8,6 +8,7 @@ import (
 
 	"github.com/MrLoony/car-rental-web/internal/model"
 	"github.com/MrLoony/car-rental-web/internal/repository"
+	"github.com/MrLoony/car-rental-web/internal/service"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -135,10 +136,17 @@ func (h *Handler) AdminCarsEdit() http.HandlerFunc {
 			return
 		}
 
+		carImages, err := h.carService.GetCarImages(r.Context(), car.ID)
+		if err != nil {
+			h.renderServerError(w, r, err)
+			return
+		}
+
 		data := TemplateData{
 			Title:      "Edit " + car.Brand + " " + car.Model,
 			AppName:    h.appName,
 			AdminCar:   car,
+			CarImages:  carImages,
 			CarForm:    carToForm(car),
 			Categories: categories,
 		}
@@ -209,6 +217,138 @@ func (h *Handler) AdminCarsUpdate() http.HandlerFunc {
 		h.redirectWithFlash(w, r, "/admin/cars/"+strconv.FormatInt(id, 10), model.FlashMessage{
 			Type:    model.FlashSuccess,
 			Message: message,
+		})
+	}
+}
+
+func (h *Handler) AdminCarGalleryCreate() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := parseCarID(w, r)
+		if !ok {
+			return
+		}
+
+		car, err := h.carService.GetCarByID(r.Context(), id)
+		if err != nil {
+			if errors.Is(err, repository.ErrCarNotFound) {
+				h.renderNotFound(w, r)
+				return
+			}
+
+			h.renderServerError(w, r, err)
+			return
+		}
+
+		if err := parseOptionalCarMultipartForm(r); err != nil {
+			h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+				Type:    model.FlashError,
+				Message: "The uploaded gallery image could not be processed.",
+			})
+			return
+		}
+
+		imageURL := strings.TrimSpace(r.FormValue("gallery_image_url"))
+		uploadedImageURL, uploaded, err := saveOptionalGalleryImageUpload(r, car.Slug)
+		if err != nil {
+			h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+				Type:    model.FlashError,
+				Message: err.Error(),
+			})
+			return
+		}
+		if uploaded {
+			imageURL = uploadedImageURL
+		}
+
+		image := model.CarImage{
+			CarID:    id,
+			ImageURL: imageURL,
+			AltText:  r.FormValue("gallery_alt_text"),
+		}
+
+		_, err = h.carService.AddCarImage(r.Context(), image)
+		if err != nil {
+			if errors.Is(err, service.ErrInvalidCarImage) {
+				h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+					Type:    model.FlashError,
+					Message: "Image URL or image file is required.",
+				})
+				return
+			}
+
+			h.renderServerError(w, r, err)
+			return
+		}
+
+		h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Gallery image added.",
+		})
+	}
+}
+
+func (h *Handler) AdminCarGallerySetPrimary() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := parseCarID(w, r)
+		if !ok {
+			return
+		}
+		imageID, ok := parseCarImageID(w, r)
+		if !ok {
+			return
+		}
+
+		err := h.carService.SetPrimaryCarImage(r.Context(), id, imageID)
+		if err != nil {
+			if errors.Is(err, repository.ErrCarImageNotFound) {
+				h.renderNotFound(w, r)
+				return
+			}
+			if errors.Is(err, service.ErrInvalidCarImage) {
+				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
+
+			h.renderServerError(w, r, err)
+			return
+		}
+
+		h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Primary image updated.",
+		})
+	}
+}
+
+func (h *Handler) AdminCarGalleryDelete() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, ok := parseCarID(w, r)
+		if !ok {
+			return
+		}
+		imageID, ok := parseCarImageID(w, r)
+		if !ok {
+			return
+		}
+
+		err := h.carService.DeleteCarImage(r.Context(), id, imageID)
+		if err != nil {
+			if errors.Is(err, repository.ErrCarImageNotFound) || errors.Is(err, service.ErrCarImageNotFound) {
+				h.renderNotFound(w, r)
+				return
+			}
+			if errors.Is(err, service.ErrInvalidCarImage) {
+				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
+
+			h.renderServerError(w, r, err)
+			return
+		}
+
+		h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+			Type:    model.FlashSuccess,
+			Message: "Gallery image deleted.",
 		})
 	}
 }
@@ -334,6 +474,20 @@ func parseCarID(w http.ResponseWriter, r *http.Request) (int64, bool) {
 	return id, true
 }
 
+func parseCarImageID(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "imageID"), 10, 64)
+	if err != nil || id < 1 {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return 0, false
+	}
+
+	return id, true
+}
+
+func adminCarEditURL(id int64) string {
+	return "/admin/cars/" + strconv.FormatInt(id, 10) + "/edit"
+}
+
 func parseCarForm(r *http.Request) model.CarForm {
 	return model.CarForm{
 		CategoryID:   r.FormValue("category_id"),
@@ -360,7 +514,15 @@ func parseOptionalCarMultipartForm(r *http.Request) error {
 }
 
 func saveOptionalCarImageUpload(r *http.Request, carSlug string) (string, bool, error) {
-	file, header, err := r.FormFile("image_file")
+	return saveOptionalCarImageUploadField(r, "image_file", carSlug)
+}
+
+func saveOptionalGalleryImageUpload(r *http.Request, carSlug string) (string, bool, error) {
+	return saveOptionalCarImageUploadField(r, "gallery_image_file", carSlug)
+}
+
+func saveOptionalCarImageUploadField(r *http.Request, fieldName, carSlug string) (string, bool, error) {
+	file, header, err := r.FormFile(fieldName)
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) || errors.Is(err, http.ErrNotMultipart) {
 			return "", false, nil
@@ -393,10 +555,20 @@ func (h *Handler) renderAdminCarForm(w http.ResponseWriter, r *http.Request, pag
 		return
 	}
 
+	var carImages []model.CarImage
+	if car.ID > 0 {
+		carImages, err = h.carService.GetCarImages(r.Context(), car.ID)
+		if err != nil {
+			h.renderServerError(w, r, err)
+			return
+		}
+	}
+
 	data := TemplateData{
 		Title:      title,
 		AppName:    h.appName,
 		AdminCar:   car,
+		CarImages:  carImages,
 		CarForm:    form,
 		Categories: categories,
 	}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,11 +14,22 @@ type CarService struct {
 	repo carRepository
 }
 
+var (
+	ErrInvalidCarImage  = errors.New("invalid car image")
+	ErrCarImageNotFound = errors.New("car image not found")
+)
+
 type carRepository interface {
 	ListCars(ctx context.Context, filter model.CarFilter) ([]model.Car, error)
 	CountCars(ctx context.Context, filter model.CarFilter) (int, error)
 	ListCarsPage(ctx context.Context, filter model.CarFilter, pagination model.Pagination) ([]model.Car, error)
 	GetCarBySlug(ctx context.Context, slug string) (model.Car, error)
+	GetCarImagesByCarID(ctx context.Context, carID int64) ([]model.CarImage, error)
+	GetCatalogImageURLsByCarIDs(ctx context.Context, carIDs []int64) (map[int64]string, error)
+	GetCarImageByID(ctx context.Context, imageID int64) (model.CarImage, error)
+	CreateCarImage(ctx context.Context, image model.CarImage) (int64, error)
+	DeleteCarImage(ctx context.Context, imageID int64) error
+	SetPrimaryCarImage(ctx context.Context, carID, imageID int64) error
 	ListCarsForAdmin(ctx context.Context) ([]model.Car, error)
 	CountCarsForAdmin(ctx context.Context, filter model.AdminCarFilter) (int, error)
 	ListCarsForAdminPage(ctx context.Context, filter model.AdminCarFilter, pagination model.Pagination) ([]model.Car, error)
@@ -50,6 +62,9 @@ func (s *CarService) ListCars(ctx context.Context, filter model.CarFilter) ([]mo
 	if err != nil {
 		return nil, fmt.Errorf("list cars: %w", err)
 	}
+	if err := s.applyCatalogImageURLs(ctx, cars); err != nil {
+		return nil, err
+	}
 
 	return cars, nil
 }
@@ -67,8 +82,36 @@ func (s *CarService) ListCarsPage(ctx context.Context, filter model.CarFilter) (
 	if err != nil {
 		return nil, model.Pagination{}, fmt.Errorf("list cars page: %w", err)
 	}
+	if err := s.applyCatalogImageURLs(ctx, cars); err != nil {
+		return nil, model.Pagination{}, err
+	}
 
 	return cars, pagination, nil
+}
+
+func (s *CarService) applyCatalogImageURLs(ctx context.Context, cars []model.Car) error {
+	carIDs := make([]int64, 0, len(cars))
+	for _, car := range cars {
+		if car.ID > 0 {
+			carIDs = append(carIDs, car.ID)
+		}
+	}
+	if len(carIDs) == 0 {
+		return nil
+	}
+
+	imageURLs, err := s.repo.GetCatalogImageURLsByCarIDs(ctx, carIDs)
+	if err != nil {
+		return fmt.Errorf("get catalog image urls: %w", err)
+	}
+
+	for i := range cars {
+		if imageURL := imageURLs[cars[i].ID]; imageURL != "" {
+			cars[i].ImageURL = imageURL
+		}
+	}
+
+	return nil
 }
 
 func (s *CarService) GetCarBySlug(ctx context.Context, slug string) (model.Car, error) {
@@ -78,6 +121,68 @@ func (s *CarService) GetCarBySlug(ctx context.Context, slug string) (model.Car, 
 	}
 
 	return car, nil
+}
+
+func (s *CarService) GetCarImages(ctx context.Context, carID int64) ([]model.CarImage, error) {
+	images, err := s.repo.GetCarImagesByCarID(ctx, carID)
+	if err != nil {
+		return nil, fmt.Errorf("get car images: %w", err)
+	}
+
+	return images, nil
+}
+
+func (s *CarService) AddCarImage(ctx context.Context, image model.CarImage) (int64, error) {
+	image.ImageURL = strings.TrimSpace(image.ImageURL)
+	image.AltText = strings.TrimSpace(image.AltText)
+	if image.CarID < 1 || image.ImageURL == "" {
+		return 0, ErrInvalidCarImage
+	}
+
+	existingImages, err := s.repo.GetCarImagesByCarID(ctx, image.CarID)
+	if err != nil {
+		return 0, fmt.Errorf("count car images before add: %w", err)
+	}
+	image.IsPrimary = len(existingImages) == 0
+
+	id, err := s.repo.CreateCarImage(ctx, image)
+	if err != nil {
+		return 0, fmt.Errorf("add car image: %w", err)
+	}
+
+	return id, nil
+}
+
+func (s *CarService) DeleteCarImage(ctx context.Context, carID, imageID int64) error {
+	if carID < 1 || imageID < 1 {
+		return ErrInvalidCarImage
+	}
+
+	image, err := s.repo.GetCarImageByID(ctx, imageID)
+	if err != nil {
+		return fmt.Errorf("get car image: %w", err)
+	}
+	if image.CarID != carID {
+		return fmt.Errorf("delete car image: %w", ErrCarImageNotFound)
+	}
+
+	if err := s.repo.DeleteCarImage(ctx, imageID); err != nil {
+		return fmt.Errorf("delete car image: %w", err)
+	}
+
+	return nil
+}
+
+func (s *CarService) SetPrimaryCarImage(ctx context.Context, carID, imageID int64) error {
+	if carID < 1 || imageID < 1 {
+		return ErrInvalidCarImage
+	}
+
+	if err := s.repo.SetPrimaryCarImage(ctx, carID, imageID); err != nil {
+		return fmt.Errorf("set primary car image: %w", err)
+	}
+
+	return nil
 }
 
 func (s *CarService) ListCarsForAdmin(ctx context.Context) ([]model.Car, error) {

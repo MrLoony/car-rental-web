@@ -191,10 +191,17 @@ func (h *Handler) CarsShow() http.HandlerFunc {
 			return
 		}
 
+		carImages, err := h.carService.GetCarImages(r.Context(), car.ID)
+		if err != nil {
+			h.renderServerError(w, r, err)
+			return
+		}
+
 		data := TemplateData{
-			Title:   car.Brand + " " + car.Model,
-			AppName: h.appName,
-			Car:     car,
+			Title:     car.Brand + " " + car.Model,
+			AppName:   h.appName,
+			Car:       car,
+			CarImages: carImages,
 		}
 
 		if err := h.render(w, r, "cars/show.html", data); err != nil {

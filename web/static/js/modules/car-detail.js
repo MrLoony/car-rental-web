@@ -39,14 +39,16 @@ function initCarImageLightbox(root) {
     const trigger = qs("[data-lightbox-trigger]", root);
     const lightbox = qs("[data-image-lightbox]", root);
     const closeButton = qs("[data-lightbox-close]", root);
+    const lightboxImage = qs("[data-lightbox-image]", lightbox);
 
-    if (!trigger || !lightbox || !closeButton) {
+    if (!trigger || !lightbox || !closeButton || !lightboxImage) {
         return;
     }
 
     let previousFocus = null;
 
     function openLightbox() {
+        syncLightboxImage(root, lightboxImage);
         previousFocus = document.activeElement;
         lightbox.hidden = false;
         lightbox.classList.add("image-lightbox-open");
@@ -79,6 +81,16 @@ function initCarImageLightbox(root) {
             closeLightbox();
         }
     });
+}
+
+function syncLightboxImage(root, lightboxImage) {
+    const currentImage = qs("[data-lightbox-image-source]", root);
+    if (!currentImage) {
+        return;
+    }
+
+    lightboxImage.src = currentImage.currentSrc || currentImage.src;
+    lightboxImage.alt = currentImage.alt;
 }
 
 async function copyText(value) {

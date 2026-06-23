@@ -6,17 +6,46 @@
 
     <section class="mt-6 grid gap-8 lg:grid-cols-3 lg:items-start">
         <div class="space-y-8 lg:col-span-2">
-            <div class="car-detail-image-card">
-                <button class="block w-full text-left" type="button" data-lightbox-trigger aria-label="Open larger image of {{.Car.Brand}} {{.Car.Model}}">
-                    {{if .Car.ImageURL}}
-                    <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image data-lightbox-image-source>
-                    {{else}}
-                    <img class="h-64 w-full bg-slate-100 dark:bg-slate-700 object-contain p-8 sm:h-72 lg:h-80" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image-source>
+            <div class="car-detail-image-card {{if .CarImages}}car-gallery{{end}}" {{if .CarImages}}data-car-gallery tabindex="0" aria-label="{{.Car.Brand}} {{.Car.Model}} image gallery"{{end}}>
+                <div class="car-gallery-main">
+                    <button class="block w-full text-left" type="button" data-lightbox-trigger aria-label="Open larger image of {{.Car.Brand}} {{.Car.Model}}">
+                        {{if .CarImages}}
+                        {{range $index, $image := .CarImages}}
+                        {{if eq $index 0}}
+                        <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{$image.ImageURL}}" alt="{{if $image.AltText}}{{$image.AltText}}{{else}}{{$.Car.Brand}} {{$.Car.Model}}{{end}}" data-fallback-image data-gallery-main-image data-lightbox-image-source>
+                        {{end}}
+                        {{end}}
+                        {{else if .Car.ImageURL}}
+                        <img class="h-72 w-full object-cover sm:h-96 lg:h-[520px]" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-fallback-image data-lightbox-image-source>
+                        {{else}}
+                        <img class="h-64 w-full bg-slate-100 object-contain p-8 dark:bg-slate-700 sm:h-72 lg:h-80" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image-source>
+                        {{end}}
+                    </button>
+
+                    {{if gt (len .CarImages) 1}}
+                    <button class="car-gallery-control left-4" type="button" data-gallery-prev aria-label="Show previous vehicle image" hidden>
+                        <span aria-hidden="true">‹</span>
+                    </button>
+                    <button class="car-gallery-control right-4" type="button" data-gallery-next aria-label="Show next vehicle image" hidden>
+                        <span aria-hidden="true">›</span>
+                    </button>
+                    <span class="car-gallery-counter" data-gallery-counter aria-live="polite">1 / {{len .CarImages}}</span>
                     {{end}}
-                </button>
-                <div class="flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 px-5 py-3 text-sm text-slate-500 dark:text-slate-400">
+                </div>
+
+                {{if .CarImages}}
+                <div class="car-gallery-thumbnail-strip" aria-label="Vehicle image thumbnails">
+                    {{range $index, $image := .CarImages}}
+                    <button class="car-gallery-thumbnail {{if eq $index 0}}car-gallery-thumbnail-active{{end}}" type="button" data-gallery-item data-gallery-thumbnail data-gallery-index="{{$index}}" data-gallery-src="{{$image.ImageURL}}" data-gallery-alt="{{if $image.AltText}}{{$image.AltText}}{{else}}{{$.Car.Brand}} {{$.Car.Model}}{{end}}" aria-label="Show {{if $image.AltText}}{{$image.AltText}}{{else}}{{$.Car.Brand}} {{$.Car.Model}} image{{end}}" aria-pressed="{{if eq $index 0}}true{{else}}false{{end}}" {{if eq $index 0}}aria-current="true"{{end}}>
+                        <img class="h-full w-full object-cover" src="{{$image.ImageURL}}" alt="" data-fallback-image>
+                    </button>
+                    {{end}}
+                </div>
+                {{end}}
+
+                <div class="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
                     <span>Click the image to view it larger.</span>
-                    <span class="hidden text-xs font-semibold uppercase tracking-wide text-slate-400 sm:inline">Single vehicle image</span>
+                    <span class="hidden text-xs font-semibold uppercase tracking-wide text-slate-400 sm:inline">{{if .CarImages}}{{len .CarImages}} gallery images{{else}}Single vehicle image{{end}}</span>
                 </div>
             </div>
 
@@ -118,10 +147,16 @@
             <button class="absolute right-6 top-6 rounded-full bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm" type="button" data-lightbox-close aria-label="Close image preview">
                 Close
             </button>
-            {{if .Car.ImageURL}}
-            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}">
+            {{if .CarImages}}
+            {{range $index, $image := .CarImages}}
+            {{if eq $index 0}}
+            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="{{$image.ImageURL}}" alt="{{if $image.AltText}}{{$image.AltText}}{{else}}{{$.Car.Brand}} {{$.Car.Model}}{{end}}" data-lightbox-image>
+            {{end}}
+            {{end}}
+            {{else if .Car.ImageURL}}
+            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="{{.Car.ImageURL}}" alt="{{.Car.Brand}} {{.Car.Model}}" data-lightbox-image>
             {{else}}
-            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="/static/images/car-placeholder.svg" alt="Image coming soon">
+            <img class="max-h-[82vh] w-full rounded-2xl object-contain shadow-2xl" src="/static/images/car-placeholder.svg" alt="Image coming soon" data-lightbox-image>
             {{end}}
         </div>
     </div>

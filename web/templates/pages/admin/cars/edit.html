@@ -119,9 +119,9 @@
         <section class="admin-form-section">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Image management</p>
-                <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Vehicle image</h2>
+                <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Legacy fallback image</h2>
                 <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                    Provide an image URL or select a local JPEG, PNG, or WebP file. Uploaded files take priority.
+                    Used when this vehicle has no gallery images. Provide an image URL or select a local JPEG, PNG, or WebP file.
                 </p>
             </div>
 
@@ -174,4 +174,84 @@
         </div>
     </aside>
 </form>
+
+<section class="admin-gallery-section mt-8">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Vehicle Gallery</p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Gallery images</h2>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Add an image URL or upload a local JPEG, PNG, or WebP file. Gallery images are shown before the legacy fallback image.
+            </p>
+        </div>
+        <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            {{len .CarImages}} images
+        </span>
+    </div>
+
+    <form class="mt-6 grid gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900/70 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end" method="POST" action="/admin/cars/{{.AdminCar.ID}}/gallery" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <div>
+            <label class="form-label" for="gallery_image_url">Image URL</label>
+            <input class="form-input mt-2" id="gallery_image_url" name="gallery_image_url" type="text" placeholder="https://example.com/gallery-image.jpg or /static/uploads/cars/image.webp">
+        </div>
+        <div>
+            <label class="form-label" for="gallery_image_file">Local image file</label>
+            <input class="mt-2 w-full text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:rounded-md file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-slate-700 dark:file:text-slate-200 hover:file:bg-slate-200 dark:hover:file:bg-slate-700" id="gallery_image_file" name="gallery_image_file" type="file" accept="image/jpeg,image/png,image/webp">
+            <p class="field-helper">Uploaded files take priority over the URL.</p>
+        </div>
+        <div>
+            <label class="form-label" for="gallery_alt_text">Alt text</label>
+            <input class="form-input mt-2" id="gallery_alt_text" name="gallery_alt_text" type="text" placeholder="Front exterior">
+        </div>
+        <button class="btn btn-primary md:mb-0" type="submit">
+            Add image
+        </button>
+    </form>
+
+    {{if .CarImages}}
+    <div class="gallery-grid mt-6">
+        {{range .CarImages}}
+        <article class="gallery-card">
+            <div class="gallery-preview">
+                <img class="h-full w-full object-cover" src="{{.ImageURL}}" alt="{{if .AltText}}{{.AltText}}{{else}}Gallery image{{end}}" data-fallback-image>
+            </div>
+            <div class="space-y-3 p-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="truncate text-sm font-semibold text-slate-950 dark:text-slate-100">{{if .AltText}}{{.AltText}}{{else}}Gallery image{{end}}</p>
+                        <p class="mt-1 break-all text-xs leading-5 text-slate-500 dark:text-slate-400">{{.ImageURL}}</p>
+                    </div>
+                    {{if .IsPrimary}}
+                    <span class="gallery-primary-badge">Primary</span>
+                    {{end}}
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    {{if not .IsPrimary}}
+                    <form method="POST" action="/admin/cars/{{$.AdminCar.ID}}/gallery/{{.ID}}/primary">
+                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                        <button class="btn btn-secondary px-3 py-2 text-xs" type="submit">
+                            Make primary
+                        </button>
+                    </form>
+                    {{end}}
+                    <form method="POST" action="/admin/cars/{{$.AdminCar.ID}}/gallery/{{.ID}}/delete" data-confirm-action data-confirm-message="Delete this gallery image?">
+                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                        <button class="btn btn-danger px-3 py-2 text-xs" type="submit">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="empty-state mt-6">
+        <p class="text-base font-semibold text-slate-950 dark:text-slate-100">No gallery images yet.</p>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Add an image URL or upload a local image above to build a vehicle gallery for public display.</p>
+    </div>
+    {{end}}
+</section>
 {{end}}

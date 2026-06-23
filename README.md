@@ -48,10 +48,13 @@ Project layout:
 
 - Server-rendered car catalog at `/cars`
 - Car detail pages at `/cars/{slug}`
+- Catalog cards use the primary gallery image first, then the first gallery image, then the legacy single image, then a placeholder
+- Multi-image gallery carousel on car detail pages when gallery images are configured
+- Gallery carousel thumbnails, previous/next controls, image counter, keyboard navigation, and lightbox preview
 - Text search, category, fuel type, transmission, and sort filters
 - Server-side pagination that preserves filter query parameters
 - Public catalog only shows cars that are active, available, and not archived
-- Placeholder image fallback for missing or broken car images
+- Fallback to the legacy single car image or placeholder image when no gallery is configured
 
 ### Booking Flow
 
@@ -75,6 +78,8 @@ Project layout:
 - Booking list, detail view, and status updates
 - Printable booking summaries from the admin booking detail page
 - Car list, create, detail, edit, availability toggle, archive, and restore
+- Gallery image management from the car edit page
+- Gallery image URL upload, local gallery image upload, primary image selection, and gallery image deletion
 - Admin search and filtering for cars and bookings
 - Server-side pagination for admin cars and bookings
 - Flash messages after admin actions
@@ -136,7 +141,9 @@ Exported columns:
 
 ### Image Management
 
-Cars can use either an external image URL or one uploaded local image.
+Cars support the original single-image field and optional multi-image galleries. The preferred image system is the vehicle gallery; the legacy single image remains available as a backward-compatible fallback.
+
+The single-image field can use either an external image URL or one uploaded local image.
 
 Supported URL prefixes:
 
@@ -153,7 +160,25 @@ Local uploads:
 - validated by extension, detected content type, and WebP signature checks
 - saved with application-generated filenames
 
-The current implementation does not include image resizing, compression, antivirus scanning, or cloud/object storage.
+Gallery images:
+
+- are managed from the admin car edit page
+- can be added from an external URL or one local upload per request
+- include optional alt text
+- can be marked as the primary gallery image
+- can be deleted by admins
+- use the same JPEG, PNG, WebP, and 5 MB validation rules as single-image uploads for local files
+- automatically make the first gallery image primary when a car has no existing gallery images
+- are used first on catalog cards and public car detail pages when present
+
+Catalog cards and public detail pages resolve images in this order:
+
+1. primary gallery image
+2. first gallery image
+3. original single image
+4. placeholder image
+
+The current implementation does not include multi-file gallery upload in one request, drag-and-drop gallery ordering, image resizing, compression, antivirus scanning, or cloud/object storage.
 
 ### Email Notifications
 
@@ -202,7 +227,8 @@ Current JavaScript modules:
 - `admin-tables.js` - visible-row filtering, copy buttons, row counts, and row highlighting
 - `admin-actions.js` - centralized confirmation prompts for sensitive admin actions
 - `image-preview.js` - image fallback handling, admin image previews, upload drop zone, slug preview, and price helper
-- `car-detail.js` - public car detail copy action and single-image lightbox
+- `car-gallery.js` - public car detail gallery carousel, thumbnail selection, previous/next controls, image counter, keyboard navigation, and lightbox image synchronization
+- `car-detail.js` - public car detail copy action and selected-image lightbox
 - `theme.js` - Light, Dark, and System theme switching
 - `toast.js` - reusable toast notifications with dismiss controls and progress indicators
 - `print-summary.js` - progressive browser printing for admin booking summaries
@@ -352,11 +378,12 @@ Completed:
 - UX improvements
 - Frontend modernization
 - JavaScript-heavy frontend enhancements
+- Multi-image vehicle galleries
 - Accessibility improvements
 
 The application is suitable as a portfolio-scale SSR Go project. Additional production work would still be needed before real-world deployment.
 
-Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, Stage 22 frontend modernization, Stage 23 JavaScript-heavy frontend features, and Stage 24 printing, dashboard range filters, and accessibility polish.
+Recent completed milestones include Stage 19 email notifications, Stage 20 UX and error handling, Stage 21 dashboard reporting and CSV export, Stage 22 frontend modernization, Stage 23 JavaScript-heavy frontend features, Stage 24 printing, dashboard range filters, and accessibility polish, and Stage 25 multi-image vehicle galleries.
 
 ## Implemented
 
@@ -374,6 +401,10 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Admin car management
 - Car archive/restore workflow
 - Local car image uploads and image URL support
+- Optional multi-image car galleries with primary image selection
+- Local gallery image uploads and URL-based gallery images
+- Gallery-first catalog and car detail image resolution
+- Public car detail carousel with gallery, single-image, and placeholder fallbacks
 - Admin dashboard with booking, revenue, and recent activity reporting
 - Dashboard reporting range filters for All Time, Last 30 Days, and This Month
 - Admin booking CSV export
@@ -404,7 +435,9 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Payment integration
 - Calendar-style availability view
 - More advanced reporting
-- Multiple image gallery
+- Multi-file gallery uploads in one request
+- Drag-and-drop gallery ordering
+- Image resizing and compression
 - Cloud/object storage for media
 - Booking archive/delete workflow
 - Production monitoring and operational hardening

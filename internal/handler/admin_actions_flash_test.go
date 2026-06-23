@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -174,6 +177,123 @@ func TestAdminCarAvailabilityUpdateSetsDisabledFlash(t *testing.T) {
 	assertResponseFlash(t, handler, response, model.FlashSuccess, "Car is now unavailable.")
 }
 
+func TestAdminCarGalleryCreateSetsSuccessFlash(t *testing.T) {
+	carRepo := &fakeHandlerCarRepository{}
+	handler := testFlashHandler()
+	handler.carService = service.NewCarService(carRepo)
+
+	form := url.Values{
+		"gallery_image_url": {"/static/uploads/cars/gallery.webp"},
+		"gallery_alt_text":  {"Front exterior"},
+	}
+	request := formPostRequestWithParam("/admin/cars/42/gallery", form, "id", "42")
+	response := httptest.NewRecorder()
+
+	handler.AdminCarGalleryCreate().ServeHTTP(response, request)
+
+	if carRepo.createdCarImage.CarID != 42 {
+		t.Fatalf("created car id = %d, want 42", carRepo.createdCarImage.CarID)
+	}
+	if carRepo.createdCarImage.ImageURL != "/static/uploads/cars/gallery.webp" {
+		t.Fatalf("created image URL = %q, want gallery URL", carRepo.createdCarImage.ImageURL)
+	}
+	if !carRepo.createdCarImage.IsPrimary {
+		t.Fatal("created image primary = false, want true for first gallery image")
+	}
+	assertRedirect(t, response, "/admin/cars/42/edit")
+	assertResponseFlash(t, handler, response, model.FlashSuccess, "Gallery image added.")
+}
+
+func TestAdminCarGalleryCreateRejectsMissingImage(t *testing.T) {
+	carRepo := &fakeHandlerCarRepository{}
+	handler := testFlashHandler()
+	handler.carService = service.NewCarService(carRepo)
+
+	request := formPostRequestWithParam("/admin/cars/42/gallery", url.Values{}, "id", "42")
+	response := httptest.NewRecorder()
+
+	handler.AdminCarGalleryCreate().ServeHTTP(response, request)
+
+	if carRepo.createdCarImage.ImageURL != "" {
+		t.Fatalf("created image URL = %q, want empty", carRepo.createdCarImage.ImageURL)
+	}
+	assertRedirect(t, response, "/admin/cars/42/edit")
+	assertResponseFlash(t, handler, response, model.FlashError, "Image URL or image file is required.")
+}
+
+func TestAdminCarGalleryCreateUsesUploadedFile(t *testing.T) {
+	carRepo := &fakeHandlerCarRepository{
+		getByIDCar: model.Car{ID: 42, Slug: "toyota-corolla"},
+		carImages: []model.CarImage{
+			{ID: 1, CarID: 42, ImageURL: "/static/uploads/cars/existing.webp", IsPrimary: true},
+		},
+	}
+	handler := testFlashHandler()
+	handler.carService = service.NewCarService(carRepo)
+
+	request := multipartGalleryUploadRequestWithParam(t, "/admin/cars/42/gallery", "id", "42")
+	response := httptest.NewRecorder()
+
+	handler.AdminCarGalleryCreate().ServeHTTP(response, request)
+	t.Cleanup(func() {
+		if carRepo.createdCarImage.ImageURL != "" {
+			_ = os.Remove("web/static" + strings.TrimPrefix(carRepo.createdCarImage.ImageURL, "/static"))
+		}
+	})
+
+	if !strings.HasPrefix(carRepo.createdCarImage.ImageURL, "/static/uploads/cars/toyota-corolla-") {
+		t.Fatalf("created image URL = %q, want uploaded car image URL", carRepo.createdCarImage.ImageURL)
+	}
+	if carRepo.createdCarImage.IsPrimary {
+		t.Fatal("created image primary = true, want false when gallery already has images")
+	}
+	assertRedirect(t, response, "/admin/cars/42/edit")
+	assertResponseFlash(t, handler, response, model.FlashSuccess, "Gallery image added.")
+}
+
+func TestAdminCarGallerySetPrimarySetsSuccessFlash(t *testing.T) {
+	carRepo := &fakeHandlerCarRepository{}
+	handler := testFlashHandler()
+	handler.carService = service.NewCarService(carRepo)
+
+	request := requestWithParams(http.MethodPost, "/admin/cars/42/gallery/9/primary", map[string]string{
+		"id":      "42",
+		"imageID": "9",
+	})
+	response := httptest.NewRecorder()
+
+	handler.AdminCarGallerySetPrimary().ServeHTTP(response, request)
+
+	if carRepo.primaryCarID != 42 {
+		t.Fatalf("primary car id = %d, want 42", carRepo.primaryCarID)
+	}
+	if carRepo.primaryImageID != 9 {
+		t.Fatalf("primary image id = %d, want 9", carRepo.primaryImageID)
+	}
+	assertRedirect(t, response, "/admin/cars/42/edit")
+	assertResponseFlash(t, handler, response, model.FlashSuccess, "Primary image updated.")
+}
+
+func TestAdminCarGalleryDeleteSetsSuccessFlash(t *testing.T) {
+	carRepo := &fakeHandlerCarRepository{}
+	handler := testFlashHandler()
+	handler.carService = service.NewCarService(carRepo)
+
+	request := requestWithParams(http.MethodPost, "/admin/cars/42/gallery/9/delete", map[string]string{
+		"id":      "42",
+		"imageID": "9",
+	})
+	response := httptest.NewRecorder()
+
+	handler.AdminCarGalleryDelete().ServeHTTP(response, request)
+
+	if carRepo.deletedCarImageID != 9 {
+		t.Fatalf("deleted image id = %d, want 9", carRepo.deletedCarImageID)
+	}
+	assertRedirect(t, response, "/admin/cars/42/edit")
+	assertResponseFlash(t, handler, response, model.FlashSuccess, "Gallery image deleted.")
+}
+
 func assertRedirect(t *testing.T, response *httptest.ResponseRecorder, location string) {
 	t.Helper()
 
@@ -213,15 +333,50 @@ func requestWithParam(method, target, key, value string) *http.Request {
 	return addRouteParam(request, key, value)
 }
 
+func requestWithParams(method, target string, params map[string]string) *http.Request {
+	request := httptest.NewRequest(method, target, nil)
+	return addRouteParams(request, params)
+}
+
 func formPostRequestWithParam(target string, form url.Values, key, value string) *http.Request {
 	request := httptest.NewRequest(http.MethodPost, target, strings.NewReader(form.Encode()))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	return addRouteParam(request, key, value)
 }
 
+func multipartGalleryUploadRequestWithParam(t *testing.T, target, key, value string) *http.Request {
+	t.Helper()
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writer.WriteField("gallery_alt_text", "Uploaded gallery image"); err != nil {
+		t.Fatalf("WriteField() error = %v", err)
+	}
+	part, err := writer.CreateFormFile("gallery_image_file", "gallery.jpg")
+	if err != nil {
+		t.Fatalf("CreateFormFile() error = %v", err)
+	}
+	if _, err := part.Write(jpegBytes()); err != nil {
+		t.Fatalf("part.Write() error = %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("writer.Close() error = %v", err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, target, &body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	return addRouteParam(request, key, value)
+}
+
 func addRouteParam(request *http.Request, key, value string) *http.Request {
+	return addRouteParams(request, map[string]string{key: value})
+}
+
+func addRouteParams(request *http.Request, params map[string]string) *http.Request {
 	routeContext := chi.NewRouteContext()
-	routeContext.URLParams.Add(key, value)
+	for key, value := range params {
+		routeContext.URLParams.Add(key, value)
+	}
 	ctx := context.WithValue(request.Context(), chi.RouteCtxKey, routeContext)
 	return request.WithContext(ctx)
 }
@@ -349,8 +504,17 @@ type fakeHandlerCarRepository struct {
 	unarchivedID      int64
 	availabilityID    int64
 	availabilityValue bool
+	getByIDCar        model.Car
+	getBySlugCar      model.Car
+	carImages         []model.CarImage
+	getCarImagesID    int64
+	createdCarImage   model.CarImage
+	deletedCarImageID int64
+	primaryCarID      int64
+	primaryImageID    int64
 	countErr          error
 	getBySlugErr      error
+	getCarImagesErr   error
 	getByIDErr        error
 	updateErr         error
 	availabilityErr   error
@@ -379,7 +543,40 @@ func (r *fakeHandlerCarRepository) GetCarBySlug(ctx context.Context, slug string
 		return model.Car{}, r.getBySlugErr
 	}
 
-	return model.Car{}, nil
+	return r.getBySlugCar, nil
+}
+
+func (r *fakeHandlerCarRepository) GetCarImagesByCarID(ctx context.Context, carID int64) ([]model.CarImage, error) {
+	if r.getCarImagesErr != nil {
+		return nil, r.getCarImagesErr
+	}
+
+	r.getCarImagesID = carID
+	return r.carImages, nil
+}
+
+func (r *fakeHandlerCarRepository) GetCatalogImageURLsByCarIDs(ctx context.Context, carIDs []int64) (map[int64]string, error) {
+	return map[int64]string{}, nil
+}
+
+func (r *fakeHandlerCarRepository) CreateCarImage(ctx context.Context, image model.CarImage) (int64, error) {
+	r.createdCarImage = image
+	return 1, nil
+}
+
+func (r *fakeHandlerCarRepository) GetCarImageByID(ctx context.Context, imageID int64) (model.CarImage, error) {
+	return model.CarImage{ID: imageID, CarID: 42, ImageURL: "/static/uploads/cars/gallery.webp"}, nil
+}
+
+func (r *fakeHandlerCarRepository) DeleteCarImage(ctx context.Context, imageID int64) error {
+	r.deletedCarImageID = imageID
+	return nil
+}
+
+func (r *fakeHandlerCarRepository) SetPrimaryCarImage(ctx context.Context, carID, imageID int64) error {
+	r.primaryCarID = carID
+	r.primaryImageID = imageID
+	return nil
 }
 
 func (r *fakeHandlerCarRepository) ListCarsForAdmin(ctx context.Context) ([]model.Car, error) {
@@ -397,6 +594,10 @@ func (r *fakeHandlerCarRepository) ListCarsForAdminPage(ctx context.Context, fil
 func (r *fakeHandlerCarRepository) GetCarByID(ctx context.Context, id int64) (model.Car, error) {
 	if r.getByIDErr != nil {
 		return model.Car{}, r.getByIDErr
+	}
+
+	if r.getByIDCar.ID != 0 {
+		return r.getByIDCar, nil
 	}
 
 	return model.Car{ID: id}, nil

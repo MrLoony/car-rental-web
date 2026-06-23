@@ -15,6 +15,7 @@ type TemplateData struct {
 	AppName                      string
 	Cars                         []model.Car
 	Car                          model.Car
+	CarImages                    []model.CarImage
 	Filter                       model.CarFilter
 	CatalogFilterChips           []CatalogFilterChip
 	Categories                   []model.Category

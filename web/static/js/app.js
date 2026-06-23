@@ -4,6 +4,7 @@ import { initBookingPreview } from "./modules/booking-preview.js";
 import { initBookingWizard } from "./modules/booking-wizard.js";
 import { initCatalogFilters } from "./modules/catalog-filters.js";
 import { initCarDetail } from "./modules/car-detail.js";
+import { initCarGallery } from "./modules/car-gallery.js";
 import { initDashboard } from "./modules/dashboard.js";
 import { initFavorites } from "./modules/favorites.js";
 import { initFlash } from "./modules/flash.js";
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initFavorites();
     initCatalogFilters();
     initCarDetail();
+    initCarGallery();
     initDashboard();
     initBookingPreview();
     initBookingWizard();
