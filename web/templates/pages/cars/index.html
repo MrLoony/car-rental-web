@@ -28,16 +28,16 @@
     </div>
 
     <form class="catalog-filter-panel" id="catalog-filter-panel" method="GET" action="/cars" data-filter-form data-catalog-filter-form data-catalog-filter-panel>
-        <div class="grid gap-4 lg:grid-cols-12">
+        <div class="grid gap-3 lg:grid-cols-12 lg:items-end">
             <div class="lg:col-span-4">
                 <label class="form-label" for="search">Search</label>
-                <input class="form-input mt-2" id="search" name="search" type="search" value="{{.Filter.Search}}" placeholder="Search by brand or model" data-filter-search data-debounce-search>
+                <input class="form-input mt-1.5" id="search" name="search" type="search" value="{{.Filter.Search}}" placeholder="Search by brand or model" data-filter-search data-debounce-search>
             </div>
 
-            <div class="sm:grid sm:grid-cols-2 sm:gap-4 lg:col-span-8 lg:grid-cols-5">
+            <div class="sm:grid sm:grid-cols-2 sm:gap-3 lg:col-span-8 lg:grid-cols-5">
                 <div>
                     <label class="form-label" for="category">Category</label>
-                    <select class="form-input mt-2" id="category" name="category" data-filter-select data-auto-submit>
+                    <select class="form-input mt-1.5" id="category" name="category" data-filter-select data-auto-submit>
                         <option value="">All categories</option>
                         {{range .Categories}}
                         <option value="{{.Slug}}" {{if eq $.Filter.CategorySlug .Slug}}selected{{end}}>{{.Name}}</option>
@@ -47,7 +47,7 @@
 
                 <div class="mt-4 sm:mt-0">
                     <label class="form-label" for="fuel">Fuel</label>
-                    <select class="form-input mt-2" id="fuel" name="fuel" data-filter-select data-auto-submit>
+                    <select class="form-input mt-1.5" id="fuel" name="fuel" data-filter-select data-auto-submit>
                         <option value="">Any fuel</option>
                         {{range .FuelTypes}}
                         <option value="{{.}}" {{if eq $.Filter.FuelType .}}selected{{end}}>{{.}}</option>
@@ -57,7 +57,7 @@
 
                 <div class="mt-4 sm:mt-4 lg:mt-0">
                     <label class="form-label" for="transmission">Transmission</label>
-                    <select class="form-input mt-2" id="transmission" name="transmission" data-filter-select data-auto-submit>
+                    <select class="form-input mt-1.5" id="transmission" name="transmission" data-filter-select data-auto-submit>
                         <option value="">Any type</option>
                         {{range .Transmissions}}
                         <option value="{{.}}" {{if eq $.Filter.Transmission .}}selected{{end}}>{{.}}</option>
@@ -67,7 +67,7 @@
 
                 <div class="mt-4 sm:mt-4 lg:col-span-2 lg:mt-0">
                     <label class="form-label" for="sort">Sort</label>
-                    <select class="form-input mt-2" id="sort" name="sort" data-filter-select data-auto-submit>
+                    <select class="form-input mt-1.5" id="sort" name="sort" data-filter-select data-auto-submit>
                         <option value="newest" {{if eq .Filter.Sort "newest"}}selected{{end}}>Newest</option>
                         <option value="price_asc" {{if eq .Filter.Sort "price_asc"}}selected{{end}}>Price: low to high</option>
                         <option value="price_desc" {{if eq .Filter.Sort "price_desc"}}selected{{end}}>Price: high to low</option>
@@ -76,7 +76,7 @@
             </div>
         </div>
 
-        <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
             <button class="btn btn-primary" type="submit" data-filter-submit>
                 Apply filters
             </button>
@@ -107,7 +107,7 @@
 </section>
 
 {{if .Cars}}
-<section class="grid gap-6 pb-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="Available cars" data-favorites-list>
+<section class="catalog-grid" aria-label="Available cars" data-favorites-list>
     {{range .Cars}}
     {{$car := .}}
     <article class="car-card" data-favorite-card data-car-slug="{{.Slug}}" data-car-name="{{.Brand}} {{.Model}}">
@@ -118,30 +118,33 @@
         {{end}}
 
         <div class="car-card-body">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">{{.CategoryName}}</p>
-                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">{{.Brand}} {{.Model}}</h2>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{.Year}}</p>
+            <div class="flex-1">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="car-card-meta">{{.CategoryName}}</p>
+                    <div class="flex shrink-0 items-center gap-2">
+                        <span class="badge badge-success">Available</span>
+                        <button class="favorite-button catalog-favorite-button" type="button" data-favorite-toggle data-car-slug="{{.Slug}}" data-car-name="{{.Brand}} {{.Model}}" aria-pressed="false" aria-label="Add {{.Brand}} {{.Model}} to favorites">
+                            <span data-favorite-icon aria-hidden="true">♡</span>
+                            <span class="sr-only" data-favorite-label>Save</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex shrink-0 flex-col items-end gap-2">
-                    <span class="badge badge-success">Available</span>
-                    <button class="favorite-button" type="button" data-favorite-toggle data-car-slug="{{.Slug}}" data-car-name="{{.Brand}} {{.Model}}" aria-pressed="false" aria-label="Add {{.Brand}} {{.Model}} to favorites">
-                        <span data-favorite-icon aria-hidden="true">♡</span>
-                        <span data-favorite-label>Save</span>
-                    </button>
+
+                <div class="car-card-heading">
+                    <h2 class="car-card-title">{{.Brand}} {{.Model}}</h2>
+                    <p class="car-card-year">{{.Year}}</p>
+                </div>
+
+                <p class="car-card-price">{{formatMoney .PricePerDay}}<span> / day</span></p>
+
+                <div class="mt-4 flex min-h-[3.75rem] flex-wrap content-start gap-2 text-sm">
+                    <span class="car-feature-badge">{{.Transmission}}</span>
+                    <span class="car-feature-badge">{{.FuelType}}</span>
+                    <span class="car-feature-badge">{{.Seats}} seats</span>
                 </div>
             </div>
 
-            <p class="mt-5 text-3xl font-semibold text-slate-950 dark:text-slate-100">{{formatMoney .PricePerDay}}<span class="text-sm font-normal text-slate-500 dark:text-slate-400"> / day</span></p>
-
-            <div class="mt-5 flex flex-wrap gap-2 text-sm">
-                <span class="car-feature-badge">{{.Transmission}}</span>
-                <span class="car-feature-badge">{{.FuelType}}</span>
-                <span class="car-feature-badge">{{.Seats}} seats</span>
-            </div>
-
-            <a class="btn btn-primary mt-6 w-full" href="/cars/{{.Slug}}">
+            <a class="btn btn-primary mt-6 w-full shrink-0" href="/cars/{{.Slug}}">
                 View details
             </a>
         </div>

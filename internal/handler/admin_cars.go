@@ -2,7 +2,9 @@ package handler
 
 import (
 	"errors"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -204,8 +206,10 @@ func (h *Handler) AdminCarGalleryCreate() http.HandlerFunc {
 			return
 		}
 
+		galleryURL := adminCarGalleryURL(id)
+
 		if err := parseOptionalCarMultipartForm(r); err != nil {
-			h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+			h.redirectWithFlash(w, r, galleryURL, model.FlashMessage{
 				Type:    model.FlashError,
 				Message: "The uploaded gallery image could not be processed.",
 			})
@@ -213,28 +217,40 @@ func (h *Handler) AdminCarGalleryCreate() http.HandlerFunc {
 		}
 
 		imageURL := strings.TrimSpace(r.FormValue("gallery_image_url"))
-		uploadedImageURL, uploaded, err := saveOptionalGalleryImageUpload(r, car.Slug)
+		uploadedImageURLs, uploaded, err := saveOptionalGalleryImageUploads(r, car.Slug)
 		if err != nil {
-			h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+			h.redirectWithFlash(w, r, galleryURL, model.FlashMessage{
 				Type:    model.FlashError,
 				Message: err.Error(),
 			})
 			return
 		}
+
+		altText := r.FormValue("gallery_alt_text")
+		images := []model.CarImage{}
 		if uploaded {
-			imageURL = uploadedImageURL
+			for _, uploadedImageURL := range uploadedImageURLs {
+				images = append(images, model.CarImage{
+					CarID:    id,
+					ImageURL: uploadedImageURL,
+					AltText:  altText,
+				})
+			}
+		} else if imageURL != "" {
+			images = append(images, model.CarImage{
+				CarID:    id,
+				ImageURL: imageURL,
+				AltText:  altText,
+			})
 		}
 
-		image := model.CarImage{
-			CarID:    id,
-			ImageURL: imageURL,
-			AltText:  r.FormValue("gallery_alt_text"),
-		}
-
-		_, err = h.carService.AddCarImage(r.Context(), image)
+		_, err = h.carService.AddCarImages(r.Context(), images)
 		if err != nil {
+			if uploaded {
+				removeUploadedCarImages(uploadedImageURLs)
+			}
 			if errors.Is(err, service.ErrInvalidCarImage) {
-				h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+				h.redirectWithFlash(w, r, galleryURL, model.FlashMessage{
 					Type:    model.FlashError,
 					Message: "Image URL or image file is required.",
 				})
@@ -245,9 +261,9 @@ func (h *Handler) AdminCarGalleryCreate() http.HandlerFunc {
 			return
 		}
 
-		h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+		h.redirectWithFlash(w, r, galleryURL, model.FlashMessage{
 			Type:    model.FlashSuccess,
-			Message: "Gallery image added.",
+			Message: galleryImagesAddedMessage(len(images)),
 		})
 	}
 }
@@ -278,7 +294,7 @@ func (h *Handler) AdminCarGallerySetPrimary() http.HandlerFunc {
 			return
 		}
 
-		h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+		h.redirectWithFlash(w, r, adminCarGalleryURL(id), model.FlashMessage{
 			Type:    model.FlashSuccess,
 			Message: "Primary image updated.",
 		})
@@ -311,7 +327,7 @@ func (h *Handler) AdminCarGalleryDelete() http.HandlerFunc {
 			return
 		}
 
-		h.redirectWithFlash(w, r, adminCarEditURL(id), model.FlashMessage{
+		h.redirectWithFlash(w, r, adminCarGalleryURL(id), model.FlashMessage{
 			Type:    model.FlashSuccess,
 			Message: "Gallery image deleted.",
 		})
@@ -460,6 +476,18 @@ func adminCarEditURL(id int64) string {
 	return "/admin/cars/" + strconv.FormatInt(id, 10) + "/edit"
 }
 
+func adminCarGalleryURL(id int64) string {
+	return adminCarEditURL(id) + "#vehicle-gallery"
+}
+
+func galleryImagesAddedMessage(count int) string {
+	if count == 1 {
+		return "Gallery image added."
+	}
+
+	return strconv.Itoa(count) + " gallery images added."
+}
+
 func parseCarForm(r *http.Request) model.CarForm {
 	return model.CarForm{
 		CategoryID:   r.FormValue("category_id"),
@@ -484,26 +512,60 @@ func parseOptionalCarMultipartForm(r *http.Request) error {
 	return nil
 }
 
-func saveOptionalGalleryImageUpload(r *http.Request, carSlug string) (string, bool, error) {
-	return saveOptionalCarImageUploadField(r, "gallery_image_file", carSlug)
+func saveOptionalGalleryImageUploads(r *http.Request, carSlug string) ([]string, bool, error) {
+	return saveOptionalCarImageUploadFields(r, "gallery_image_files", carSlug)
 }
 
-func saveOptionalCarImageUploadField(r *http.Request, fieldName, carSlug string) (string, bool, error) {
-	file, header, err := r.FormFile(fieldName)
-	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) || errors.Is(err, http.ErrNotMultipart) {
-			return "", false, nil
+func saveOptionalCarImageUploadFields(r *http.Request, fieldName, carSlug string) ([]string, bool, error) {
+	headers := uploadedFileHeaders(r, fieldName)
+	if len(headers) == 0 && fieldName == "gallery_image_files" {
+		headers = uploadedFileHeaders(r, "gallery_image_file")
+	}
+	if len(headers) == 0 {
+		return nil, false, nil
+	}
+
+	imageURLs := make([]string, 0, len(headers))
+	for _, header := range headers {
+		file, err := header.Open()
+		if err != nil {
+			return nil, false, err
 		}
 
-		return "", false, err
+		imageURL, err := saveCarImageUpload(file, header, carSlug)
+		if err != nil {
+			removeUploadedCarImages(imageURLs)
+			return nil, false, err
+		}
+
+		imageURLs = append(imageURLs, imageURL)
 	}
 
-	imageURL, err := saveCarImageUpload(file, header, carSlug)
-	if err != nil {
-		return "", false, err
+	return imageURLs, true, nil
+}
+
+func removeUploadedCarImages(imageURLs []string) {
+	for _, imageURL := range imageURLs {
+		if strings.HasPrefix(imageURL, "/static/uploads/cars/") {
+			_ = os.Remove("web/static" + strings.TrimPrefix(imageURL, "/static"))
+		}
+	}
+}
+
+func uploadedFileHeaders(r *http.Request, fieldName string) []*multipart.FileHeader {
+	if r.MultipartForm == nil || r.MultipartForm.File == nil {
+		return nil
 	}
 
-	return imageURL, true, nil
+	headers := r.MultipartForm.File[fieldName]
+	files := make([]*multipart.FileHeader, 0, len(headers))
+	for _, header := range headers {
+		if header != nil && header.Filename != "" && header.Size > 0 {
+			files = append(files, header)
+		}
+	}
+
+	return files
 }
 
 func addCarFormError(form model.CarForm, field, message string) model.CarForm {

@@ -282,6 +282,59 @@ func TestCarServiceAddCarImageDoesNotReplaceExistingPrimary(t *testing.T) {
 	}
 }
 
+func TestCarServiceAddCarImagesMarksOnlyFirstPrimaryForEmptyGallery(t *testing.T) {
+	repo := &fakeCarRepository{createCarImageID: 10}
+	service := NewCarService(repo)
+
+	_, err := service.AddCarImages(context.Background(), []model.CarImage{
+		{CarID: 42, ImageURL: "/static/uploads/cars/front.webp"},
+		{CarID: 42, ImageURL: "/static/uploads/cars/rear.webp"},
+		{CarID: 42, ImageURL: "/static/uploads/cars/interior.webp"},
+	})
+	if err != nil {
+		t.Fatalf("AddCarImages() error = %v, want nil", err)
+	}
+
+	if len(repo.createdCarImages) != 3 {
+		t.Fatalf("created images = %d, want 3", len(repo.createdCarImages))
+	}
+	if !repo.createdCarImages[0].IsPrimary {
+		t.Fatal("first created image primary = false, want true")
+	}
+	for i, image := range repo.createdCarImages[1:] {
+		if image.IsPrimary {
+			t.Fatalf("created image %d primary = true, want false", i+1)
+		}
+	}
+}
+
+func TestCarServiceAddCarImagesKeepsExistingPrimary(t *testing.T) {
+	repo := &fakeCarRepository{
+		createCarImageID: 10,
+		carImages: []model.CarImage{
+			{ID: 9, CarID: 42, ImageURL: "/static/uploads/cars/front.webp", IsPrimary: true},
+		},
+	}
+	service := NewCarService(repo)
+
+	_, err := service.AddCarImages(context.Background(), []model.CarImage{
+		{CarID: 42, ImageURL: "/static/uploads/cars/rear.webp"},
+		{CarID: 42, ImageURL: "/static/uploads/cars/interior.webp"},
+	})
+	if err != nil {
+		t.Fatalf("AddCarImages() error = %v, want nil", err)
+	}
+
+	if len(repo.createdCarImages) != 2 {
+		t.Fatalf("created images = %d, want 2", len(repo.createdCarImages))
+	}
+	for i, image := range repo.createdCarImages {
+		if image.IsPrimary {
+			t.Fatalf("created image %d primary = true, want false", i)
+		}
+	}
+}
+
 func TestCarServiceDeleteCarImageDelegatesToRepository(t *testing.T) {
 	repo := &fakeCarRepository{
 		carImageByID: model.CarImage{ID: 9, CarID: 42, ImageURL: "/static/uploads/cars/gallery.webp"},
@@ -359,6 +412,7 @@ type fakeCarRepository struct {
 	createCarImageID     int64
 	createCarImageCalled bool
 	createdCarImage      model.CarImage
+	createdCarImages     []model.CarImage
 	carImageByID         model.CarImage
 	deleteCarImageID     int64
 	primaryCarID         int64
@@ -403,6 +457,7 @@ func (r *fakeCarRepository) GetCatalogImageURLsByCarIDs(ctx context.Context, car
 func (r *fakeCarRepository) CreateCarImage(ctx context.Context, image model.CarImage) (int64, error) {
 	r.createCarImageCalled = true
 	r.createdCarImage = image
+	r.createdCarImages = append(r.createdCarImages, image)
 	return r.createCarImageID, nil
 }
 

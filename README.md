@@ -49,6 +49,7 @@ Project layout:
 - Server-rendered car catalog at `/cars`
 - Car detail pages at `/cars/{slug}`
 - Catalog cards use the primary gallery image first, then the first gallery image, then a placeholder
+- Equal-height responsive catalog cards with stable image areas, clamped titles, aligned specs, and aligned CTAs
 - Multi-image gallery carousel on car detail pages when gallery images are configured
 - Gallery carousel thumbnails, previous/next controls, image counter, keyboard navigation, and lightbox preview
 - Text search, category, fuel type, transmission, and sort filters
@@ -79,7 +80,8 @@ Project layout:
 - Printable booking summaries from the admin booking detail page
 - Car list, create, detail, edit, availability toggle, archive, and restore
 - Gallery image management from the car edit page
-- Gallery image URL upload, local gallery image upload, primary image selection, and gallery image deletion
+- Gallery image URL add, multi-file local gallery upload, primary image selection, and gallery image deletion
+- Gallery actions return directly to the gallery section after add, primary, or delete operations
 - Admin search and filtering for cars and bookings
 - Server-side pagination for admin cars and bookings
 - Flash messages after admin actions
@@ -161,12 +163,13 @@ Gallery uploads:
 Gallery images:
 
 - are managed from the admin car edit page
-- can be added from an external URL or one local upload per request
+- can be added from an external URL or multiple local uploads in one request
 - include optional alt text
 - can be marked as the primary gallery image
 - can be deleted by admins
 - use JPEG, PNG, WebP, and 5 MB validation rules for local files
 - automatically make the first gallery image primary when a car has no existing gallery images
+- keep the existing primary image when more images are added later
 - are used first on catalog cards and public car detail pages when present
 
 Catalog cards and public detail pages resolve images in this order:
@@ -175,7 +178,7 @@ Catalog cards and public detail pages resolve images in this order:
 2. first gallery image
 3. placeholder image
 
-The current implementation does not include multi-file gallery upload in one request, drag-and-drop gallery ordering, image resizing, compression, antivirus scanning, or cloud/object storage.
+The current implementation does not include drag-and-drop gallery ordering, image resizing, compression, antivirus scanning, or cloud/object storage.
 
 ### Email Notifications
 
@@ -401,6 +404,8 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Local gallery image uploads and URL-based gallery images
 - Gallery-first catalog and car detail image resolution
 - Public car detail carousel with gallery and placeholder fallbacks
+- Equal-height public catalog cards with clamped titles and aligned actions
+- Multi-file local gallery uploads with gallery-section redirects after image actions
 - Admin dashboard with booking, revenue, and recent activity reporting
 - Dashboard reporting range filters for All Time, Last 30 Days, and This Month
 - Admin booking CSV export
@@ -431,7 +436,6 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Payment integration
 - Calendar-style availability view
 - More advanced reporting
-- Multi-file gallery uploads in one request
 - Drag-and-drop gallery ordering
 - Image resizing and compression
 - Cloud/object storage for media

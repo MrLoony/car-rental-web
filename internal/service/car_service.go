@@ -121,24 +121,52 @@ func (s *CarService) GetCarImages(ctx context.Context, carID int64) ([]model.Car
 }
 
 func (s *CarService) AddCarImage(ctx context.Context, image model.CarImage) (int64, error) {
-	image.ImageURL = strings.TrimSpace(image.ImageURL)
-	image.AltText = strings.TrimSpace(image.AltText)
-	if image.CarID < 1 || image.ImageURL == "" {
+	ids, err := s.AddCarImages(ctx, []model.CarImage{image})
+	if err != nil {
+		return 0, err
+	}
+	if len(ids) == 0 {
 		return 0, ErrInvalidCarImage
 	}
 
-	existingImages, err := s.repo.GetCarImagesByCarID(ctx, image.CarID)
-	if err != nil {
-		return 0, fmt.Errorf("count car images before add: %w", err)
-	}
-	image.IsPrimary = len(existingImages) == 0
+	return ids[0], nil
+}
 
-	id, err := s.repo.CreateCarImage(ctx, image)
-	if err != nil {
-		return 0, fmt.Errorf("add car image: %w", err)
+func (s *CarService) AddCarImages(ctx context.Context, images []model.CarImage) ([]int64, error) {
+	if len(images) == 0 {
+		return nil, ErrInvalidCarImage
 	}
 
-	return id, nil
+	carID := images[0].CarID
+	if carID < 1 {
+		return nil, ErrInvalidCarImage
+	}
+
+	for i := range images {
+		images[i].ImageURL = strings.TrimSpace(images[i].ImageURL)
+		images[i].AltText = strings.TrimSpace(images[i].AltText)
+		if images[i].CarID != carID || images[i].ImageURL == "" {
+			return nil, ErrInvalidCarImage
+		}
+	}
+
+	existingImages, err := s.repo.GetCarImagesByCarID(ctx, carID)
+	if err != nil {
+		return nil, fmt.Errorf("count car images before add: %w", err)
+	}
+
+	ids := make([]int64, 0, len(images))
+	for i, image := range images {
+		image.IsPrimary = len(existingImages) == 0 && i == 0
+		id, err := s.repo.CreateCarImage(ctx, image)
+		if err != nil {
+			return nil, fmt.Errorf("add car image: %w", err)
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
 }
 
 func (s *CarService) DeleteCarImage(ctx context.Context, carID, imageID int64) error {
