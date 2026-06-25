@@ -5,7 +5,7 @@
             <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Admin</p>
             <h1 class="text-4xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-5xl">Admin dashboard</h1>
             <p class="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">
-                Review rental operations, manage catalog vehicles, and handle incoming booking requests.
+                Review bookings, manage catalog vehicles, and keep rental requests moving.
             </p>
         </div>
         <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-600 dark:text-slate-300 shadow-sm">
@@ -64,8 +64,8 @@
         <form class="quick-action-card" method="POST" action="/admin/cleanup/prefills">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <span class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Maintenance</span>
-            <span class="mt-3 block text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Clean expired prefills</span>
-            <span class="mt-2 block text-sm leading-6 text-slate-600 dark:text-slate-300">Remove expired temporary booking form state tokens.</span>
+            <span class="mt-3 block text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Clean expired drafts</span>
+            <span class="mt-2 block text-sm leading-6 text-slate-600 dark:text-slate-300">Remove expired temporary booking drafts.</span>
             <button class="btn btn-secondary mt-4 w-full" type="submit">Run cleanup</button>
         </form>
     </div>
@@ -245,9 +245,9 @@
     <div class="dashboard-section-header">
         <div>
             <p class="text-sm font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Maintenance</p>
-            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Booking prefill tokens</h2>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">Booking drafts</h2>
             <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                Removes expired temporary booking form state tokens.
+                Remove expired temporary booking drafts.
             </p>
         </div>
         <button class="btn btn-secondary dashboard-toggle" type="button" aria-expanded="true" aria-controls="maintenance-panel" data-dashboard-toggle>
@@ -259,10 +259,10 @@
         <form class="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between" method="POST" action="/admin/cleanup/prefills">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div>
-                <p class="font-semibold text-slate-950 dark:text-slate-100">Expired prefill cleanup</p>
-                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Safe to run manually when temporary booking tokens have expired.</p>
+                <p class="font-semibold text-slate-950 dark:text-slate-100">Expired draft cleanup</p>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Safe to run manually when temporary booking drafts have expired.</p>
             </div>
-            <button class="btn btn-secondary" type="submit">Clean expired prefill tokens</button>
+            <button class="btn btn-secondary" type="submit">Clean expired drafts</button>
         </form>
     </div>
 </section>

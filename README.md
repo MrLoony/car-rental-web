@@ -155,10 +155,12 @@ Gallery uploads:
 
 - saved under `web/static/uploads/cars`
 - stored in PostgreSQL as `/static/uploads/cars/<filename>`
-- ignored by Git, with `.gitkeep` preserving the upload directory
+- ignored by Git by default, with `.gitkeep` preserving the upload directory
 - limited to JPEG, PNG, and WebP files up to 5 MB
 - validated by extension, detected content type, and WebP signature checks
 - saved with application-generated filenames
+
+Demo gallery assets for deployment are committed separately under `web/static/uploads/cars/demo/` and referenced as `/static/uploads/cars/demo/<filename>`.
 
 Gallery images:
 
@@ -274,11 +276,19 @@ APP_ENV=production
 
 Empty or unknown values are treated as development.
 
-Required session setting:
+Core settings:
 
 ```text
+PORT=10000
+APP_PORT=8080
+BASE_URL=https://your-app.example.com
+DATABASE_URL=postgres://...
 SESSION_SECRET=change-me
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me
 ```
+
+`PORT` is used by hosted environments such as Render. `APP_PORT` is kept as a local fallback when `PORT` is not set.
 
 Email settings:
 
@@ -301,6 +311,57 @@ When `EMAIL_ENABLED=true`, the application requires:
 - `ADMIN_NOTIFICATION_EMAIL`
 
 `SMTP_USERNAME` and `SMTP_PASSWORD` are optional to support development SMTP providers that do not require authentication.
+
+When `APP_ENV=production`, the application fails fast unless deployment-critical values are configured safely:
+
+- `DATABASE_URL`
+- `BASE_URL`
+- strong non-default `SESSION_SECRET`
+- configured `ADMIN_EMAIL`
+- non-demo `ADMIN_PASSWORD`
+
+In production, the configured admin account is created or updated at startup. If the configured email is different from the seeded demo admin email, the seeded demo admin account is removed. Secrets must be configured in the hosting provider environment and must not be committed.
+
+## Production Deployment
+
+The intended demo deployment target is a Render Web Service with an external PostgreSQL database such as Neon.
+
+Recommended Render settings:
+
+```text
+Build command: npm install && npm run build && go build -o app ./cmd/web
+Start command: ./app
+```
+
+Run migrations against the production database before starting or as a deploy step:
+
+```bash
+migrate -path migrations -database "$DATABASE_URL" up
+```
+
+Required production environment variables:
+
+```text
+APP_ENV=production
+PORT=<provided by Render>
+BASE_URL=https://your-render-service.onrender.com
+DATABASE_URL=<Neon PostgreSQL connection string>
+SESSION_SECRET=<strong random secret>
+ADMIN_EMAIL=<admin login email>
+ADMIN_PASSWORD=<strong admin password>
+EMAIL_ENABLED=false
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM=
+SMTP_FROM_NAME="Car Rental Web"
+ADMIN_NOTIFICATION_EMAIL=
+```
+
+If `EMAIL_ENABLED=true`, configure the SMTP fields and `ADMIN_NOTIFICATION_EMAIL`.
+
+Local gallery uploads are stored under `web/static/uploads/cars`. The repository ignores runtime uploads by default and commits only curated demo images under `web/static/uploads/cars/demo/`; on free Render services, runtime filesystem uploads are not persistent across redeploys. Committed demo images are intentional for defense/demo data, while a real production deployment should use object storage or persistent disk for media.
 
 ## Development Setup
 
@@ -362,6 +423,7 @@ Password: admin123
 ```
 
 These are demo credentials only. Change them before any real deployment, and use a strong `SESSION_SECRET`.
+Production deployments should use `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables so the startup bootstrap replaces the demo password or removes the seeded demo account.
 
 ## Project Status
 
@@ -379,6 +441,7 @@ Completed:
 - Frontend modernization
 - JavaScript-heavy frontend enhancements
 - Multi-image vehicle galleries
+- Production deployment readiness foundation
 - Accessibility improvements
 
 The application is suitable as a portfolio-scale SSR Go project. Additional production work would still be needed before real-world deployment.
@@ -423,6 +486,7 @@ Recent completed milestones include Stage 19 email notifications, Stage 20 UX an
 - Progressive booking form wizard with sessionStorage draft restore
 - Practical accessibility improvements for keyboard navigation, focus states, ARIA labels, toasts, tables, wizard steps, and lightbox focus restoration
 - Progressive frontend enhancements without SPA routing or AJAX requirements
+- Render/Neon-oriented production configuration and deployment documentation
 - CSRF protection
 - Basic login brute-force protection
 - Security headers and environment-aware session cookies

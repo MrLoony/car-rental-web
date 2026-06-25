@@ -8,3 +8,5 @@ bin/
 node_modules/
 web/static/uploads/cars/*
 !web/static/uploads/cars/.gitkeep
+!web/static/uploads/cars/demo/
+!web/static/uploads/cars/demo/**

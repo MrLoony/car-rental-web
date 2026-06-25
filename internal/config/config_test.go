@@ -41,6 +41,7 @@ func TestLoadDevelopmentAppEnv(t *testing.T) {
 
 func TestLoadProductionAppEnv(t *testing.T) {
 	clearEmailEnv(t)
+	setValidProductionEnv(t)
 	t.Setenv("APP_ENV", "production")
 
 	cfg, err := Load()
@@ -54,6 +55,58 @@ func TestLoadProductionAppEnv(t *testing.T) {
 	if !cfg.IsProduction {
 		t.Fatal("IsProduction = false, want true")
 	}
+}
+
+func TestLoadUsesRenderPortWhenPresent(t *testing.T) {
+	clearEmailEnv(t)
+	t.Setenv("APP_PORT", "8081")
+	t.Setenv("PORT", "10000")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+
+	if cfg.AppPort != "10000" {
+		t.Fatalf("AppPort = %q, want PORT value", cfg.AppPort)
+	}
+}
+
+func TestLoadFallsBackToAppPortForDevelopment(t *testing.T) {
+	clearEmailEnv(t)
+	t.Setenv("APP_PORT", "8081")
+	t.Setenv("PORT", "")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+
+	if cfg.AppPort != "8081" {
+		t.Fatalf("AppPort = %q, want APP_PORT value", cfg.AppPort)
+	}
+}
+
+func TestLoadProductionRequiresSafeConfiguration(t *testing.T) {
+	clearEmailEnv(t)
+	t.Setenv("APP_ENV", "production")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "DATABASE_URL")
+	assertConfigErrorContains(t, err, "BASE_URL")
+	assertConfigErrorContains(t, err, "SESSION_SECRET")
+	assertConfigErrorContains(t, err, "ADMIN_EMAIL")
+	assertConfigErrorContains(t, err, "ADMIN_PASSWORD")
+}
+
+func TestLoadProductionRejectsDemoAdminPassword(t *testing.T) {
+	clearEmailEnv(t)
+	setValidProductionEnv(t)
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("ADMIN_PASSWORD", "admin123")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "ADMIN_PASSWORD")
 }
 
 func TestLoadUnknownAppEnvFallsBackToDevelopment(t *testing.T) {
@@ -158,6 +211,13 @@ func TestLoadEmailEnabledWithRequiredConfig(t *testing.T) {
 func clearEmailEnv(t *testing.T) {
 	t.Helper()
 
+	t.Setenv("APP_PORT", "")
+	t.Setenv("PORT", "")
+	t.Setenv("BASE_URL", "")
+	t.Setenv("DATABASE_URL", "")
+	t.Setenv("SESSION_SECRET", "")
+	t.Setenv("ADMIN_EMAIL", "")
+	t.Setenv("ADMIN_PASSWORD", "")
 	t.Setenv("EMAIL_ENABLED", "")
 	t.Setenv("SMTP_HOST", "")
 	t.Setenv("SMTP_PORT", "")
@@ -166,6 +226,16 @@ func clearEmailEnv(t *testing.T) {
 	t.Setenv("SMTP_FROM", "")
 	t.Setenv("SMTP_FROM_NAME", "")
 	t.Setenv("ADMIN_NOTIFICATION_EMAIL", "")
+}
+
+func setValidProductionEnv(t *testing.T) {
+	t.Helper()
+
+	t.Setenv("BASE_URL", "https://car-rental.example.test")
+	t.Setenv("DATABASE_URL", "postgres://prod_user:prod_password@db.example.test:5432/car_rental_web?sslmode=require")
+	t.Setenv("SESSION_SECRET", "prod-session-secret-at-least-32-chars")
+	t.Setenv("ADMIN_EMAIL", "admin@example.test")
+	t.Setenv("ADMIN_PASSWORD", "replace-with-a-strong-password")
 }
 
 func setValidEmailEnv(t *testing.T) {

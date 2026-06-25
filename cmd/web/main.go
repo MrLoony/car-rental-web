@@ -51,6 +51,12 @@ func main() {
 	adminUserRepository := repository.NewAdminUserRepository(dbpool)
 	loginAttemptLimiter := service.NewLoginAttemptLimiter()
 	authService := service.NewAuthService(adminUserRepository, loginAttemptLimiter)
+	if cfg.IsProduction {
+		if err := authService.EnsureAdminUser(ctx, cfg.AdminEmail, cfg.AdminPassword); err != nil {
+			log.Fatalf("admin user setup failed: %v", err)
+		}
+		log.Println("production admin user configured")
+	}
 
 	sessionStore := sessions.NewCookieStore([]byte(cfg.SessionSecret))
 	sessionStore.Options = sessionOptions(cfg.IsProduction)

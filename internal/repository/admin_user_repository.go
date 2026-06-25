@@ -50,3 +50,30 @@ func (r *AdminUserRepository) GetAdminUserByEmail(ctx context.Context, email str
 
 	return user, nil
 }
+
+func (r *AdminUserRepository) UpsertAdminUserPasswordHash(ctx context.Context, email string, passwordHash string) error {
+	const query = `
+		INSERT INTO admin_users (email, password_hash)
+		VALUES ($1, $2)
+		ON CONFLICT (email)
+		DO UPDATE SET
+			password_hash = EXCLUDED.password_hash,
+			updated_at = NOW()
+	`
+
+	if _, err := r.db.Exec(ctx, query, email, passwordHash); err != nil {
+		return fmt.Errorf("upsert admin user %q: %w", email, err)
+	}
+
+	return nil
+}
+
+func (r *AdminUserRepository) DeleteAdminUserByEmail(ctx context.Context, email string) error {
+	const query = `DELETE FROM admin_users WHERE email = $1`
+
+	if _, err := r.db.Exec(ctx, query, email); err != nil {
+		return fmt.Errorf("delete admin user %q: %w", email, err)
+	}
+
+	return nil
+}

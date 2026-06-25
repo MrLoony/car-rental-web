@@ -14,6 +14,7 @@ import (
 const (
 	invalidCredentialsMessage      = "Invalid email or password."
 	invalidCredentialsLaterMessage = "Invalid email or password. Please try again later."
+	seededDemoAdminEmail           = "admin@example.com"
 )
 
 type AuthService struct {
@@ -30,6 +31,29 @@ func NewAuthService(adminUserRepo *repository.AdminUserRepository, loginLimiter 
 		adminUserRepo: adminUserRepo,
 		loginLimiter:  loginLimiter,
 	}
+}
+
+func (s *AuthService) EnsureAdminUser(ctx context.Context, email string, password string) error {
+	email = strings.TrimSpace(email)
+	if email == "" || strings.TrimSpace(password) == "" {
+		return fmt.Errorf("admin email and password are required")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("hash admin password: %w", err)
+	}
+
+	if err := s.adminUserRepo.UpsertAdminUserPasswordHash(ctx, email, string(hash)); err != nil {
+		return fmt.Errorf("ensure admin user: %w", err)
+	}
+	if email != seededDemoAdminEmail {
+		if err := s.adminUserRepo.DeleteAdminUserByEmail(ctx, seededDemoAdminEmail); err != nil {
+			return fmt.Errorf("remove seeded demo admin user: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (s *AuthService) Authenticate(ctx context.Context, form model.LoginForm) (model.AdminUser, model.LoginForm, error) {

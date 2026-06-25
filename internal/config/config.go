@@ -14,8 +14,11 @@ type Config struct {
 	AppEnv        string
 	IsProduction  bool
 	AppPort       string
+	BaseURL       string
 	DatabaseURL   string
 	SessionSecret string
+	AdminEmail    string
+	AdminPassword string
 
 	EmailEnabled           bool
 	SMTPHost               string
@@ -40,9 +43,12 @@ func Load() (Config, error) {
 		AppName:                envOrDefault("APP_NAME", "Car Rental Web"),
 		AppEnv:                 appEnv,
 		IsProduction:           appEnv == appEnvProduction,
-		AppPort:                envOrDefault("APP_PORT", "8080"),
-		DatabaseURL:            envOrDefault("DATABASE_URL", "postgres://car_rental_user:car_rental_password@localhost:5432/car_rental_web?sslmode=disable"),
-		SessionSecret:          envOrDefault("SESSION_SECRET", "change-me-in-development"),
+		AppPort:                envOrDefault("PORT", envOrDefault("APP_PORT", "8080")),
+		BaseURL:                strings.TrimRight(strings.TrimSpace(os.Getenv("BASE_URL")), "/"),
+		DatabaseURL:            envOrDefault("DATABASE_URL", defaultDatabaseURL),
+		SessionSecret:          envOrDefault("SESSION_SECRET", defaultSessionSecret),
+		AdminEmail:             strings.TrimSpace(os.Getenv("ADMIN_EMAIL")),
+		AdminPassword:          os.Getenv("ADMIN_PASSWORD"),
 		EmailEnabled:           envBoolOrDefault("EMAIL_ENABLED", false),
 		SMTPHost:               strings.TrimSpace(os.Getenv("SMTP_HOST")),
 		SMTPPort:               smtpPort,
@@ -53,6 +59,9 @@ func Load() (Config, error) {
 		AdminNotificationEmail: strings.TrimSpace(os.Getenv("ADMIN_NOTIFICATION_EMAIL")),
 	}
 
+	if err := validateProductionConfig(cfg); err != nil {
+		return Config{}, err
+	}
 	if err := validateEmailConfig(cfg); err != nil {
 		return Config{}, err
 	}
@@ -94,6 +103,9 @@ func envIntOrDefault(key string, fallback int) (int, error) {
 const (
 	appEnvDevelopment = "development"
 	appEnvProduction  = "production"
+
+	defaultDatabaseURL   = "postgres://car_rental_user:car_rental_password@localhost:5432/car_rental_web?sslmode=disable"
+	defaultSessionSecret = "change-me-in-development"
 )
 
 func normalizeAppEnv(value string) string {
@@ -128,4 +140,52 @@ func validateEmailConfig(cfg Config) error {
 	}
 
 	return nil
+}
+
+func validateProductionConfig(cfg Config) error {
+	if !cfg.IsProduction {
+		return nil
+	}
+
+	missing := make([]string, 0)
+	if cfg.DatabaseURL == "" || cfg.DatabaseURL == defaultDatabaseURL {
+		missing = append(missing, "DATABASE_URL")
+	}
+	if cfg.BaseURL == "" {
+		missing = append(missing, "BASE_URL")
+	}
+	if !isProductionSessionSecret(cfg.SessionSecret) {
+		missing = append(missing, "SESSION_SECRET")
+	}
+	if cfg.AdminEmail == "" {
+		missing = append(missing, "ADMIN_EMAIL")
+	}
+	if !isProductionAdminPassword(cfg.AdminPassword) {
+		missing = append(missing, "ADMIN_PASSWORD")
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("production configuration is missing or unsafe: %s", strings.Join(missing, ", "))
+	}
+
+	return nil
+}
+
+func isProductionSessionSecret(secret string) bool {
+	secret = strings.TrimSpace(secret)
+	if len(secret) < 32 {
+		return false
+	}
+
+	return !strings.Contains(strings.ToLower(secret), "change-me")
+}
+
+func isProductionAdminPassword(password string) bool {
+	password = strings.TrimSpace(password)
+	if len(password) < 12 {
+		return false
+	}
+
+	lower := strings.ToLower(password)
+	return password != "admin123" && !strings.Contains(lower, "change-me")
 }
