@@ -21,12 +21,16 @@ type Config struct {
 	AdminPassword string
 
 	EmailEnabled           bool
+	EmailProvider          string
 	SMTPHost               string
 	SMTPPort               int
 	SMTPUsername           string
 	SMTPPassword           string
 	SMTPFrom               string
 	SMTPFromName           string
+	BrevoAPIKey            string
+	BrevoFromEmail         string
+	BrevoFromName          string
 	AdminNotificationEmail string
 }
 
@@ -34,6 +38,10 @@ func Load() (Config, error) {
 	_ = godotenv.Load()
 
 	appEnv := normalizeAppEnv(envOrDefault("APP_ENV", appEnvDevelopment))
+	emailProvider, err := normalizeEmailProvider(envOrDefault("EMAIL_PROVIDER", emailProviderSMTP))
+	if err != nil {
+		return Config{}, err
+	}
 	smtpPort, err := envIntOrDefault("SMTP_PORT", 587)
 	if err != nil {
 		return Config{}, err
@@ -50,12 +58,16 @@ func Load() (Config, error) {
 		AdminEmail:             strings.TrimSpace(os.Getenv("ADMIN_EMAIL")),
 		AdminPassword:          os.Getenv("ADMIN_PASSWORD"),
 		EmailEnabled:           envBoolOrDefault("EMAIL_ENABLED", false),
+		EmailProvider:          emailProvider,
 		SMTPHost:               strings.TrimSpace(os.Getenv("SMTP_HOST")),
 		SMTPPort:               smtpPort,
 		SMTPUsername:           strings.TrimSpace(os.Getenv("SMTP_USERNAME")),
 		SMTPPassword:           os.Getenv("SMTP_PASSWORD"),
 		SMTPFrom:               strings.TrimSpace(os.Getenv("SMTP_FROM")),
 		SMTPFromName:           envOrDefault("SMTP_FROM_NAME", "Car Rental Web"),
+		BrevoAPIKey:            strings.TrimSpace(os.Getenv("BREVO_API_KEY")),
+		BrevoFromEmail:         strings.TrimSpace(os.Getenv("BREVO_FROM_EMAIL")),
+		BrevoFromName:          strings.TrimSpace(os.Getenv("BREVO_FROM_NAME")),
 		AdminNotificationEmail: strings.TrimSpace(os.Getenv("ADMIN_NOTIFICATION_EMAIL")),
 	}
 
@@ -104,6 +116,9 @@ const (
 	appEnvDevelopment = "development"
 	appEnvProduction  = "production"
 
+	emailProviderSMTP  = "smtp"
+	emailProviderBrevo = "brevo"
+
 	defaultDatabaseURL   = "postgres://car_rental_user:car_rental_password@localhost:5432/car_rental_web?sslmode=disable"
 	defaultSessionSecret = "change-me-in-development"
 )
@@ -116,20 +131,49 @@ func normalizeAppEnv(value string) string {
 	return appEnvDevelopment
 }
 
+func normalizeEmailProvider(value string) (string, error) {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		return emailProviderSMTP, nil
+	}
+
+	switch normalized {
+	case emailProviderSMTP, emailProviderBrevo:
+		return normalized, nil
+	default:
+		return "", fmt.Errorf("EMAIL_PROVIDER must be one of: %s, %s", emailProviderSMTP, emailProviderBrevo)
+	}
+}
+
 func validateEmailConfig(cfg Config) error {
 	if !cfg.EmailEnabled {
 		return nil
 	}
 
 	missing := make([]string, 0)
-	if cfg.SMTPHost == "" {
-		missing = append(missing, "SMTP_HOST")
-	}
-	if cfg.SMTPPort <= 0 {
-		missing = append(missing, "SMTP_PORT")
-	}
-	if cfg.SMTPFrom == "" {
-		missing = append(missing, "SMTP_FROM")
+	switch cfg.EmailProvider {
+	case emailProviderSMTP:
+		if cfg.SMTPHost == "" {
+			missing = append(missing, "SMTP_HOST")
+		}
+		if cfg.SMTPPort <= 0 {
+			missing = append(missing, "SMTP_PORT")
+		}
+		if cfg.SMTPFrom == "" {
+			missing = append(missing, "SMTP_FROM")
+		}
+	case emailProviderBrevo:
+		if cfg.BrevoAPIKey == "" {
+			missing = append(missing, "BREVO_API_KEY")
+		}
+		if cfg.BrevoFromEmail == "" {
+			missing = append(missing, "BREVO_FROM_EMAIL")
+		}
+		if cfg.BrevoFromName == "" {
+			missing = append(missing, "BREVO_FROM_NAME")
+		}
+	default:
+		return fmt.Errorf("EMAIL_PROVIDER must be one of: %s, %s", emailProviderSMTP, emailProviderBrevo)
 	}
 	if cfg.AdminNotificationEmail == "" {
 		missing = append(missing, "ADMIN_NOTIFICATION_EMAIL")

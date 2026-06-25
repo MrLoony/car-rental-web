@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -29,6 +32,14 @@ func TestNewEmailSenderReturnsSMTPWhenEnabled(t *testing.T) {
 
 	if _, ok := sender.(*SMTPSender); !ok {
 		t.Fatalf("NewEmailSender() = %T, want *SMTPSender", sender)
+	}
+}
+
+func TestNewEmailSenderReturnsBrevoWhenConfigured(t *testing.T) {
+	sender := NewEmailSender(validBrevoEmailConfig())
+
+	if _, ok := sender.(*BrevoEmailSender); !ok {
+		t.Fatalf("NewEmailSender() = %T, want *BrevoEmailSender", sender)
 	}
 }
 
@@ -141,6 +152,111 @@ func TestSMTPSenderEncodesUTF8SubjectAndFromName(t *testing.T) {
 	assertContains(t, raw, "<no-reply@example.test>")
 }
 
+func TestBrevoEmailSenderSendsExpectedRequest(t *testing.T) {
+	var gotRequest brevoEmailPayload
+	var gotAPIKey string
+	var gotAccept string
+	var gotContentType string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("method = %s, want POST", r.Method)
+		}
+
+		gotAPIKey = r.Header.Get("api-key")
+		gotAccept = r.Header.Get("accept")
+		gotContentType = r.Header.Get("content-type")
+		if err := json.NewDecoder(r.Body).Decode(&gotRequest); err != nil {
+			t.Fatalf("decode Brevo payload: %v", err)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{"messageId":"message-id"}`))
+	}))
+	defer server.Close()
+
+	sender := NewBrevoEmailSender("secret-api-key", "no-reply@example.test", "Car Rental Web", server.Client())
+	sender.endpoint = server.URL
+
+	err := sender.Send(context.Background(), EmailMessage{
+		To:       "customer@example.test",
+		Subject:  "Booking update",
+		TextBody: "Plain text body",
+		HTMLBody: "<p>HTML body</p>",
+	})
+	if err != nil {
+		t.Fatalf("Send() error = %v, want nil", err)
+	}
+
+	if gotAPIKey != "secret-api-key" {
+		t.Fatalf("api-key header = %q, want configured key", gotAPIKey)
+	}
+	if gotAccept != "application/json" {
+		t.Fatalf("accept header = %q, want application/json", gotAccept)
+	}
+	if gotContentType != "application/json" {
+		t.Fatalf("content-type header = %q, want application/json", gotContentType)
+	}
+	if gotRequest.Sender.Email != "no-reply@example.test" {
+		t.Fatalf("sender email = %q, want no-reply@example.test", gotRequest.Sender.Email)
+	}
+	if gotRequest.Sender.Name != "Car Rental Web" {
+		t.Fatalf("sender name = %q, want Car Rental Web", gotRequest.Sender.Name)
+	}
+	if len(gotRequest.To) != 1 || gotRequest.To[0].Email != "customer@example.test" {
+		t.Fatalf("to = %#v, want customer recipient", gotRequest.To)
+	}
+	if gotRequest.Subject != "Booking update" {
+		t.Fatalf("subject = %q, want Booking update", gotRequest.Subject)
+	}
+	if gotRequest.TextContent != "Plain text body" {
+		t.Fatalf("textContent = %q, want text body", gotRequest.TextContent)
+	}
+	if gotRequest.HTMLContent != "<p>HTML body</p>" {
+		t.Fatalf("htmlContent = %q, want HTML body", gotRequest.HTMLContent)
+	}
+}
+
+func TestBrevoEmailSenderTreatsNon2xxAsErrorWithoutAPIKey(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "invalid key secret-api-key", http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	sender := NewBrevoEmailSender("secret-api-key", "no-reply@example.test", "Car Rental Web", server.Client())
+	sender.endpoint = server.URL
+
+	err := sender.Send(context.Background(), EmailMessage{
+		To:       "customer@example.test",
+		Subject:  "Booking update",
+		TextBody: "Plain text body",
+	})
+	if err == nil {
+		t.Fatal("Send() error = nil, want non-2xx error")
+	}
+	if !strings.Contains(err.Error(), "unexpected status 401") {
+		t.Fatalf("Send() error = %q, want status code", err.Error())
+	}
+	if strings.Contains(err.Error(), "secret-api-key") {
+		t.Fatalf("Send() error exposes API key: %q", err.Error())
+	}
+}
+
+func TestBrevoEmailSenderRejectsInvalidMessages(t *testing.T) {
+	sender := NewBrevoEmailSender("secret-api-key", "no-reply@example.test", "Car Rental Web", nil)
+
+	err := sender.Send(context.Background(), EmailMessage{
+		Subject:  "Missing recipient",
+		TextBody: "Body",
+	})
+	if err == nil {
+		t.Fatal("Send() error = nil, want validation error")
+	}
+	if !strings.Contains(err.Error(), "recipient") {
+		t.Fatalf("Send() error = %q, want recipient validation", err.Error())
+	}
+}
+
 func buildTestEmailMessage(t *testing.T, sender *SMTPSender, message EmailMessage) string {
 	t.Helper()
 
@@ -154,11 +270,22 @@ func buildTestEmailMessage(t *testing.T, sender *SMTPSender, message EmailMessag
 
 func validEmailConfig() config.Config {
 	return config.Config{
-		EmailEnabled: true,
-		SMTPHost:     "smtp.example.test",
-		SMTPPort:     587,
-		SMTPFrom:     "no-reply@example.test",
-		SMTPFromName: "Car Rental Web",
+		EmailEnabled:  true,
+		EmailProvider: "smtp",
+		SMTPHost:      "smtp.example.test",
+		SMTPPort:      587,
+		SMTPFrom:      "no-reply@example.test",
+		SMTPFromName:  "Car Rental Web",
+	}
+}
+
+func validBrevoEmailConfig() config.Config {
+	return config.Config{
+		EmailEnabled:   true,
+		EmailProvider:  "brevo",
+		BrevoAPIKey:    "secret-api-key",
+		BrevoFromEmail: "no-reply@example.test",
+		BrevoFromName:  "Car Rental Web",
 	}
 }
 

@@ -3,12 +3,16 @@ package service
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"mime"
 	"mime/quotedprintable"
+	"net/http"
 	"net/smtp"
 	"strings"
+	"time"
 
 	"github.com/MrLoony/car-rental-web/internal/config"
 )
@@ -39,9 +43,21 @@ type SMTPSender struct {
 	fromName string
 }
 
+type BrevoEmailSender struct {
+	apiKey    string
+	fromEmail string
+	fromName  string
+	client    *http.Client
+	endpoint  string
+}
+
 func NewEmailSender(cfg config.Config) EmailSender {
 	if !cfg.EmailEnabled {
 		return NoopEmailSender{}
+	}
+
+	if cfg.EmailProvider == "brevo" {
+		return NewBrevoEmailSender(cfg.BrevoAPIKey, cfg.BrevoFromEmail, cfg.BrevoFromName, nil)
 	}
 
 	return NewSMTPSender(cfg)
@@ -91,6 +107,103 @@ func (s *SMTPSender) Send(ctx context.Context, message EmailMessage) error {
 	}
 
 	return nil
+}
+
+const brevoEmailEndpoint = "https://api.brevo.com/v3/smtp/email"
+
+func NewBrevoEmailSender(apiKey, fromEmail, fromName string, httpClient *http.Client) *BrevoEmailSender {
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: 10 * time.Second}
+	}
+
+	return &BrevoEmailSender{
+		apiKey:    strings.TrimSpace(apiKey),
+		fromEmail: strings.TrimSpace(fromEmail),
+		fromName:  strings.TrimSpace(fromName),
+		client:    httpClient,
+		endpoint:  brevoEmailEndpoint,
+	}
+}
+
+func (s *BrevoEmailSender) Send(ctx context.Context, message EmailMessage) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if err := validateEmailMessage(message); err != nil {
+		return err
+	}
+
+	payload := brevoEmailPayload{
+		Sender: brevoEmailAddress{
+			Email: s.fromEmail,
+			Name:  s.fromName,
+		},
+		To: []brevoEmailAddress{
+			{Email: strings.TrimSpace(message.To)},
+		},
+		Subject:     strings.TrimSpace(message.Subject),
+		HTMLContent: message.HTMLBody,
+		TextContent: message.TextBody,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("marshal brevo email payload: %w", err)
+	}
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, s.endpoint, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("create brevo email request: %w", err)
+	}
+	request.Header.Set("accept", "application/json")
+	request.Header.Set("api-key", s.apiKey)
+	request.Header.Set("content-type", "application/json")
+
+	response, err := s.client.Do(request)
+	if err != nil {
+		return fmt.Errorf("send email via brevo: %w", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		snippet := safeBrevoResponseSnippet(response.Body, s.apiKey)
+		if snippet != "" {
+			return fmt.Errorf("send email via brevo: unexpected status %d: %s", response.StatusCode, snippet)
+		}
+
+		return fmt.Errorf("send email via brevo: unexpected status %d", response.StatusCode)
+	}
+
+	return nil
+}
+
+type brevoEmailPayload struct {
+	Sender      brevoEmailAddress   `json:"sender"`
+	To          []brevoEmailAddress `json:"to"`
+	Subject     string              `json:"subject"`
+	HTMLContent string              `json:"htmlContent,omitempty"`
+	TextContent string              `json:"textContent,omitempty"`
+}
+
+type brevoEmailAddress struct {
+	Email string `json:"email"`
+	Name  string `json:"name,omitempty"`
+}
+
+func safeBrevoResponseSnippet(body io.Reader, apiKey string) string {
+	const maxSnippetBytes = 512
+
+	data, err := io.ReadAll(io.LimitReader(body, maxSnippetBytes))
+	if err != nil {
+		return ""
+	}
+
+	snippet := strings.TrimSpace(string(data))
+	if apiKey != "" {
+		snippet = strings.ReplaceAll(snippet, apiKey, "[redacted]")
+	}
+
+	return snippet
 }
 
 func (s *SMTPSender) buildMessage(message EmailMessage) ([]byte, error) {

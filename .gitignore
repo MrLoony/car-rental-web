@@ -10,3 +10,7 @@ web/static/uploads/cars/*
 !web/static/uploads/cars/.gitkeep
 !web/static/uploads/cars/demo/
 !web/static/uploads/cars/demo/**
+demo_seed.sql
+seed_data.sql
+*.dump
+*.backup

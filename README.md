@@ -294,16 +294,22 @@ Email settings:
 
 ```text
 EMAIL_ENABLED=false
+EMAIL_PROVIDER=smtp
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USERNAME=
 SMTP_PASSWORD=
 SMTP_FROM=
 SMTP_FROM_NAME="Car Rental Web"
+BREVO_API_KEY=
+BREVO_FROM_EMAIL=
+BREVO_FROM_NAME="Car Rental Web"
 ADMIN_NOTIFICATION_EMAIL=
 ```
 
-When `EMAIL_ENABLED=true`, the application requires:
+When `EMAIL_ENABLED=true`, `EMAIL_PROVIDER` selects the delivery method. If it is omitted, the application defaults to `smtp`.
+
+SMTP remains supported for local development and compatible providers. With `EMAIL_PROVIDER=smtp`, the application requires:
 
 - `SMTP_HOST`
 - `SMTP_PORT`
@@ -311,6 +317,15 @@ When `EMAIL_ENABLED=true`, the application requires:
 - `ADMIN_NOTIFICATION_EMAIL`
 
 `SMTP_USERNAME` and `SMTP_PASSWORD` are optional to support development SMTP providers that do not require authentication.
+
+Brevo Transactional Email over HTTPS is recommended for Render free deployments where SMTP ports can time out. With `EMAIL_PROVIDER=brevo`, the application requires:
+
+- `BREVO_API_KEY`
+- `BREVO_FROM_EMAIL`
+- `BREVO_FROM_NAME`
+- `ADMIN_NOTIFICATION_EMAIL`
+
+The Brevo sender uses the HTTPS API endpoint rather than SMTP ports. Configure API keys only in the hosting provider environment.
 
 When `APP_ENV=production`, the application fails fast unless deployment-critical values are configured safely:
 
@@ -350,16 +365,31 @@ SESSION_SECRET=<strong random secret>
 ADMIN_EMAIL=<admin login email>
 ADMIN_PASSWORD=<strong admin password>
 EMAIL_ENABLED=false
+EMAIL_PROVIDER=smtp
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USERNAME=
 SMTP_PASSWORD=
 SMTP_FROM=
 SMTP_FROM_NAME="Car Rental Web"
+BREVO_API_KEY=
+BREVO_FROM_EMAIL=
+BREVO_FROM_NAME="Car Rental Web"
 ADMIN_NOTIFICATION_EMAIL=
 ```
 
-If `EMAIL_ENABLED=true`, configure the SMTP fields and `ADMIN_NOTIFICATION_EMAIL`.
+For Render email notifications with Brevo:
+
+```text
+EMAIL_ENABLED=true
+EMAIL_PROVIDER=brevo
+BREVO_API_KEY=<Brevo API key>
+BREVO_FROM_EMAIL=<verified sender email>
+BREVO_FROM_NAME="Car Rental Web"
+ADMIN_NOTIFICATION_EMAIL=<admin notification recipient>
+```
+
+Brevo uses HTTPS API requests, so it avoids SMTP port timeouts on hosts where outbound SMTP is blocked or unreliable.
 
 Local gallery uploads are stored under `web/static/uploads/cars`. The repository ignores runtime uploads by default and commits only curated demo images under `web/static/uploads/cars/demo/`; on free Render services, runtime filesystem uploads are not persistent across redeploys. Committed demo images are intentional for defense/demo data, while a real production deployment should use object storage or persistent disk for media.
 

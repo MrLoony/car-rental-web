@@ -137,6 +137,9 @@ func TestLoadDefaultEmailConfig(t *testing.T) {
 	if cfg.EmailEnabled {
 		t.Fatal("EmailEnabled = true, want false")
 	}
+	if cfg.EmailProvider != emailProviderSMTP {
+		t.Fatalf("EmailProvider = %q, want %q", cfg.EmailProvider, emailProviderSMTP)
+	}
 	if cfg.SMTPPort != 587 {
 		t.Fatalf("SMTPPort = %d, want 587", cfg.SMTPPort)
 	}
@@ -166,6 +169,32 @@ func TestLoadEmailDisabledAllowsEmptySMTPConfig(t *testing.T) {
 	if cfg.AdminNotificationEmail != "" {
 		t.Fatalf("AdminNotificationEmail = %q, want empty", cfg.AdminNotificationEmail)
 	}
+}
+
+func TestLoadEmailDisabledAllowsEmptyBrevoConfig(t *testing.T) {
+	clearEmailEnv(t)
+	t.Setenv("EMAIL_ENABLED", "false")
+	t.Setenv("EMAIL_PROVIDER", "brevo")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+
+	if cfg.EmailEnabled {
+		t.Fatal("EmailEnabled = true, want false")
+	}
+	if cfg.EmailProvider != emailProviderBrevo {
+		t.Fatalf("EmailProvider = %q, want %q", cfg.EmailProvider, emailProviderBrevo)
+	}
+}
+
+func TestLoadInvalidEmailProviderFails(t *testing.T) {
+	clearEmailEnv(t)
+	t.Setenv("EMAIL_PROVIDER", "mailgun")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "EMAIL_PROVIDER")
 }
 
 func TestLoadEmailEnabledRequiresSMTPHost(t *testing.T) {
@@ -208,6 +237,57 @@ func TestLoadEmailEnabledWithRequiredConfig(t *testing.T) {
 	}
 }
 
+func TestLoadEmailEnabledWithBrevoProviderRequiresAPIKey(t *testing.T) {
+	setValidBrevoEmailEnv(t)
+	t.Setenv("BREVO_API_KEY", "")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "BREVO_API_KEY")
+}
+
+func TestLoadEmailEnabledWithBrevoProviderRequiresFromEmail(t *testing.T) {
+	setValidBrevoEmailEnv(t)
+	t.Setenv("BREVO_FROM_EMAIL", "")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "BREVO_FROM_EMAIL")
+}
+
+func TestLoadEmailEnabledWithBrevoProviderRequiresFromName(t *testing.T) {
+	setValidBrevoEmailEnv(t)
+	t.Setenv("BREVO_FROM_NAME", "")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "BREVO_FROM_NAME")
+}
+
+func TestLoadEmailEnabledWithBrevoProviderRequiresAdminNotificationEmail(t *testing.T) {
+	setValidBrevoEmailEnv(t)
+	t.Setenv("ADMIN_NOTIFICATION_EMAIL", "")
+
+	_, err := Load()
+	assertConfigErrorContains(t, err, "ADMIN_NOTIFICATION_EMAIL")
+}
+
+func TestLoadEmailEnabledWithBrevoProvider(t *testing.T) {
+	setValidBrevoEmailEnv(t)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+
+	if cfg.EmailProvider != emailProviderBrevo {
+		t.Fatalf("EmailProvider = %q, want %q", cfg.EmailProvider, emailProviderBrevo)
+	}
+	if cfg.BrevoAPIKey != "brevo-api-key" {
+		t.Fatalf("BrevoAPIKey = %q, want configured key", cfg.BrevoAPIKey)
+	}
+	if cfg.BrevoFromEmail != "no-reply@example.test" {
+		t.Fatalf("BrevoFromEmail = %q, want configured sender", cfg.BrevoFromEmail)
+	}
+}
+
 func clearEmailEnv(t *testing.T) {
 	t.Helper()
 
@@ -219,12 +299,16 @@ func clearEmailEnv(t *testing.T) {
 	t.Setenv("ADMIN_EMAIL", "")
 	t.Setenv("ADMIN_PASSWORD", "")
 	t.Setenv("EMAIL_ENABLED", "")
+	t.Setenv("EMAIL_PROVIDER", "")
 	t.Setenv("SMTP_HOST", "")
 	t.Setenv("SMTP_PORT", "")
 	t.Setenv("SMTP_USERNAME", "")
 	t.Setenv("SMTP_PASSWORD", "")
 	t.Setenv("SMTP_FROM", "")
 	t.Setenv("SMTP_FROM_NAME", "")
+	t.Setenv("BREVO_API_KEY", "")
+	t.Setenv("BREVO_FROM_EMAIL", "")
+	t.Setenv("BREVO_FROM_NAME", "")
 	t.Setenv("ADMIN_NOTIFICATION_EMAIL", "")
 }
 
@@ -242,12 +326,25 @@ func setValidEmailEnv(t *testing.T) {
 	t.Helper()
 
 	t.Setenv("EMAIL_ENABLED", "true")
+	t.Setenv("EMAIL_PROVIDER", "smtp")
 	t.Setenv("SMTP_HOST", "smtp.example.test")
 	t.Setenv("SMTP_PORT", "")
 	t.Setenv("SMTP_USERNAME", "")
 	t.Setenv("SMTP_PASSWORD", "")
 	t.Setenv("SMTP_FROM", "no-reply@example.test")
 	t.Setenv("SMTP_FROM_NAME", "Car Rental Web")
+	t.Setenv("ADMIN_NOTIFICATION_EMAIL", "admin@example.test")
+}
+
+func setValidBrevoEmailEnv(t *testing.T) {
+	t.Helper()
+
+	clearEmailEnv(t)
+	t.Setenv("EMAIL_ENABLED", "true")
+	t.Setenv("EMAIL_PROVIDER", "brevo")
+	t.Setenv("BREVO_API_KEY", "brevo-api-key")
+	t.Setenv("BREVO_FROM_EMAIL", "no-reply@example.test")
+	t.Setenv("BREVO_FROM_NAME", "Car Rental Web")
 	t.Setenv("ADMIN_NOTIFICATION_EMAIL", "admin@example.test")
 }
 
