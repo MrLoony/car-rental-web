@@ -84,7 +84,7 @@
                 Reset
             </a>
             <label class="favorites-filter">
-                <input class="h-4 w-4 rounded border-slate-300 text-sky-700 dark:text-sky-300 focus:ring-sky-600" type="checkbox" data-favorites-only-toggle>
+                <input class="h-4 w-4 rounded border-slate-300 text-sky-700 dark:text-sky-300 focus:ring-sky-600" type="checkbox" {{if .Filter.FavoritesOnly}}checked{{end}} data-favorites-only-toggle>
                 <span>Show favorites only</span>
             </label>
             <p class="hidden text-sm font-medium text-slate-500 dark:text-slate-400" data-filter-status aria-live="polite">Updating results...</p>
@@ -152,13 +152,6 @@
     {{end}}
 </section>
 
-<section class="favorites-empty-state hidden" data-favorites-empty-state>
-    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No favorite vehicles yet</h2>
-    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
-        Browse the catalog and save vehicles for later.
-    </p>
-</section>
-
 {{if gt .Pagination.TotalItems 0}}
 <nav class="flex flex-col gap-3 border-t border-slate-200 dark:border-slate-700 pt-6 sm:flex-row sm:items-center sm:justify-between" aria-label="Catalog pagination">
     <div>
@@ -192,7 +185,15 @@
 {{end}}
 {{else}}
 <section class="catalog-empty-state">
-    {{if .HasActiveFilters}}
+    {{if .Filter.FavoritesOnly}}
+    <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No favorite cars found</h2>
+    <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
+        Save cars from the catalog to compare them later.
+    </p>
+    <a class="btn btn-secondary mt-6" href="/cars">
+        Browse cars
+    </a>
+    {{else if .HasActiveFilters}}
     <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">No cars match your filters</h2>
     <p class="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
         Try changing your search, removing a filter, or clearing all filters.

@@ -373,6 +373,9 @@
   .h-4 {
     height: calc(var(--spacing) * 4);
   }
+  .h-5 {
+    height: calc(var(--spacing) * 5);
+  }
   .h-10 {
     height: calc(var(--spacing) * 10);
   }
@@ -399,6 +402,9 @@
   }
   .w-4 {
     width: calc(var(--spacing) * 4);
+  }
+  .w-5 {
+    width: calc(var(--spacing) * 5);
   }
   .w-10 {
     width: calc(var(--spacing) * 10);
@@ -1697,7 +1703,9 @@
 }
 @layer components {
   .app-shell {
+    display: flex;
     min-height: 100vh;
+    flex-direction: column;
     background-color: var(--color-slate-50);
     color: var(--color-slate-950);
     -webkit-font-smoothing: antialiased;
@@ -4979,9 +4987,9 @@
     position: absolute;
     top: calc(1 / 2 * 100%);
     z-index: 10;
-    display: flex;
-    height: calc(var(--spacing) * 10);
-    width: calc(var(--spacing) * 10);
+    display: inline-flex;
+    height: calc(var(--spacing) * 11);
+    width: calc(var(--spacing) * 11);
     --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
     align-items: center;
@@ -4993,16 +5001,11 @@
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-white) 70%, transparent);
     }
-    background-color: color-mix(in srgb, #fff 85%, transparent);
+    background-color: color-mix(in srgb, #fff 90%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, var(--color-white) 85%, transparent);
+      background-color: color-mix(in oklab, var(--color-white) 90%, transparent);
     }
-    font-size: var(--text-2xl);
-    line-height: var(--tw-leading, var(--text-2xl--line-height));
-    --tw-leading: 1;
-    line-height: 1;
-    --tw-font-weight: var(--font-weight-semibold);
-    font-weight: var(--font-weight-semibold);
+    padding: calc(var(--spacing) * 0);
     color: var(--color-slate-800);
     --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -5038,9 +5041,9 @@
       }
     }
     &:is(.dark *) {
-      background-color: color-mix(in srgb, oklch(20.8% 0.042 265.755) 85%, transparent);
+      background-color: color-mix(in srgb, oklch(20.8% 0.042 265.755) 90%, transparent);
       @supports (color: color-mix(in lab, red, red)) {
-        background-color: color-mix(in oklab, var(--color-slate-900) 85%, transparent);
+        background-color: color-mix(in oklab, var(--color-slate-900) 90%, transparent);
       }
     }
     &:is(.dark *) {

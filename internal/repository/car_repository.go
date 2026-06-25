@@ -864,6 +864,15 @@ func appendPublicCarFilters(query *strings.Builder, args *[]any, filter model.Ca
 	if filter.Transmission != "" {
 		addFilter("c.transmission = $%d", filter.Transmission)
 	}
+
+	if filter.FavoritesOnly {
+		if len(filter.FavoriteSlugs) == 0 {
+			query.WriteString(" AND FALSE")
+			return
+		}
+
+		addFilter("c.slug = ANY($%d)", filter.FavoriteSlugs)
+	}
 }
 
 func appendAdminCarFilters(query *strings.Builder, args *[]any, filter model.AdminCarFilter) {

@@ -1,7 +1,6 @@
 import { on, qs, qsa } from "./utils.js";
 
 const storageKey = "carRentalFavorites";
-const favoritesFilterKey = "carRentalFavoritesOnly";
 let favorites = new Set();
 
 export function initFavorites() {
@@ -11,12 +10,15 @@ export function initFavorites() {
     renderFavoriteState();
 
     on(window, "storage", (event) => {
-        if (event.key !== storageKey && event.key !== favoritesFilterKey) {
+        if (event.key !== storageKey) {
             return;
         }
 
         favorites = new Set(readFavoritesFromStorage());
         renderFavoriteState();
+        if (isFavoritesModeActive()) {
+            syncFavoritesURL();
+        }
     });
 }
 
@@ -88,17 +90,23 @@ function initFavoriteButtons() {
             const isNowFavorite = toggleFavorite(slug);
 
             showFavoritesToast(isNowFavorite, carName);
+            if (isFavoritesModeActive()) {
+                syncFavoritesURL();
+            }
         });
     });
 }
 
 function initFavoritesFilter() {
     qsa("[data-favorites-only-toggle]").forEach((toggle) => {
-        toggle.checked = readFavoritesOnlyPreference();
+        toggle.checked = isFavoritesModeActive();
 
         on(toggle, "change", () => {
-            persistFavoritesOnlyPreference(toggle.checked);
-            renderFavoriteState();
+            if (toggle.checked) {
+                navigateToFavoritesMode();
+            } else {
+                navigateFromFavoritesMode();
+            }
         });
     });
 }
@@ -139,26 +147,11 @@ function renderFavoritesCounter() {
 }
 
 function renderFavoritesFilter() {
-    const favoritesOnly = readFavoritesOnlyPreference();
-    const cards = qsa("[data-favorite-card]");
-    const emptyState = qs("[data-favorites-empty-state]");
-    let visibleCount = 0;
+    const favoritesOnly = isFavoritesModeActive();
 
     qsa("[data-favorites-only-toggle]").forEach((toggle) => {
         toggle.checked = favoritesOnly;
     });
-
-    cards.forEach((card) => {
-        const visible = !favoritesOnly || isFavorite(card.dataset.carSlug);
-        card.hidden = !visible;
-        if (visible) {
-            visibleCount += 1;
-        }
-    });
-
-    if (emptyState) {
-        emptyState.classList.toggle("hidden", !favoritesOnly || visibleCount > 0);
-    }
 }
 
 function readFavoritesFromStorage() {
@@ -182,20 +175,38 @@ function persistFavorites() {
     }
 }
 
-function readFavoritesOnlyPreference() {
-    try {
-        return window.localStorage.getItem(favoritesFilterKey) === "true";
-    } catch {
-        return false;
-    }
+function isFavoritesModeActive() {
+    return new URLSearchParams(window.location.search).has("favorites");
 }
 
-function persistFavoritesOnlyPreference(enabled) {
-    try {
-        window.localStorage.setItem(favoritesFilterKey, enabled ? "true" : "false");
-    } catch {
-        // Filtering still applies for the current page even if storage is unavailable.
+function navigateToFavoritesMode() {
+    const url = new URL(window.location.href);
+    const slugs = getFavorites();
+
+    url.searchParams.delete("page");
+    url.searchParams.set("favorites", slugs.join(","));
+    window.location.assign(url.toString());
+}
+
+function navigateFromFavoritesMode() {
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("favorites");
+    url.searchParams.delete("page");
+    window.location.assign(url.toString());
+}
+
+function syncFavoritesURL() {
+    const current = new URLSearchParams(window.location.search).get("favorites") || "";
+    const next = getFavorites().join(",");
+    if (current === next) {
+        return;
     }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("page");
+    url.searchParams.set("favorites", next);
+    window.location.assign(url.toString());
 }
 
 function normalizeSlug(value) {

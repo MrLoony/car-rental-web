@@ -244,7 +244,7 @@ Frontend state storage is intentionally browser-local:
 
 - `localStorage.carRentalTheme` stores the selected theme mode: `light`, `dark`, or `system`
 - `localStorage.carRentalFavorites` stores frontend-only favorite car slugs
-- `localStorage.carRentalFavoritesOnly` stores the catalog's client-side favorites filter preference
+- the catalog favorites-only view uses a `favorites` query parameter generated from browser-local favorite slugs
 - `sessionStorage.carRentalBookingDraft:<car-slug>` stores temporary booking form draft values for the current browser session
 
 These features are convenience enhancements. They do not replace server-side booking validation, authentication, persistence, or authorization.

@@ -22,10 +22,14 @@
 
                     {{if gt (len .CarImages) 1}}
                     <button class="car-gallery-control left-4" type="button" data-gallery-prev aria-label="Show previous vehicle image" hidden>
-                        <span aria-hidden="true">‹</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <button class="car-gallery-control right-4" type="button" data-gallery-next aria-label="Show next vehicle image" hidden>
-                        <span aria-hidden="true">›</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                     </button>
                     <span class="car-gallery-counter" data-gallery-counter aria-live="polite">1 / {{len .CarImages}}</span>
                     {{end}}

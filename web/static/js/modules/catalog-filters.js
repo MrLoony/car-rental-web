@@ -127,6 +127,9 @@ function updateActiveFilterCount(form) {
     if ((formData.get("sort") || "").toString() !== "" && formData.get("sort") !== "newest") {
         count += 1;
     }
+    if (new URLSearchParams(window.location.search).has("favorites")) {
+        count += 1;
+    }
 
     output.textContent = String(count);
 }

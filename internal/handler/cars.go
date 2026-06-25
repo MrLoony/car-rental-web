@@ -15,14 +15,17 @@ import (
 func (h *Handler) CarsIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		page := parsePositiveInt(r.URL.Query().Get("page"), model.DefaultPage)
+		favoriteSlugs, favoritesOnly := parseFavoriteSlugs(r.URL.Query())
 		filter := model.CarFilter{
-			Search:       r.URL.Query().Get("search"),
-			CategorySlug: r.URL.Query().Get("category"),
-			FuelType:     r.URL.Query().Get("fuel"),
-			Transmission: r.URL.Query().Get("transmission"),
-			Sort:         model.NormalizeCarSort(r.URL.Query().Get("sort")),
-			Page:         page,
-			PerPage:      6,
+			Search:        r.URL.Query().Get("search"),
+			CategorySlug:  r.URL.Query().Get("category"),
+			FuelType:      r.URL.Query().Get("fuel"),
+			Transmission:  r.URL.Query().Get("transmission"),
+			FavoritesOnly: favoritesOnly,
+			FavoriteSlugs: favoriteSlugs,
+			Sort:          model.NormalizeCarSort(r.URL.Query().Get("sort")),
+			Page:          page,
+			PerPage:       6,
 		}
 
 		cars, pagination, err := h.carService.ListCarsPage(r.Context(), filter)
@@ -92,6 +95,7 @@ func hasActiveCarFilters(filter model.CarFilter) bool {
 		filter.CategorySlug != "" ||
 		filter.FuelType != "" ||
 		filter.Transmission != "" ||
+		filter.FavoritesOnly ||
 		(filter.Sort != "" && filter.Sort != model.SortNewest)
 }
 
@@ -133,6 +137,13 @@ func catalogFilterChips(filter model.CarFilter, categories []model.Category) []C
 		})
 	}
 
+	if filter.FavoritesOnly {
+		chips = append(chips, CatalogFilterChip{
+			Label:     "Favorites only",
+			RemoveURL: catalogFilterURL(filter, "favorites"),
+		})
+	}
+
 	return chips
 }
 
@@ -154,12 +165,41 @@ func catalogFilterURL(filter model.CarFilter, removeParam string) string {
 	if filter.Sort != "" && filter.Sort != model.SortNewest && removeParam != "sort" {
 		values.Set("sort", filter.Sort)
 	}
+	if filter.FavoritesOnly && removeParam != "favorites" {
+		values.Set("favorites", strings.Join(filter.FavoriteSlugs, ","))
+	}
 
 	if encoded := values.Encode(); encoded != "" {
 		return "/cars?" + encoded
 	}
 
 	return "/cars"
+}
+
+func parseFavoriteSlugs(values url.Values) ([]string, bool) {
+	raw, ok := values["favorites"]
+	if !ok {
+		return nil, false
+	}
+
+	seen := make(map[string]struct{})
+	slugs := make([]string, 0)
+	for _, value := range raw {
+		for _, item := range strings.Split(value, ",") {
+			slug := strings.ToLower(strings.TrimSpace(item))
+			if slug == "" {
+				continue
+			}
+			if _, exists := seen[slug]; exists {
+				continue
+			}
+
+			seen[slug] = struct{}{}
+			slugs = append(slugs, slug)
+		}
+	}
+
+	return slugs, true
 }
 
 func categoryLabel(slug string, categories []model.Category) string {

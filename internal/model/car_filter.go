@@ -7,13 +7,15 @@ const (
 )
 
 type CarFilter struct {
-	Search       string
-	CategorySlug string
-	FuelType     string
-	Transmission string
-	Sort         string
-	Page         int
-	PerPage      int
+	Search        string
+	CategorySlug  string
+	FuelType      string
+	Transmission  string
+	FavoritesOnly bool
+	FavoriteSlugs []string
+	Sort          string
+	Page          int
+	PerPage       int
 }
 
 func NormalizeCarSort(sort string) string {

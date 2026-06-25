@@ -40,7 +40,7 @@
         </div>
     </header>
 
-    <main id="main-content" tabindex="-1">
+    <main id="main-content" class="flex-1" tabindex="-1">
         <div class="page-container py-10 sm:py-14">
             {{with .Flash}}
             <div class="mb-6 rounded-md border px-4 py-3 text-sm {{if eq .Type "success"}}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-200{{else if eq .Type "warning"}}border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/70 dark:text-amber-200{{else}}border-red-200 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950/70 dark:text-red-200{{end}}" role="status" data-flash-message data-server-flash data-toast-type="{{.Type}}" data-toast-message="{{urlquery .Message}}" data-print-hidden>

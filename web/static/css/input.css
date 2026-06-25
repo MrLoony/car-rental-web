@@ -10,7 +10,7 @@
 
 @layer components {
   .app-shell {
-    @apply min-h-screen bg-slate-50 text-slate-950 antialiased dark:bg-slate-900 dark:text-slate-100;
+    @apply flex min-h-screen flex-col bg-slate-50 text-slate-950 antialiased dark:bg-slate-900 dark:text-slate-100;
   }
 
   .skip-link {
@@ -535,7 +535,7 @@
   }
 
   .car-gallery-control {
-    @apply absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/85 text-2xl font-semibold leading-none text-slate-800 shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700/80 dark:bg-slate-900/85 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:outline-sky-400;
+    @apply absolute top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/70 bg-white/90 p-0 text-slate-800 shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-700/80 dark:bg-slate-900/90 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:outline-sky-400;
   }
 
   .car-gallery-thumbnail-strip {
